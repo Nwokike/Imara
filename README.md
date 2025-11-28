@@ -1,5 +1,8 @@
 # Project Imara
 
+![homepage](https://imgur.com/Fcfcp9g.png)
+
+
 > **"Imara"** means *"Strong"* in Swahili
 
 A Zero-UI Digital Bodyguard that protects women and girls from online gender-based violence (OGBV).
