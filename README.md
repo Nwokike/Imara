@@ -89,7 +89,7 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 
 * **[Onyeka Nwokike](https://github.com/nwokike)**: Backend Architecture & AI Engineer.
 * **[Betsy Makamu](https://github.com/makamu-okinyi)**: Frontend Engineering & UI/UX.
-* **[Pixel Njoki](https://github.com/PixelNjoki)**: Research Lead & Strategy.
+* **[Whitney Wairimu](https://github.com/PixelNjoki)**: Research Lead & Strategy.
 
 *Building from Nigeria & Kenya* 🇳🇬 🇰🇪
 
