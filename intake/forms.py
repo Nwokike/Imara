@@ -6,7 +6,7 @@ class ReportForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={
             'class': 'form-control',
-            'rows': 5,
+            'rows': 4,
             'placeholder': 'Paste the abusive message or describe the incident here...'
         }),
         label='Message or Description'
@@ -31,13 +31,13 @@ class ReportForm(forms.Form):
     )
     
     email = forms.EmailField(
-        required=False,
+        required=True,
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'your.email@example.com (optional)'
+            'placeholder': 'your.email@example.com'
         }),
-        label='Your Email (Optional)',
-        help_text='For case updates only. We will never share your information.'
+        label='Your Email',
+        help_text='Required. You will receive a confirmation if your report is escalated.'
     )
     
     consent = forms.BooleanField(

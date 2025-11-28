@@ -10,10 +10,10 @@
             <div class="col-lg-6 text-center text-lg-start">
                 <img src="{% static 'images/logo.png' %}" alt="Imara Logo" class="hero-logo">
                 <h1 class="hero-title">Report Online Violence Securely</h1>
-                <p class="hero-subtitle">Your Digital Bodyguard powered by AI. We protect women and girls from online harassment, threats, and violence - no app download needed.</p>
-                <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
+                <p class="hero-subtitle">Your Digital Bodyguard powered by AI. We protect women and girls from online harassment, threats, and violence.</p>
+                <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
                     <a href="{% url 'report_form' %}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-send-fill me-2"></i>Report Now
+                        <i class="bi bi-send-fill me-1"></i>Report Now
                     </a>
                     <a href="#how-it-works" class="btn btn-outline-primary btn-lg">
                         Learn More
@@ -33,47 +33,71 @@
             <h2 class="section-title">Available Platforms</h2>
             <p class="section-subtitle">Access protection wherever you are</p>
         </div>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
-                <div class="card-box text-center">
-                    <div class="card-box-icon mx-auto">
-                        <i class="bi bi-telegram"></i>
-                    </div>
-                    <h5 class="card-box-title">Telegram Bot</h5>
-                    <p class="card-box-text">Forward abusive messages directly to our bot</p>
-                    <span class="badge badge-status badge-active mt-2">Active</span>
+        <div class="platform-grid">
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-globe"></i>
                 </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card-box text-center">
-                    <div class="card-box-icon mx-auto">
-                        <i class="bi bi-globe"></i>
-                    </div>
-                    <h5 class="card-box-title">Web Portal</h5>
-                    <p class="card-box-text">Upload screenshots and reports securely</p>
-                    <span class="badge badge-status badge-active mt-2">Active</span>
+                <h5 class="card-box-title">Web Portal</h5>
+                <p class="card-box-text">Upload screenshots and reports</p>
+                <span class="badge badge-status badge-active mt-2">Active</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-telegram"></i>
                 </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card-box card-coming-soon text-center">
-                    <div class="card-box-icon mx-auto">
-                        <i class="bi bi-whatsapp"></i>
-                    </div>
-                    <h5 class="card-box-title">WhatsApp</h5>
-                    <p class="card-box-text">Protection within your chats</p>
-                    <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+                <h5 class="card-box-title">Telegram Bot</h5>
+                <p class="card-box-text">Forward abusive messages</p>
+                <span class="badge badge-status badge-active mt-2">Active</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-whatsapp"></i>
                 </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card-box card-coming-soon text-center">
-                    <div class="card-box-icon mx-auto">
-                        <i class="bi bi-instagram"></i>
-                    </div>
-                    <h5 class="card-box-title">Instagram</h5>
-                    <p class="card-box-text">Monitor DMs for threats</p>
-                    <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+                <h5 class="card-box-title">WhatsApp</h5>
+                <p class="card-box-text">Protection in your chats</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-instagram"></i>
                 </div>
-            </div>
+                <h5 class="card-box-title">Instagram</h5>
+                <p class="card-box-text">Monitor DMs for threats</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-facebook"></i>
+                </div>
+                <h5 class="card-box-title">Facebook</h5>
+                <p class="card-box-text">Messenger protection</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-twitter-x"></i>
+                </div>
+                <h5 class="card-box-title">X (Twitter)</h5>
+                <p class="card-box-text">Report abusive tweets</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-tiktok"></i>
+                </div>
+                <h5 class="card-box-title">TikTok</h5>
+                <p class="card-box-text">Video threat detection</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
+            <a href="{% url 'report_form' %}" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
+                <div class="card-box-icon mx-auto">
+                    <i class="bi bi-snapchat"></i>
+                </div>
+                <h5 class="card-box-title">Snapchat</h5>
+                <p class="card-box-text">Snap safety monitoring</p>
+                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
+            </a>
         </div>
     </div>
 </section>
@@ -84,26 +108,26 @@
             <h2 class="section-title">How It Works</h2>
             <p class="section-subtitle">Three simple steps to protection</p>
         </div>
-        <div class="row g-4">
+        <div class="row g-3">
             <div class="col-md-4">
-                <div class="card-box text-center">
+                <a href="{% url 'report_form' %}" class="card-box card-box-clickable text-center text-decoration-none">
                     <div class="step-number">1</div>
                     <h5 class="card-box-title">Report</h5>
-                    <p class="card-box-text">Forward abusive messages, screenshots, or voice notes to our system</p>
-                </div>
+                    <p class="card-box-text">Forward abusive messages, screenshots, or voice notes</p>
+                </a>
             </div>
             <div class="col-md-4">
                 <div class="card-box text-center">
                     <div class="step-number">2</div>
                     <h5 class="card-box-title">AI Analysis</h5>
-                    <p class="card-box-text">Our hybrid AI (Groq + Gemini) analyzes the threat level instantly</p>
+                    <p class="card-box-text">Our hybrid AI analyzes the threat level instantly</p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card-box text-center">
                     <div class="step-number">3</div>
                     <h5 class="card-box-title">Action</h5>
-                    <p class="card-box-text">Get advice for minor issues or automatic reporting to authorities for serious threats</p>
+                    <p class="card-box-text">Get advice or automatic reporting to authorities</p>
                 </div>
             </div>
         </div>
@@ -116,38 +140,38 @@
             <h2 class="section-title">What We Detect</h2>
             <p class="section-subtitle">AI-powered threat recognition</p>
         </div>
-        <div class="row g-3">
-            <div class="col-6 col-md-4 col-lg-2">
+        <div class="row g-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-exclamation-triangle text-danger"></i>
                     <h6>Threats</h6>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-geo-alt text-warning"></i>
                     <h6>Doxing</h6>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-cash-coin text-danger"></i>
                     <h6>Blackmail</h6>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-eye text-warning"></i>
                     <h6>Stalking</h6>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-chat-left-dots text-info"></i>
                     <h6>Harassment</h6>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
+            <div class="col-4 col-md-2">
                 <div class="threat-card">
                     <i class="bi bi-camera-video text-danger"></i>
                     <h6>Revenge Porn</h6>
@@ -160,9 +184,9 @@
 <section class="cta-section">
     <div class="container">
         <h2>Ready to Get Protected?</h2>
-        <p>Don't suffer in silence. Report abuse now and let our AI-powered system help you.</p>
+        <p>Don't suffer in silence. Report abuse now and let our AI help you.</p>
         <a href="{% url 'report_form' %}" class="btn btn-lg">
-            <i class="bi bi-shield-check me-2"></i>Report Abuse Now
+            <i class="bi bi-shield-check me-1"></i>Report Now
         </a>
     </div>
 </section>
