@@ -1,8 +1,8 @@
 import logging
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
-from .clients import GroqClient, GeminiClient
+from .clients import get_groq_client, get_gemini_client, GroqClientError, GeminiClientError
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ class TriageResult:
     threat_type: Optional[str]
     extracted_text: Optional[str] = None
     source_type: str = "text"
+    error: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -45,15 +46,15 @@ class DecisionEngine:
         self._gemini_client = None
     
     @property
-    def groq_client(self) -> GroqClient:
+    def groq_client(self):
         if self._groq_client is None:
-            self._groq_client = GroqClient()
+            self._groq_client = get_groq_client()
         return self._groq_client
     
     @property
-    def gemini_client(self) -> GeminiClient:
+    def gemini_client(self):
         if self._gemini_client is None:
-            self._gemini_client = GeminiClient()
+            self._gemini_client = get_gemini_client()
         return self._gemini_client
     
     def analyze_text(self, text: str) -> TriageResult:
@@ -69,17 +70,12 @@ class DecisionEngine:
                 threat_type=analysis.threat_type,
                 source_type="text"
             )
+        except GroqClientError as e:
+            logger.error(f"Groq client error: {e}")
+            return self._get_fallback_result("text", str(e))
         except Exception as e:
             logger.error(f"Text analysis failed: {e}")
-            return TriageResult(
-                risk_score=5,
-                action="ADVISE",
-                location="Unknown",
-                summary="Unable to fully analyze the message",
-                advice="If you feel threatened, please contact local authorities directly.",
-                threat_type="unknown",
-                source_type="text"
-            )
+            return self._get_fallback_result("text", str(e))
     
     def analyze_image(self, image_path: str) -> TriageResult:
         try:
@@ -95,17 +91,12 @@ class DecisionEngine:
                 extracted_text=analysis.extracted_text,
                 source_type="image"
             )
+        except GeminiClientError as e:
+            logger.error(f"Gemini client error: {e}")
+            return self._get_fallback_result("image", str(e))
         except Exception as e:
             logger.error(f"Image analysis failed: {e}")
-            return TriageResult(
-                risk_score=5,
-                action="ADVISE",
-                location="Unknown",
-                summary="Unable to fully analyze the image",
-                advice="If you feel threatened, please contact local authorities directly.",
-                threat_type="unknown",
-                source_type="image"
-            )
+            return self._get_fallback_result("image", str(e))
     
     def analyze_image_bytes(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> TriageResult:
         try:
@@ -121,17 +112,12 @@ class DecisionEngine:
                 extracted_text=analysis.extracted_text,
                 source_type="image"
             )
+        except GeminiClientError as e:
+            logger.error(f"Gemini client error: {e}")
+            return self._get_fallback_result("image", str(e))
         except Exception as e:
             logger.error(f"Image bytes analysis failed: {e}")
-            return TriageResult(
-                risk_score=5,
-                action="ADVISE",
-                location="Unknown",
-                summary="Unable to fully analyze the image",
-                advice="If you feel threatened, please contact local authorities directly.",
-                threat_type="unknown",
-                source_type="image"
-            )
+            return self._get_fallback_result("image", str(e))
     
     def analyze_audio(self, audio_path: str) -> TriageResult:
         try:
@@ -150,21 +136,23 @@ class DecisionEngine:
                 )
             
             result = self.analyze_text(transcribed_text)
-            result.extracted_text = transcribed_text
-            result.source_type = "audio"
-            return result
-            
-        except Exception as e:
-            logger.error(f"Audio analysis failed: {e}")
             return TriageResult(
-                risk_score=5,
-                action="ADVISE",
-                location="Unknown",
-                summary="Unable to process the audio",
-                advice="If you feel threatened, please contact local authorities directly.",
-                threat_type="unknown",
+                risk_score=result.risk_score,
+                action=result.action,
+                location=result.location,
+                summary=result.summary,
+                advice=result.advice,
+                threat_type=result.threat_type,
+                extracted_text=transcribed_text,
                 source_type="audio"
             )
+            
+        except GroqClientError as e:
+            logger.error(f"Audio transcription error: {e}")
+            return self._get_fallback_result("audio", str(e))
+        except Exception as e:
+            logger.error(f"Audio analysis failed: {e}")
+            return self._get_fallback_result("audio", str(e))
     
     def process_evidence(
         self,
@@ -183,7 +171,28 @@ class DecisionEngine:
         elif text:
             return self.analyze_text(text)
         else:
-            raise ValueError("No evidence provided for analysis")
+            return TriageResult(
+                risk_score=1,
+                action="ADVISE",
+                location="Unknown",
+                summary="No evidence provided for analysis",
+                advice="Please provide a message, screenshot, or voice note to analyze.",
+                threat_type="none",
+                source_type="unknown",
+                error="No evidence provided"
+            )
+    
+    def _get_fallback_result(self, source_type: str, error_message: str) -> TriageResult:
+        return TriageResult(
+            risk_score=5,
+            action="ADVISE",
+            location="Unknown",
+            summary="Unable to fully analyze the content due to a technical issue",
+            advice="If you feel threatened, please contact local authorities directly. You can also try submitting again.",
+            threat_type="unknown",
+            source_type=source_type,
+            error=error_message
+        )
 
 
 decision_engine = DecisionEngine()

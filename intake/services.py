@@ -1,6 +1,8 @@
 import os
 import logging
+import hashlib
 from typing import Optional, Dict, Any
+from io import BytesIO
 from django.utils import timezone
 from django.core.files.base import ContentFile
 
@@ -28,6 +30,14 @@ class ReportProcessor:
             original_text=text
         )
         
+        text_evidence = EvidenceAsset.objects.create(
+            incident=incident,
+            asset_type="text",
+            derived_text=text
+        )
+        text_evidence.sha256_digest = hashlib.sha256(text.encode()).hexdigest()
+        text_evidence.save()
+        
         try:
             result = decision_engine.analyze_text(text)
             
@@ -35,6 +45,8 @@ class ReportProcessor:
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
             incident.detected_location = result.location
+            incident.save()
+            
             incident.generate_chain_hash()
             incident.save()
             
@@ -50,13 +62,14 @@ class ReportProcessor:
                     "dispatched": dispatch_result.get("success", False)
                 }
             else:
+                advice = result.advice or self._get_default_advice(result.threat_type)
                 return {
                     "success": True,
                     "action": "advise",
                     "case_id": str(incident.case_id),
                     "risk_score": result.risk_score,
                     "summary": result.summary,
-                    "advice": result.advice or self._get_default_advice(result.threat_type),
+                    "advice": advice,
                     "message": "We've analyzed your report and have some advice for you."
                 }
                 
@@ -66,9 +79,13 @@ class ReportProcessor:
             incident.save()
             return {
                 "success": False,
+                "action": "error",
                 "case_id": str(incident.case_id),
+                "risk_score": 0,
+                "summary": "Processing error",
                 "error": "We encountered an issue processing your report. Please try again.",
-                "message": "If you feel in immediate danger, please contact local emergency services."
+                "message": "If you feel in immediate danger, please contact local emergency services.",
+                "advice": "Please try again or contact local authorities if you feel unsafe."
             }
     
     def process_image_report(
@@ -87,15 +104,26 @@ class ReportProcessor:
         )
         
         try:
+            if hasattr(image_file, 'seek'):
+                image_file.seek(0)
             image_bytes = image_file.read()
-            mime_type = getattr(image_file, 'content_type', 'image/jpeg')
+            
+            file_name = getattr(image_file, 'name', 'screenshot.jpg')
+            if not file_name:
+                file_name = 'screenshot.jpg'
+            
+            mime_type = getattr(image_file, 'content_type', None)
+            if not mime_type:
+                ext = file_name.lower().split('.')[-1] if '.' in file_name else 'jpg'
+                mime_map = {'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif', 'webp': 'image/webp'}
+                mime_type = mime_map.get(ext, 'image/jpeg')
             
             evidence = EvidenceAsset.objects.create(
                 incident=incident,
                 asset_type="image"
             )
-            evidence.file.save(image_file.name, ContentFile(image_bytes))
-            evidence.generate_hash()
+            evidence.file.save(file_name, ContentFile(image_bytes))
+            evidence.sha256_digest = hashlib.sha256(image_bytes).hexdigest()
             evidence.save()
             
             result = decision_engine.analyze_image_bytes(image_bytes, mime_type)
@@ -105,6 +133,8 @@ class ReportProcessor:
             incident.action = result.action.lower()
             incident.detected_location = result.location
             incident.extracted_text = result.extracted_text
+            incident.save()
+            
             incident.generate_chain_hash()
             incident.save()
             
@@ -126,6 +156,7 @@ class ReportProcessor:
                     "dispatched": dispatch_result.get("success", False)
                 }
             else:
+                advice = result.advice or self._get_default_advice(result.threat_type)
                 return {
                     "success": True,
                     "action": "advise",
@@ -133,7 +164,7 @@ class ReportProcessor:
                     "risk_score": result.risk_score,
                     "summary": result.summary,
                     "extracted_text": result.extracted_text,
-                    "advice": result.advice or self._get_default_advice(result.threat_type),
+                    "advice": advice,
                     "message": "We've analyzed your screenshot and have some advice for you."
                 }
                 
@@ -143,9 +174,13 @@ class ReportProcessor:
             incident.save()
             return {
                 "success": False,
+                "action": "error",
                 "case_id": str(incident.case_id),
+                "risk_score": 0,
+                "summary": "Processing error",
                 "error": "We encountered an issue processing your image. Please try again.",
-                "message": "If you feel in immediate danger, please contact local emergency services."
+                "message": "If you feel in immediate danger, please contact local emergency services.",
+                "advice": "Please try again or contact local authorities if you feel unsafe."
             }
     
     def process_audio_report(
@@ -162,24 +197,32 @@ class ReportProcessor:
         )
         
         try:
+            if hasattr(audio_file, 'seek'):
+                audio_file.seek(0)
             audio_bytes = audio_file.read()
+            
+            file_name = getattr(audio_file, 'name', 'voice_note.ogg')
+            if not file_name:
+                file_name = 'voice_note.ogg'
             
             evidence = EvidenceAsset.objects.create(
                 incident=incident,
                 asset_type="audio"
             )
-            evidence.file.save(audio_file.name, ContentFile(audio_bytes))
-            evidence.generate_hash()
+            evidence.file.save(file_name, ContentFile(audio_bytes))
+            evidence.sha256_digest = hashlib.sha256(audio_bytes).hexdigest()
             evidence.save()
             
-            temp_path = evidence.file.path
-            result = decision_engine.analyze_audio(temp_path)
+            audio_path = evidence.file.path
+            result = decision_engine.analyze_audio(audio_path)
             
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
             incident.detected_location = result.location
             incident.transcribed_text = result.extracted_text
+            incident.save()
+            
             incident.generate_chain_hash()
             incident.save()
             
@@ -195,10 +238,12 @@ class ReportProcessor:
                     "risk_score": result.risk_score,
                     "summary": result.summary,
                     "transcribed_text": result.extracted_text,
+                    "extracted_text": result.extracted_text,
                     "message": "Your voice note has been transcribed and reported to the appropriate authorities. Stay safe.",
                     "dispatched": dispatch_result.get("success", False)
                 }
             else:
+                advice = result.advice or self._get_default_advice(result.threat_type)
                 return {
                     "success": True,
                     "action": "advise",
@@ -206,7 +251,8 @@ class ReportProcessor:
                     "risk_score": result.risk_score,
                     "summary": result.summary,
                     "transcribed_text": result.extracted_text,
-                    "advice": result.advice or self._get_default_advice(result.threat_type),
+                    "extracted_text": result.extracted_text,
+                    "advice": advice,
                     "message": "We've analyzed your voice note and have some advice for you."
                 }
                 
@@ -216,9 +262,13 @@ class ReportProcessor:
             incident.save()
             return {
                 "success": False,
+                "action": "error",
                 "case_id": str(incident.case_id),
+                "risk_score": 0,
+                "summary": "Processing error",
                 "error": "We encountered an issue processing your audio. Please try again.",
-                "message": "If you feel in immediate danger, please contact local emergency services."
+                "message": "If you feel in immediate danger, please contact local emergency services.",
+                "advice": "Please try again or contact local authorities if you feel unsafe."
             }
     
     def _dispatch_to_authority(
@@ -227,7 +277,7 @@ class ReportProcessor:
         result: TriageResult,
         evidence_text: str
     ) -> Dict[str, Any]:
-        if not brevo_dispatcher:
+        if not brevo_dispatcher or not brevo_dispatcher.is_available:
             logger.warning("Brevo dispatcher not configured, skipping email dispatch")
             return {"success": False, "error": "Email dispatcher not configured"}
         
@@ -238,24 +288,32 @@ class ReportProcessor:
             return {"success": False, "error": "No authority contact found"}
         
         def on_dispatch_complete(dispatch_result):
-            status = "sent" if dispatch_result.get("success") else "failed"
-            error_msg = dispatch_result.get("error") if not dispatch_result.get("success") else None
-            
-            DispatchLog.objects.create(
-                incident=incident,
-                authority=authority,
-                recipient_email=authority.email,
-                subject=f"FORENSIC ALERT - Case #{str(incident.case_id)[:8].upper()}",
-                status=status,
-                brevo_message_id=dispatch_result.get("message_id"),
-                error_message=error_msg,
-                sent_at=timezone.now() if status == "sent" else None
-            )
-            
-            if status == "sent":
-                incident.dispatched_at = timezone.now()
-                incident.dispatched_to = authority.email
-                incident.save()
+            try:
+                status = "sent" if dispatch_result.get("success") else "failed"
+                error_msg = dispatch_result.get("error") if not dispatch_result.get("success") else None
+                
+                DispatchLog.objects.create(
+                    incident=incident,
+                    authority=authority,
+                    recipient_email=authority.email,
+                    subject=f"FORENSIC ALERT - Case #{str(incident.case_id)[:8].upper()}",
+                    status=status,
+                    brevo_message_id=dispatch_result.get("message_id"),
+                    error_message=error_msg,
+                    sent_at=timezone.now() if status == "sent" else None
+                )
+                
+                if status == "sent":
+                    IncidentReport.objects.filter(pk=incident.pk).update(
+                        dispatched_at=timezone.now(),
+                        dispatched_to=authority.email
+                    )
+                    logger.info(f"Dispatch completed for case {incident.case_id} to {authority.email}")
+                else:
+                    logger.error(f"Dispatch failed for case {incident.case_id}: {error_msg}")
+                    
+            except Exception as e:
+                logger.error(f"Error in dispatch callback: {e}")
         
         brevo_dispatcher.send_async(
             recipient_email=authority.email,
