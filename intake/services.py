@@ -52,6 +52,18 @@ class ReportProcessor:
             
             if result.should_report:
                 dispatch_result = self._dispatch_to_authority(incident, result, text)
+                
+                if reporter_email and dispatch_result.get("success"):
+                    self._send_user_confirmation(
+                        reporter_email=reporter_email,
+                        case_id=str(incident.case_id),
+                        authority_name=dispatch_result.get("authority_name"),
+                        authority_email=dispatch_result.get("authority_email"),
+                        risk_score=result.risk_score,
+                        summary=result.summary,
+                        location=result.location
+                    )
+                
                 return {
                     "success": True,
                     "action": "report",
@@ -147,6 +159,18 @@ class ReportProcessor:
             
             if result.should_report:
                 dispatch_result = self._dispatch_to_authority(incident, result, evidence_text)
+                
+                if reporter_email and dispatch_result.get("success"):
+                    self._send_user_confirmation(
+                        reporter_email=reporter_email,
+                        case_id=str(incident.case_id),
+                        authority_name=dispatch_result.get("authority_name"),
+                        authority_email=dispatch_result.get("authority_email"),
+                        risk_score=result.risk_score,
+                        summary=result.summary,
+                        location=result.location
+                    )
+                
                 return {
                     "success": True,
                     "action": "report",
@@ -235,6 +259,18 @@ class ReportProcessor:
             
             if result.should_report:
                 dispatch_result = self._dispatch_to_authority(incident, result, result.extracted_text or "Voice note evidence")
+                
+                if reporter_email and dispatch_result.get("success"):
+                    self._send_user_confirmation(
+                        reporter_email=reporter_email,
+                        case_id=str(incident.case_id),
+                        authority_name=dispatch_result.get("authority_name"),
+                        authority_email=dispatch_result.get("authority_email"),
+                        risk_score=result.risk_score,
+                        summary=result.summary,
+                        location=result.location
+                    )
+                
                 return {
                     "success": True,
                     "action": "report",
@@ -315,18 +351,6 @@ class ReportProcessor:
                         dispatched_to=authority.email
                     )
                     logger.info(f"Dispatch completed for case {incident.case_id} to {authority.email}")
-                    
-                    if incident.reporter_email:
-                        brevo_dispatcher.send_user_confirmation_async(
-                            user_email=incident.reporter_email,
-                            case_id=str(incident.case_id),
-                            authority_name=authority.name,
-                            authority_email=authority.email,
-                            risk_score=result.risk_score,
-                            summary=result.summary,
-                            location=result.location or "Unknown"
-                        )
-                        logger.info(f"User confirmation sent to {incident.reporter_email}")
                 else:
                     logger.error(f"Dispatch failed for case {incident.case_id}: {error_msg}")
                     
@@ -352,6 +376,34 @@ class ReportProcessor:
             "authority_name": authority.name,
             "authority_email": authority.email
         }
+    
+    def _send_user_confirmation(
+        self,
+        reporter_email: str,
+        case_id: str,
+        authority_name: Optional[str],
+        authority_email: Optional[str],
+        risk_score: int,
+        summary: str,
+        location: Optional[str]
+    ) -> None:
+        if not brevo_dispatcher or not brevo_dispatcher.is_available:
+            logger.warning("Brevo dispatcher not available for user confirmation")
+            return
+        
+        try:
+            brevo_dispatcher.send_user_confirmation_async(
+                user_email=reporter_email,
+                case_id=case_id,
+                authority_name=authority_name or "Local Authority",
+                authority_email=authority_email or "",
+                risk_score=risk_score,
+                summary=summary,
+                location=location or "Unknown"
+            )
+            logger.info(f"User confirmation email queued for {reporter_email}")
+        except Exception as e:
+            logger.error(f"Failed to send user confirmation: {e}")
     
     def _get_default_advice(self, threat_type: Optional[str]) -> str:
         advice_map = {
