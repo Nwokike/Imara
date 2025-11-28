@@ -11,13 +11,13 @@
                 {% if result.action == 'report' %}
                 <div class="result-card">
                     <div class="result-header-danger">
-                        <i class="bi bi-shield-exclamation" style="font-size: 4rem;"></i>
+                        <i class="bi bi-shield-exclamation result-icon-lg"></i>
                         <h3 class="mt-3 mb-1">High-Risk Threat Detected</h3>
                         <p class="mb-0 opacity-75">We've taken action to protect you</p>
                     </div>
                     <div class="result-body">
-                        <div class="info-box d-flex align-items-center mb-4" style="background-color: rgba(214, 48, 49, 0.1);">
-                            <i class="bi bi-exclamation-triangle-fill me-3 text-danger" style="font-size: 2rem;"></i>
+                        <div class="info-box info-box-danger d-flex align-items-center mb-4">
+                            <i class="bi bi-exclamation-triangle-fill me-3 text-danger result-icon-md"></i>
                             <div>
                                 <strong>Risk Score: {{ result.risk_score }}/10</strong>
                                 <p class="mb-0">This content has been classified as high-risk</p>
@@ -28,7 +28,7 @@
                             <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Case Details</h5>
                             <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="text-muted" style="width: 120px;">Case ID:</td>
+                                    <td class="text-muted case-id-col">Case ID:</td>
                                     <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
                                 </tr>
                                 <tr>
@@ -38,9 +38,9 @@
                             </table>
                         </div>
 
-                        <div class="info-box mb-4" style="background-color: rgba(0, 184, 148, 0.1);">
+                        <div class="info-box info-box-success mb-4">
                             <div class="d-flex">
-                                <i class="bi bi-check-circle-fill me-3 text-success" style="font-size: 2rem;"></i>
+                                <i class="bi bi-check-circle-fill me-3 text-success result-icon-md"></i>
                                 <div>
                                     <strong>Action Taken</strong>
                                     <p class="mb-0">Your report has been automatically forwarded to the appropriate authorities. A forensic alert with evidence has been sent.</p>
@@ -79,13 +79,13 @@
                 {% elif result.action == 'advise' %}
                 <div class="result-card">
                     <div class="result-header-success">
-                        <i class="bi bi-lightbulb" style="font-size: 4rem;"></i>
+                        <i class="bi bi-lightbulb result-icon-lg"></i>
                         <h3 class="mt-3 mb-1">Analysis Complete</h3>
                         <p class="mb-0 opacity-75">Here's our advice for you</p>
                     </div>
                     <div class="result-body">
-                        <div class="info-box d-flex align-items-center mb-4" style="background-color: rgba(253, 203, 110, 0.2);">
-                            <i class="bi bi-info-circle me-3 text-warning" style="font-size: 2rem;"></i>
+                        <div class="info-box info-box-warning d-flex align-items-center mb-4">
+                            <i class="bi bi-info-circle me-3 text-warning result-icon-md"></i>
                             <div>
                                 <strong>Risk Score: {{ result.risk_score }}/10</strong>
                                 <p class="mb-0">This content has been classified as low-to-moderate risk</p>
@@ -96,7 +96,7 @@
                             <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Case Details</h5>
                             <table class="table table-borderless mb-0">
                                 <tr>
-                                    <td class="text-muted" style="width: 120px;">Case ID:</td>
+                                    <td class="text-muted case-id-col">Case ID:</td>
                                     <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
                                 </tr>
                                 <tr>
@@ -106,7 +106,7 @@
                             </table>
                         </div>
 
-                        <div class="info-box mb-4" style="background-color: rgba(0, 184, 148, 0.1); border-left: 4px solid var(--imara-success);">
+                        <div class="info-box info-box-advice mb-4">
                             <h6><i class="bi bi-lightbulb me-2"></i>Our Advice</h6>
                             <p class="mb-0">{{ result.advice }}</p>
                         </div>
@@ -142,12 +142,12 @@
                 {% else %}
                 <div class="result-card">
                     <div class="result-header-muted">
-                        <i class="bi bi-exclamation-circle" style="font-size: 4rem;"></i>
+                        <i class="bi bi-exclamation-circle result-icon-lg"></i>
                         <h3 class="mt-3 mb-1">Processing Issue</h3>
                         <p class="mb-0 opacity-75">We encountered a problem</p>
                     </div>
                     <div class="result-body">
-                        <div class="info-box mb-4" style="background-color: rgba(253, 203, 110, 0.2);">
+                        <div class="info-box info-box-warning mb-4">
                             <p class="mb-0">{{ result.message }}</p>
                         </div>
                         

@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
 
 
 class AuthorityContact(models.Model):
@@ -17,8 +16,7 @@ class AuthorityContact(models.Model):
     jurisdiction_level = models.CharField(max_length=20, choices=JURISDICTION_CHOICES, default='city')
     jurisdiction_name = models.CharField(max_length=255)
     
-    tags = ArrayField(
-        models.CharField(max_length=50),
+    tags = models.JSONField(
         default=list,
         blank=True,
         help_text="Tags like 'Cybercrime', 'Domestic Violence', 'Women Safety'"

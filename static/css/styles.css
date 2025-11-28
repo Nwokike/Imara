@@ -419,6 +419,44 @@ body {
     }
 }
 
+.hero-bg-logo {
+    max-width: 300px;
+    opacity: 0.3;
+}
+
+.card-coming-soon {
+    opacity: 0.7;
+}
+
+.result-icon-lg {
+    font-size: 4rem;
+}
+
+.result-icon-md {
+    font-size: 2rem;
+}
+
+.info-box-danger {
+    background-color: rgba(214, 48, 49, 0.1);
+}
+
+.info-box-success {
+    background-color: rgba(0, 184, 148, 0.1);
+}
+
+.info-box-warning {
+    background-color: rgba(253, 203, 110, 0.2);
+}
+
+.info-box-advice {
+    background-color: rgba(0, 184, 148, 0.1);
+    border-left: 4px solid var(--imara-success);
+}
+
+.case-id-col {
+    width: 120px;
+}
+
 @media (max-width: 768px) {
     .hero-title {
         font-size: 2rem;
