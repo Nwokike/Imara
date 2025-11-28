@@ -1,71 +1,118 @@
-# Project Imara
+<div align="center">
+  <img src="static/images/icon-512x512.png" width="120" alt="Project Imara Logo">
+  <h1>Project Imara: The Zero-UI Digital Bodyguard</h1>
+  <p><strong>UNiTE to End Digital Violence Against All Women & Girls</strong></p>
+  
+  <a href="https://project-imara.onrender.com">
+    <img src="https://img.shields.io/badge/Live_Portal-Active-success?style=for-the-badge&logo=render&logoColor=white" alt="Live Portal">
+  </a>
+  <a href="https://t.me/project_imara_bot">
+    <img src="https://img.shields.io/badge/Telegram_Bot-@project__imara__bot-blue?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Bot">
+  </a>
+</div>
 
-![homepage](https://imgur.com/Fcfcp9g.png)
+<br>
 
-A Zero-UI Digital Bodyguard that protects women and girls from online gender-based violence (OGBV).
+> **"Imara"** means *"Strong"* or *"Stable"* in Swahili.
 
-## What It Does
+## 🚨 The Problem
+70% of women have faced online violence, but reporting it is hard. Most safety apps require a download—leaving a digital trace that abusers can find. **Survivors need protection that is invisible, immediate, and legally robust.**
 
-1. **Report** - Submit abusive messages, screenshots, or voice notes
-2. **AI Analysis** - Hybrid AI (Groq + Gemini) analyzes threat level (1-10)
-3. **Action** - Low risk gets advice; high risk is automatically reported to authorities
+## 🛡️ The Solution: Zero-UI Architecture
+**Imara** is a Digital Bodyguard that lives inside the apps African women already use.
+* **No App Download:** Works entirely via Telegram (and Web PWA).
+* **Invisible:** Users interact with a bot that looks like a generic news service.
+* **Forensic Grade:** Converts screenshots and voice notes into **SHA-256 hashed evidence** admissible in court.
 
-## Features
+## 🚀 Key Features
+1.  **Multi-Modal Intelligence:**
+    * **Voice Transcription:** Users can forward **Voice Notes** (from WhatsApp/Telegram) directly to the bot. We use **Groq Whisper** to instantly transcribe dialects and detect hidden threats in audio.
+    * **Visual Analysis:** Uses **Gemini 2.5 Flash** to OCR screenshots and detect doxing/harassment in images.
+    * **Text Reasoning:** Uses **Llama-3-70b** for context-aware safety planning.
+2.  **Automatic Triage & Dispatch:**
+    * **Risk Scoring:** AI rates threats 1-10.
+    * **Auto-Escalation:** Risk scores >7 automatically email the nearest registered authority (e.g., FIDA Kenya, Cybercrime Unit Nigeria).
+3.  **Real-World Network:**
+    * Database pre-seeded with **19+ verified helplines** across Kenya, Nigeria, South Africa, and Ghana.
 
-- **Hybrid AI Engine** - Groq Llama-3.3-70b for text/audio, Gemini 2.5 Flash for images
-- **Automatic Escalation** - High-risk threats (7+) sent directly to relevant authorities
-- **User Confirmation** - Email confirmation when reports are escalated
-- **Authority Network** - 19+ helplines across 7 African countries
-- **Chain of Custody** - SHA-256 hashing for forensic integrity
-- **PWA Ready** - Install as app, works offline
+## 📸 Evidence of Functionality (Live Demo)
+We have tested the system end-to-end. Below are screenshots from our live deployment showing inputs from **Voice**, **Web**, and **Text**.
 
-## Platforms
+### 1. The User Interface (Zero-UI)
+The survivor reports via Telegram (Voice/Text/Image) or our Camouflaged Web Portal.
+| Telegram (Voice Transcription) | Web Portal (Image Analysis) |
+|:---:|:---:|
+| <img src="test/telegram_screenshot.jpg" width="100%"> | <img src="test/web.jpg" width="100%"> |
+| *Bot receives **forwarded screenshot**, transcribes it, and detects blackmail.* | *Web AI analyzes uploaded screenshots and warns the user.* |
 
-| Platform | Status |
-|----------|--------|
-| Web Portal | [Live Link](https://<your-app-name>.onrender.com) |
-| Telegram Bot | [t.me/project_imara_bot](https://t.me/project_imara_bot) |
-| WhatsApp | Coming Soon |
-| Instagram | Coming Soon |
-| Facebook | Coming Soon |
-| X (Twitter) | Coming Soon |
+### 2. The Backend Brain (Admin)
+The system automatically logs incidents, hashes evidence for legal validity, and maps them to authorities.
+| Incident Reports Log | Authority Database |
+|:---:|:---:|
+| <img src="test/Incident_reports.jpg" width="100%"> | <img src="test/Authority_Contacts.jpg" width="100%"> |
+| *Real-time tracking of cases (Voice/Text) with Risk Scores.* | *19+ Pre-seeded helplines across Africa.* |
 
-## Quick Start
+### 3. The Action (Dispatch)
+High-risk threats trigger immediate email dispatch to the relevant authority.
+| Dispatch System | Email Confirmation |
+|:---:|:---:|
+| <img src="test/Dispatch_Log.jpg" width="100%"> | <img src="test/email_confirm.jpg" width="100%"> |
+| *System logs the sent email (to Nigerian Police).* | *The user is alerted via email.* |
+
+## 🛠️ The "Zero-Cost" Tech Stack
+We built a production-grade safety ecosystem using 100% free tiers of enterprise tools.
+
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Backend** | Django 5.0 (Python) | The "Brain" orchestrating logic & security. |
+| **Audio Engine** | **Groq Whisper** | **Core Feature:** Instant transcription of voice notes/audio evidence. |
+| **Reasoning** | Groq (Llama-3) | Instant (<0.5s) text threat analysis. |
+| **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
+| **Database** | PostgreSQL (Neon) | Stores evidence with SHA-256 hashes. |
+| **Dispatch** | Brevo API | Transactional emails to authorities. |
+| **Hosting** | Render | Zero-downtime deployment. |
+
+## 🔮 Roadmap: Coming Soon
+We are expanding the **Zero-UI** concept to the 6 most common platforms used by women in Africa:
+
+| Platform | Status | Feature |
+| :--- | :--- | :--- |
+| **WhatsApp** | 🚧 In Progress | Integration via Twilio Sandbox |
+| **Instagram** | ⏳ Planned | DM Threat Monitoring |
+| **Facebook** | ⏳ Planned | Messenger Safety Bot |
+| **X (Twitter)** | ⏳ Planned | Public Harassment Flagging |
+| **TikTok** | ⏳ Planned | Video Comment Analysis |
+| **Snapchat** | ⏳ Planned | Ephemeral Evidence Capture |
+
+## 👥 The Team
+**Imara** was built by a diverse team committed to the *"Survivor Support"* and *"Transforming Masculinities"* themes.
+
+* **[Onyeka Nwokike](https://github.com/nwokike)**: Backend Architecture & AI Engineer.
+* **[Betsy Makamu](https://github.com/makamu-okinyi)**: Frontend Engineering & UI/UX.
+* **[Pixel Njoki](https://github.com/PixelNjoki)**: Research Lead & Strategy.
+
+*Building from Nigeria & Kenya* 🇳🇬 🇰🇪
+
+## 🔧 Installation (Local Dev)
 
 ```bash
-# Install dependencies
+# 1. Clone
+git clone [https://github.com/nwokike/imara.git](https://github.com/nwokike/imara.git)
+
+# 2. Install
 pip install -r requirements.txt
 
-# Run migrations
+# 3. Environment
+cp .env.example .env  # Add your API Keys
+
+# 4. Migrate & Seed
 python manage.py migrate
+python manage.py seed_authorities  # Loads the 19+ helplines
 
-# Seed authority contacts
-python manage.py seed_authorities
+# 5. Run
+python manage.py runserver
+````
 
-# Start server
-python manage.py runserver 0.0.0.0:5000
-```
+-----
 
-## Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `GROQ_API_KEY` | Groq AI API key |
-| `GEMINI_API_KEY` | Google Gemini API key |
-| `BREVO_API_KEY` | Brevo email API key |
-| `BREVO_SENDER_EMAIL` | Verified sender email |
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token |
-| `SESSION_SECRET` | Django secret key |
-
-## Tech Stack
-
-- **Framework**: Django 5.0
-- **Database**: PostgreSQL (Neon)
-- **AI**: Groq + Google Gemini
-- **Email**: Brevo
-- **Static**: WhiteNoise
-
----
-
-*Power Hacks 2025 Hackathon Project*
+*Built for Power Hacks 2025. United to End Digital Violence.*
