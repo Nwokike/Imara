@@ -338,6 +338,185 @@ class BrevoDispatcher:
         return thread
 
 
+    def send_user_confirmation(
+        self,
+        user_email: str,
+        case_id: str,
+        authority_name: str,
+        authority_email: str,
+        risk_score: int,
+        summary: str,
+        location: str
+    ) -> dict:
+        if not self._available:
+            logger.warning("Brevo API not configured - user confirmation skipped")
+            return {"success": False, "error": "Email service not configured"}
+        
+        subject = f"Your Report Has Been Submitted - Case #{str(case_id)[:8].upper()}"
+        
+        html_content = self._generate_user_confirmation_html(
+            case_id=case_id,
+            authority_name=authority_name,
+            authority_email=authority_email,
+            risk_score=risk_score,
+            summary=summary,
+            location=location
+        )
+        
+        payload = {
+            "sender": {
+                "name": self.sender_name,
+                "email": self.sender_email
+            },
+            "to": [{"email": user_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        try:
+            response = requests.post(
+                BREVO_API_URL,
+                headers=self.headers,
+                json=payload,
+                timeout=30
+            )
+            response.raise_for_status()
+            result = response.json()
+            logger.info(f"User confirmation sent to {user_email}")
+            return {"success": True, "message_id": result.get("messageId")}
+        except Exception as e:
+            logger.error(f"Failed to send user confirmation: {e}")
+            return {"success": False, "error": str(e)}
+    
+    def _generate_user_confirmation_html(
+        self,
+        case_id: str,
+        authority_name: str,
+        authority_email: str,
+        risk_score: int,
+        summary: str,
+        location: str
+    ) -> str:
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <tr>
+            <td style="background: linear-gradient(135deg, #6B4C9A 0%, #4A3570 100%); padding: 25px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 22px;">
+                    Project Imara
+                </h1>
+                <p style="color: #D6BCFA; margin: 8px 0 0 0; font-size: 14px;">
+                    Your Digital Bodyguard
+                </p>
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="padding: 25px;">
+                <div style="background-color: #d4edda; border: 1px solid #28a745; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center;">
+                    <h2 style="color: #155724; margin: 0; font-size: 18px;">Your Report Has Been Submitted</h2>
+                </div>
+                
+                <p style="color: #333; font-size: 14px; line-height: 1.6;">
+                    We want to confirm that your report has been received and escalated to the appropriate authorities. Here are the details:
+                </p>
+                
+                <table width="100%" style="border-collapse: collapse; margin: 20px 0;">
+                    <tr>
+                        <td style="padding: 10px; background-color: #f8f9fa; border-left: 4px solid #6B4C9A;">
+                            <strong>Case ID:</strong> {str(case_id)[:8].upper()}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-left: 4px solid #6B4C9A;">
+                            <strong>Risk Level:</strong> {risk_score}/10
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; background-color: #f8f9fa; border-left: 4px solid #6B4C9A;">
+                            <strong>Location Detected:</strong> {location or 'Unknown'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border-left: 4px solid #6B4C9A;">
+                            <strong>Summary:</strong> {summary}
+                        </td>
+                    </tr>
+                </table>
+                
+                <div style="background-color: #e7f3ff; border: 1px solid #0066cc; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                    <h3 style="color: #004085; margin: 0 0 10px 0; font-size: 14px;">REPORT SENT TO:</h3>
+                    <p style="color: #004085; margin: 0; font-size: 14px;">
+                        <strong>{authority_name}</strong><br>
+                        <span style="font-size: 13px;">{authority_email}</span>
+                    </p>
+                </div>
+                
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px;">
+                    <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 14px;">WHAT HAPPENS NEXT?</h3>
+                    <ul style="color: #856404; margin: 0; padding-left: 20px; font-size: 13px;">
+                        <li>The authority will review your case</li>
+                        <li>They may contact you for additional information</li>
+                        <li>Keep this email for your records</li>
+                        <li>If in immediate danger, contact emergency services</li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+        
+        <tr>
+            <td style="background-color: #1a1a2e; padding: 20px; text-align: center;">
+                <p style="color: #ffffff; margin: 0 0 5px 0; font-size: 13px; font-weight: bold;">
+                    Project Imara - Protecting Women and Girls Online
+                </p>
+                <p style="color: #a0a0a0; margin: 0; font-size: 11px;">
+                    "Imara" means "Strong" in Swahili. You are not alone.
+                </p>
+                <p style="color: #a0a0a0; margin: 8px 0 0 0; font-size: 10px;">
+                    Sent: {timestamp}
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+        return html
+    
+    def send_user_confirmation_async(
+        self,
+        user_email: str,
+        case_id: str,
+        authority_name: str,
+        authority_email: str,
+        risk_score: int,
+        summary: str,
+        location: str
+    ) -> threading.Thread:
+        def send_task():
+            self.send_user_confirmation(
+                user_email=user_email,
+                case_id=case_id,
+                authority_name=authority_name,
+                authority_email=authority_email,
+                risk_score=risk_score,
+                summary=summary,
+                location=location
+            )
+        
+        thread = threading.Thread(target=send_task, daemon=True)
+        thread.start()
+        return thread
+
+
 def get_brevo_dispatcher() -> Optional[BrevoDispatcher]:
     dispatcher = BrevoDispatcher()
     return dispatcher if dispatcher.is_available else None

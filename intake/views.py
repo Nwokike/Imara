@@ -366,6 +366,15 @@ Stay safe! 🛡️"""
     
     def send_result(self, chat_id, result):
         if result.get('action') == 'report':
+            authority_name = result.get('authority_name', 'Local Authority')
+            authority_email = result.get('authority_email', '')
+            
+            authority_info = ""
+            if authority_name:
+                authority_info = f"\n\n📧 *Sent To:*\n{authority_name}"
+                if authority_email:
+                    authority_info += f"\n_{authority_email}_"
+            
             msg = f"""🚨 *HIGH RISK DETECTED*
 
 📋 *Case ID:* `{result.get('case_id', 'N/A')[:8]}`
@@ -373,9 +382,9 @@ Stay safe! 🛡️"""
 
 *Summary:* {result.get('summary', 'Threat detected')}
 
-✅ *Action Taken:* Your report has been forwarded to the appropriate authorities.
+✅ *Action Taken:* Your report has been forwarded to the appropriate authorities.{authority_info}
 
-Stay safe. We're here to protect you. 🛡️"""
+Keep this Case ID for your records. Stay safe. 🛡️"""
         else:
             msg = f"""✅ *Analysis Complete*
 

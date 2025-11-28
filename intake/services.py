@@ -59,7 +59,9 @@ class ReportProcessor:
                     "risk_score": result.risk_score,
                     "summary": result.summary,
                     "message": "Your report has been escalated to the appropriate authorities. Stay safe.",
-                    "dispatched": dispatch_result.get("success", False)
+                    "dispatched": dispatch_result.get("success", False),
+                    "authority_name": dispatch_result.get("authority_name"),
+                    "authority_email": dispatch_result.get("authority_email")
                 }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
@@ -153,7 +155,9 @@ class ReportProcessor:
                     "summary": result.summary,
                     "extracted_text": result.extracted_text,
                     "message": "Your screenshot has been analyzed and reported to the appropriate authorities. Stay safe.",
-                    "dispatched": dispatch_result.get("success", False)
+                    "dispatched": dispatch_result.get("success", False),
+                    "authority_name": dispatch_result.get("authority_name"),
+                    "authority_email": dispatch_result.get("authority_email")
                 }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
@@ -240,7 +244,9 @@ class ReportProcessor:
                     "transcribed_text": result.extracted_text,
                     "extracted_text": result.extracted_text,
                     "message": "Your voice note has been transcribed and reported to the appropriate authorities. Stay safe.",
-                    "dispatched": dispatch_result.get("success", False)
+                    "dispatched": dispatch_result.get("success", False),
+                    "authority_name": dispatch_result.get("authority_name"),
+                    "authority_email": dispatch_result.get("authority_email")
                 }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
@@ -309,6 +315,18 @@ class ReportProcessor:
                         dispatched_to=authority.email
                     )
                     logger.info(f"Dispatch completed for case {incident.case_id} to {authority.email}")
+                    
+                    if incident.reporter_email:
+                        brevo_dispatcher.send_user_confirmation_async(
+                            user_email=incident.reporter_email,
+                            case_id=str(incident.case_id),
+                            authority_name=authority.name,
+                            authority_email=authority.email,
+                            risk_score=result.risk_score,
+                            summary=result.summary,
+                            location=result.location or "Unknown"
+                        )
+                        logger.info(f"User confirmation sent to {incident.reporter_email}")
                 else:
                     logger.error(f"Dispatch failed for case {incident.case_id}: {error_msg}")
                     
@@ -328,7 +346,12 @@ class ReportProcessor:
             callback=on_dispatch_complete
         )
         
-        return {"success": True, "recipient": authority.email}
+        return {
+            "success": True, 
+            "recipient": authority.email,
+            "authority_name": authority.name,
+            "authority_email": authority.email
+        }
     
     def _get_default_advice(self, threat_type: Optional[str]) -> str:
         advice_map = {
