@@ -1,176 +1,167 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Project Imara - Your Digital Bodyguard{% endblock %}
 
 {% block content %}
 <section class="hero-section">
-    <div class="container position-relative">
+    <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6 text-center text-lg-start">
-                <div class="shield-icon">
-                    <i class="bi bi-shield-check"></i>
-                </div>
-                <h1 class="display-4 fw-bold mb-4">Report Online Violence Securely</h1>
-                <p class="lead mb-4">Your Digital Bodyguard powered by AI. We protect women and girls from online harassment, threats, and violence - no app download needed.</p>
+                <img src="{% static 'images/logo.png' %}" alt="Imara Logo" class="hero-logo">
+                <h1 class="hero-title">Report Online Violence Securely</h1>
+                <p class="hero-subtitle">Your Digital Bodyguard powered by AI. We protect women and girls from online harassment, threats, and violence - no app download needed.</p>
                 <div class="d-flex gap-3 justify-content-center justify-content-lg-start">
-                    <a href="{% url 'report_form' %}" class="btn btn-imara btn-lg">
+                    <a href="{% url 'report_form' %}" class="btn btn-primary btn-lg">
                         <i class="bi bi-send-fill me-2"></i>Report Now
                     </a>
-                    <a href="#how-it-works" class="btn btn-imara-outline btn-lg">
+                    <a href="#how-it-works" class="btn btn-outline-primary btn-lg">
                         Learn More
                     </a>
                 </div>
             </div>
             <div class="col-lg-6 d-none d-lg-block text-center">
-                <div style="font-size: 15rem; opacity: 0.1;">
-                    <i class="bi bi-shield-shaded"></i>
-                </div>
+                <img src="{% static 'images/logo.png' %}" alt="Imara" class="img-fluid" style="max-width: 300px; opacity: 0.3;">
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-5 bg-white" id="platforms">
+<section class="section section-alt" id="platforms">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">Available Platforms</h2>
-            <p class="text-muted">Access protection wherever you are</p>
+        <div class="text-center">
+            <h2 class="section-title">Available Platforms</h2>
+            <p class="section-subtitle">Access protection wherever you are</p>
         </div>
         <div class="row g-4">
-            <div class="col-md-3">
-                <div class="card card-platform active text-center p-4">
-                    <div class="platform-icon text-primary">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-box text-center">
+                    <div class="card-box-icon mx-auto">
                         <i class="bi bi-telegram"></i>
                     </div>
-                    <h5>Telegram Bot</h5>
-                    <p class="text-muted small">Forward abusive messages directly to our bot</p>
-                    <span class="badge badge-active rounded-pill px-3 py-2">Active</span>
+                    <h5 class="card-box-title">Telegram Bot</h5>
+                    <p class="card-box-text">Forward abusive messages directly to our bot</p>
+                    <span class="badge badge-status badge-active mt-2">Active</span>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card card-platform active text-center p-4">
-                    <div class="platform-icon" style="color: var(--imara-accent);">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-box text-center">
+                    <div class="card-box-icon mx-auto">
                         <i class="bi bi-globe"></i>
                     </div>
-                    <h5>Web Portal</h5>
-                    <p class="text-muted small">Upload screenshots and reports securely</p>
-                    <span class="badge badge-active rounded-pill px-3 py-2">Active</span>
+                    <h5 class="card-box-title">Web Portal</h5>
+                    <p class="card-box-text">Upload screenshots and reports securely</p>
+                    <span class="badge badge-status badge-active mt-2">Active</span>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card card-platform coming-soon text-center p-4">
-                    <div class="platform-icon text-success">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-box text-center" style="opacity: 0.7;">
+                    <div class="card-box-icon mx-auto">
                         <i class="bi bi-whatsapp"></i>
                     </div>
-                    <h5>WhatsApp</h5>
-                    <p class="text-muted small">Protection within your chats</p>
-                    <span class="badge badge-coming rounded-pill px-3 py-2">Coming Soon</span>
+                    <h5 class="card-box-title">WhatsApp</h5>
+                    <p class="card-box-text">Protection within your chats</p>
+                    <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card card-platform coming-soon text-center p-4">
-                    <div class="platform-icon" style="color: #E4405F;">
+            <div class="col-md-6 col-lg-3">
+                <div class="card-box text-center" style="opacity: 0.7;">
+                    <div class="card-box-icon mx-auto">
                         <i class="bi bi-instagram"></i>
                     </div>
-                    <h5>Instagram</h5>
-                    <p class="text-muted small">Monitor DMs for threats</p>
-                    <span class="badge badge-coming rounded-pill px-3 py-2">Coming Soon</span>
+                    <h5 class="card-box-title">Instagram</h5>
+                    <p class="card-box-text">Monitor DMs for threats</p>
+                    <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-5" id="how-it-works">
+<section class="section" id="how-it-works">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">How It Works</h2>
-            <p class="text-muted">Three simple steps to protection</p>
+        <div class="text-center">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Three simple steps to protection</p>
         </div>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="text-center">
-                    <div class="feature-icon">
-                        <i class="bi bi-chat-quote"></i>
-                    </div>
-                    <h5>1. Report</h5>
-                    <p class="text-muted">Forward abusive messages, screenshots, or voice notes to our system</p>
+                <div class="card-box text-center">
+                    <div class="step-number">1</div>
+                    <h5 class="card-box-title">Report</h5>
+                    <p class="card-box-text">Forward abusive messages, screenshots, or voice notes to our system</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="text-center">
-                    <div class="feature-icon">
-                        <i class="bi bi-robot"></i>
-                    </div>
-                    <h5>2. AI Analysis</h5>
-                    <p class="text-muted">Our hybrid AI (Groq + Gemini) analyzes the threat level instantly</p>
+                <div class="card-box text-center">
+                    <div class="step-number">2</div>
+                    <h5 class="card-box-title">AI Analysis</h5>
+                    <p class="card-box-text">Our hybrid AI (Groq + Gemini) analyzes the threat level instantly</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="text-center">
-                    <div class="feature-icon">
-                        <i class="bi bi-shield-exclamation"></i>
-                    </div>
-                    <h5>3. Action</h5>
-                    <p class="text-muted">Get advice for minor issues or automatic reporting to authorities for serious threats</p>
+                <div class="card-box text-center">
+                    <div class="step-number">3</div>
+                    <h5 class="card-box-title">Action</h5>
+                    <p class="card-box-text">Get advice for minor issues or automatic reporting to authorities for serious threats</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-5 bg-white">
+<section class="section section-alt">
     <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">What We Detect</h2>
-            <p class="text-muted">AI-powered threat recognition</p>
+        <div class="text-center">
+            <h2 class="section-title">What We Detect</h2>
+            <p class="section-subtitle">AI-powered threat recognition</p>
         </div>
-        <div class="row g-4">
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Threats</h6>
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-exclamation-triangle text-danger"></i>
+                    <h6>Threats</h6>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-geo-alt text-warning" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Doxing</h6>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-geo-alt text-warning"></i>
+                    <h6>Doxing</h6>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-cash-coin text-danger" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Blackmail</h6>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-cash-coin text-danger"></i>
+                    <h6>Blackmail</h6>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-eye text-warning" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Stalking</h6>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-eye text-warning"></i>
+                    <h6>Stalking</h6>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-chat-left-dots text-info" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Harassment</h6>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-chat-left-dots text-info"></i>
+                    <h6>Harassment</h6>
                 </div>
             </div>
-            <div class="col-md-4 col-lg-2">
-                <div class="stat-card h-100">
-                    <i class="bi bi-camera-video text-danger" style="font-size: 2rem;"></i>
-                    <h6 class="mt-3">Revenge Porn</h6>
+            <div class="col-6 col-md-4 col-lg-2">
+                <div class="threat-card">
+                    <i class="bi bi-camera-video text-danger"></i>
+                    <h6>Revenge Porn</h6>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="py-5" style="background: linear-gradient(135deg, var(--imara-dark) 0%, var(--imara-darker) 100%);">
-    <div class="container text-center text-white">
-        <h2 class="fw-bold mb-4">Ready to Get Protected?</h2>
-        <p class="lead mb-4">Don't suffer in silence. Report abuse now and let our AI-powered system help you.</p>
-        <a href="{% url 'report_form' %}" class="btn btn-imara btn-lg">
+<section class="cta-section">
+    <div class="container">
+        <h2>Ready to Get Protected?</h2>
+        <p>Don't suffer in silence. Report abuse now and let our AI-powered system help you.</p>
+        <a href="{% url 'report_form' %}" class="btn btn-lg">
             <i class="bi bi-shield-check me-2"></i>Report Abuse Now
         </a>
     </div>
