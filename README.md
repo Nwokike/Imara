@@ -58,12 +58,6 @@ python manage.py runserver 0.0.0.0:5000
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token |
 | `SESSION_SECRET` | Django secret key |
 
-## Deploy to Render
-
-1. Connect GitHub repository to Render
-2. Add environment variables in dashboard
-3. Deploy (auto-configured via `render.yaml`)
-
 ## Tech Stack
 
 - **Framework**: Django 5.0
