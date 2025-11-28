@@ -98,18 +98,3 @@ python manage.py seed_authorities
 python manage.py createsuperuser
 python manage.py collectstatic
 ```
-
-## User Preferences
-- Clean white background with purple (#6B4C9A) branding
-- Brighter purple in dark mode (#A78BFA)
-- Completely separated HTML/CSS/JS (no inline styles)
-- Modern Bootstrap 5.3 design
-- User's purple logo integrated
-
-## Recent Changes
-- 2025-11-28: Converted ArrayField to JSONField for SQLite compatibility
-- 2025-11-28: Added PWA support (manifest.json, service worker, icons)
-- 2025-11-28: Created custom error pages (404, 500, 403, 400)
-- 2025-11-28: Reduced font sizes to fix "zoomed" appearance
-- 2025-11-28: Made purple brighter in dark mode + logo brightness filter
-- 2025-11-28: Removed all inline styles from templates
