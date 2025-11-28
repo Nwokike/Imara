@@ -32,9 +32,7 @@ else:
                 ALLOWED_HOSTS.append(domain)
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.dev',
-    'https://*.replit.app',
-    'https://*.repl.co',
+    'https://project-imara.onrender.com',
     'https://*.onrender.com',
     'https://*.render.com',
 ]
