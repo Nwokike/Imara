@@ -63,18 +63,24 @@ TEMPLATES = [
 WSGI_APPLICATION = 'imara.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
+PGHOST = os.environ.get('PGHOST')
+PGDATABASE = os.environ.get('PGDATABASE')
+
+if DATABASE_URL and PGDATABASE:
+    ssl_mode = os.environ.get('PGSSLMODE', 'prefer')
+    db_options = {}
+    if ssl_mode and ssl_mode != 'disable':
+        db_options['sslmode'] = ssl_mode
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('PGDATABASE'),
+            'NAME': PGDATABASE,
             'USER': os.environ.get('PGUSER'),
             'PASSWORD': os.environ.get('PGPASSWORD'),
-            'HOST': os.environ.get('PGHOST'),
+            'HOST': PGHOST,
             'PORT': os.environ.get('PGPORT', '5432'),
-            'OPTIONS': {
-                'sslmode': 'require',
-            },
+            'OPTIONS': db_options,
             'CONN_MAX_AGE': 300,
         }
     }
