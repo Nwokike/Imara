@@ -21,6 +21,10 @@ class HomeView(View):
         return render(request, 'intake/index.html')
 
 
+def offline_view(request):
+    return render(request, 'offline.html')
+
+
 class ReportFormView(View):
     def get(self, request):
         form = ReportForm()
