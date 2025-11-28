@@ -2,9 +2,6 @@
 
 ![homepage](https://imgur.com/Fcfcp9g.png)
 
-
-> **"Imara"** means *"Strong"* in Swahili
-
 A Zero-UI Digital Bodyguard that protects women and girls from online gender-based violence (OGBV).
 
 ## What It Does
@@ -26,8 +23,8 @@ A Zero-UI Digital Bodyguard that protects women and girls from online gender-bas
 
 | Platform | Status |
 |----------|--------|
-| Web Portal | Active |
-| Telegram Bot | Active |
+| Web Portal | [Live Link](https://<your-app-name>.onrender.com) |
+| Telegram Bot | [t.me/project_imara_bot](https://t.me/project_imara_bot) |
 | WhatsApp | Coming Soon |
 | Instagram | Coming Soon |
 | Facebook | Coming Soon |
