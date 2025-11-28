@@ -1,0 +1,269 @@
+import os
+import logging
+import threading
+import requests
+from datetime import datetime
+from typing import Optional
+from django.utils import timezone
+from django.template.loader import render_to_string
+
+logger = logging.getLogger(__name__)
+
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
+
+
+class BrevoDispatcher:
+    def __init__(self):
+        self.api_key = os.environ.get('BREVO_API_KEY')
+        if not self.api_key:
+            raise ValueError("BREVO_API_KEY not found in environment variables")
+        
+        self.headers = {
+            "api-key": self.api_key,
+            "Content-Type": "application/json"
+        }
+        self.sender_email = "imara-alerts@projectimara.org"
+        self.sender_name = "Project Imara Alert System"
+    
+    def send_forensic_alert(
+        self,
+        recipient_email: str,
+        case_id: str,
+        evidence_text: str,
+        risk_score: int,
+        threat_type: str,
+        location: str,
+        chain_hash: str,
+        summary: str,
+        source: str = "Web Form"
+    ) -> dict:
+        subject = f"OFFICIAL FORENSIC ALERT - Case #{str(case_id)[:8].upper()}"
+        
+        html_content = self._generate_forensic_email_html(
+            case_id=case_id,
+            evidence_text=evidence_text,
+            risk_score=risk_score,
+            threat_type=threat_type,
+            location=location,
+            chain_hash=chain_hash,
+            summary=summary,
+            source=source
+        )
+        
+        payload = {
+            "sender": {
+                "name": self.sender_name,
+                "email": self.sender_email
+            },
+            "to": [{"email": recipient_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        try:
+            response = requests.post(
+                BREVO_API_URL,
+                headers=self.headers,
+                json=payload,
+                timeout=30
+            )
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            logger.info(f"Forensic alert sent successfully to {recipient_email}, Message ID: {result.get('messageId')}")
+            
+            return {
+                "success": True,
+                "message_id": result.get("messageId"),
+                "recipient": recipient_email
+            }
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to send forensic alert: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "recipient": recipient_email
+            }
+    
+    def _generate_forensic_email_html(
+        self,
+        case_id: str,
+        evidence_text: str,
+        risk_score: int,
+        threat_type: str,
+        location: str,
+        chain_hash: str,
+        summary: str,
+        source: str
+    ) -> str:
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        
+        risk_color = "#dc3545" if risk_score >= 7 else "#ffc107" if risk_score >= 4 else "#28a745"
+        risk_level = "CRITICAL" if risk_score >= 7 else "MODERATE" if risk_score >= 4 else "LOW"
+        
+        html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 650px; margin: 0 auto; background-color: #ffffff;">
+        <!-- Header -->
+        <tr>
+            <td style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 2px;">
+                    🛡️ OFFICIAL FORENSIC ALERT
+                </h1>
+                <p style="color: #e94560; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">
+                    PROJECT IMARA - Digital Safety System
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Alert Banner -->
+        <tr>
+            <td style="background-color: {risk_color}; padding: 15px; text-align: center;">
+                <span style="color: #ffffff; font-size: 18px; font-weight: bold;">
+                    ⚠️ {risk_level} THREAT DETECTED - IMMEDIATE ATTENTION REQUIRED
+                </span>
+            </td>
+        </tr>
+        
+        <!-- Case Metadata -->
+        <tr>
+            <td style="padding: 30px;">
+                <table width="100%" style="border-collapse: collapse; margin-bottom: 25px;">
+                    <tr>
+                        <td style="padding: 12px; background-color: #f8f9fa; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Case ID:</strong>
+                            <span style="color: #495057; font-family: monospace;">{str(case_id)[:8].upper()}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; background-color: #ffffff; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Timestamp:</strong>
+                            <span style="color: #495057;">{timestamp}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; background-color: #f8f9fa; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Source:</strong>
+                            <span style="color: #495057;">{source}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; background-color: #ffffff; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Detected Location:</strong>
+                            <span style="color: #495057;">{location or 'Unknown'}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; background-color: #f8f9fa; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Threat Type:</strong>
+                            <span style="color: #495057; text-transform: uppercase;">{threat_type or 'Unclassified'}</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; background-color: #ffffff; border-left: 4px solid #e94560;">
+                            <strong style="color: #1a1a2e;">Risk Score:</strong>
+                            <span style="color: {risk_color}; font-weight: bold; font-size: 18px;">{risk_score}/10</span>
+                        </td>
+                    </tr>
+                </table>
+                
+                <!-- AI Summary -->
+                <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                    <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 14px;">🤖 AI THREAT SUMMARY</h3>
+                    <p style="color: #856404; margin: 0; font-size: 14px;">{summary}</p>
+                </div>
+                
+                <!-- Evidence Section -->
+                <div style="background-color: #1a1a2e; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                    <h3 style="color: #e94560; margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase;">📋 EVIDENCE CONTENT</h3>
+                    <div style="background-color: #16213e; border-radius: 4px; padding: 15px; border-left: 3px solid #e94560;">
+                        <pre style="color: #ffffff; margin: 0; white-space: pre-wrap; word-wrap: break-word; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.5;">{evidence_text or 'No text content available'}</pre>
+                    </div>
+                </div>
+                
+                <!-- Chain of Custody -->
+                <div style="background-color: #d4edda; border: 1px solid #28a745; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
+                    <h3 style="color: #155724; margin: 0 0 10px 0; font-size: 14px;">🔒 CHAIN OF CUSTODY VERIFICATION</h3>
+                    <p style="color: #155724; margin: 0; font-size: 12px;">
+                        <strong>SHA-256 Hash:</strong><br>
+                        <code style="background-color: #c3e6cb; padding: 5px 10px; border-radius: 4px; font-size: 11px; word-break: break-all;">{chain_hash}</code>
+                    </p>
+                    <p style="color: #155724; margin: 10px 0 0 0; font-size: 11px;">
+                        This cryptographic hash ensures evidence integrity and can be used for legal verification.
+                    </p>
+                </div>
+                
+                <!-- Action Required -->
+                <div style="background-color: #f8d7da; border: 1px solid #dc3545; border-radius: 8px; padding: 15px;">
+                    <h3 style="color: #721c24; margin: 0 0 10px 0; font-size: 14px;">⚡ ACTION REQUIRED</h3>
+                    <p style="color: #721c24; margin: 0; font-size: 13px;">
+                        This report has been automatically flagged due to potential threats against a woman or girl. 
+                        Please review the evidence and take appropriate action according to your jurisdiction's protocols.
+                    </p>
+                </div>
+            </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+            <td style="background-color: #1a1a2e; padding: 25px; text-align: center;">
+                <p style="color: #ffffff; margin: 0 0 10px 0; font-size: 14px; font-weight: bold;">
+                    🛡️ Project Imara - Protecting Women & Girls Online
+                </p>
+                <p style="color: #a0a0a0; margin: 0; font-size: 11px;">
+                    "Imara" means "Strong" in Swahili. Together, we stand against online gender-based violence.
+                </p>
+                <p style="color: #a0a0a0; margin: 10px 0 0 0; font-size: 10px;">
+                    This is an automated alert from Project Imara's AI-powered threat detection system.
+                    <br>Report generated: {timestamp}
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+        return html
+    
+    def send_async(
+        self,
+        recipient_email: str,
+        case_id: str,
+        evidence_text: str,
+        risk_score: int,
+        threat_type: str,
+        location: str,
+        chain_hash: str,
+        summary: str,
+        source: str = "Web Form",
+        callback=None
+    ):
+        def send_task():
+            result = self.send_forensic_alert(
+                recipient_email=recipient_email,
+                case_id=case_id,
+                evidence_text=evidence_text,
+                risk_score=risk_score,
+                threat_type=threat_type,
+                location=location,
+                chain_hash=chain_hash,
+                summary=summary,
+                source=source
+            )
+            if callback:
+                callback(result)
+        
+        thread = threading.Thread(target=send_task, daemon=True)
+        thread.start()
+        return thread
+
+
+brevo_dispatcher = BrevoDispatcher() if os.environ.get('BREVO_API_KEY') else None

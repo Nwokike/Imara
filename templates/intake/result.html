@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Analysis Result - Project Imara{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                {% if result.action == 'report' %}
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); border-radius: 15px 15px 0 0;">
+                        <i class="bi bi-shield-exclamation" style="font-size: 4rem;"></i>
+                        <h3 class="mt-3 mb-0">High-Risk Threat Detected</h3>
+                        <p class="mb-0 opacity-75">We've taken action to protect you</p>
+                    </div>
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="alert alert-danger mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill me-3" style="font-size: 2rem;"></i>
+                                <div>
+                                    <strong>Risk Score: {{ result.risk_score }}/10</strong>
+                                    <p class="mb-0">This content has been classified as high-risk</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5><i class="bi bi-file-text me-2"></i>Case Details</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted">Case ID:</td>
+                                    <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Summary:</td>
+                                    <td>{{ result.summary }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="alert alert-success mb-4">
+                            <div class="d-flex">
+                                <i class="bi bi-check-circle-fill me-3" style="font-size: 2rem;"></i>
+                                <div>
+                                    <strong>Action Taken</strong>
+                                    <p class="mb-0">Your report has been automatically forwarded to the appropriate authorities. A forensic alert with evidence has been sent.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if result.extracted_text %}
+                        <div class="mb-4">
+                            <h6><i class="bi bi-file-earmark-text me-2"></i>Extracted Text</h6>
+                            <div class="bg-light p-3 rounded">
+                                <small>{{ result.extracted_text }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-heart me-2"></i>Stay Safe</h6>
+                                <ul class="mb-0">
+                                    <li>Document any further incidents</li>
+                                    <li>Block the abuser on all platforms</li>
+                                    <li>Reach out to trusted friends or family</li>
+                                    <li>If in immediate danger, contact emergency services</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'report_form' %}" class="btn btn-imara">
+                                <i class="bi bi-plus-circle me-2"></i>Submit Another Report
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-house me-2"></i>Return Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% elif result.action == 'advise' %}
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); border-radius: 15px 15px 0 0;">
+                        <i class="bi bi-lightbulb" style="font-size: 4rem;"></i>
+                        <h3 class="mt-3 mb-0">Analysis Complete</h3>
+                        <p class="mb-0 opacity-75">Here's our advice for you</p>
+                    </div>
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="alert alert-warning mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle me-3" style="font-size: 2rem;"></i>
+                                <div>
+                                    <strong>Risk Score: {{ result.risk_score }}/10</strong>
+                                    <p class="mb-0">This content has been classified as low-to-moderate risk</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h5><i class="bi bi-file-text me-2"></i>Case Details</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted">Case ID:</td>
+                                    <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Summary:</td>
+                                    <td>{{ result.summary }}</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="card border-success mb-4">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-lightbulb me-2"></i>Our Advice
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-0">{{ result.advice }}</p>
+                            </div>
+                        </div>
+
+                        {% if result.extracted_text %}
+                        <div class="mb-4">
+                            <h6><i class="bi bi-file-earmark-text me-2"></i>Extracted Text</h6>
+                            <div class="bg-light p-3 rounded">
+                                <small>{{ result.extracted_text }}</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h6><i class="bi bi-tools me-2"></i>Additional Resources</h6>
+                                <ul class="mb-0">
+                                    <li>Block the person on all platforms</li>
+                                    <li>Adjust your privacy settings</li>
+                                    <li>Don't engage with the abuser</li>
+                                    <li>If the situation escalates, submit another report</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'report_form' %}" class="btn btn-imara">
+                                <i class="bi bi-plus-circle me-2"></i>Submit Another Report
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-house me-2"></i>Return Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%); border-radius: 15px 15px 0 0;">
+                        <i class="bi bi-exclamation-circle" style="font-size: 4rem;"></i>
+                        <h3 class="mt-3 mb-0">Processing Issue</h3>
+                    </div>
+                    <div class="card-body p-4 p-lg-5">
+                        <div class="alert alert-warning mb-4">
+                            <p class="mb-0">{{ result.message }}</p>
+                        </div>
+                        
+                        {% if result.error %}
+                        <p class="text-muted">{{ result.error }}</p>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'report_form' %}" class="btn btn-imara">
+                                <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-house me-2"></i>Return Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
