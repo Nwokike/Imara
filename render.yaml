@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: project-imara
+    runtime: python
+    buildCommand: pip install uv && uv sync --no-dev && uv run python manage.py collectstatic --noinput && uv run python manage.py migrate && uv run python manage.py seed_authorities
+    startCommand: uv run gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 imara.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.4"
+      - key: DEBUG
+        value: "False"
+      - key: SESSION_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false

@@ -3,108 +3,208 @@ from directory.models import AuthorityContact
 
 
 class Command(BaseCommand):
-    help = 'Seeds the database with demo authority contacts for Project Imara'
+    help = 'Seeds the database with authority contacts and helplines for Project Imara'
 
     def handle(self, *args, **options):
         authorities = [
             {
-                'agency_name': 'Nigeria Police Force - Cybercrime Unit',
-                'email': 'cybercrime@npf.gov.ng',
-                'phone': '+234-1-234-5678',
-                'jurisdiction_level': 'country',
-                'jurisdiction_name': 'Nigeria',
-                'tags': ['Cybercrime', 'Online Harassment', 'Digital Threats'],
-                'priority': 10,
-                'notes': 'Primary contact for cybercrime cases in Nigeria'
-            },
-            {
-                'agency_name': 'Lagos State Domestic Violence Unit',
-                'email': 'dvru@lagostate.gov.ng',
-                'phone': '+234-1-765-4321',
-                'jurisdiction_level': 'state',
-                'jurisdiction_name': 'Lagos',
-                'tags': ['Domestic Violence', 'Women Safety', 'Threats'],
-                'priority': 9,
-                'notes': 'Lagos state specialized unit for domestic violence and threats'
-            },
-            {
-                'agency_name': 'Kenya National Police - Gender Desk',
-                'email': 'genderdesk@police.go.ke',
-                'phone': '+254-20-234-5678',
+                'agency_name': 'Kenya GBV Helpline (FIDA Kenya)',
+                'email': 'info@fidakenya.org',
+                'phone': '1195',
                 'jurisdiction_level': 'country',
                 'jurisdiction_name': 'Kenya',
-                'tags': ['Gender Violence', 'Women Safety', 'Online Harassment'],
+                'tags': ['Domestic Violence', 'Gender-Based Violence', 'GBV', 'Women Safety'],
                 'priority': 10,
-                'notes': 'National gender desk for Kenya'
+                'notes': 'Primary helpline for domestic and gender-based violence in Kenya. Call 1195.'
             },
             {
-                'agency_name': 'Nairobi Women Safety Initiative',
-                'email': 'safety@nairobiws.org',
-                'phone': '+254-20-111-2222',
-                'jurisdiction_level': 'city',
-                'jurisdiction_name': 'Nairobi',
-                'tags': ['Women Safety', 'Harassment', 'Support Services'],
-                'priority': 8,
-                'notes': 'NGO providing support for women in Nairobi'
-            },
-            {
-                'agency_name': 'South Africa Police Service - SAPS',
-                'email': 'cybercrime@saps.gov.za',
-                'phone': '+27-12-345-6789',
+                'agency_name': 'Befrienders Kenya - Mental Health Crisis',
+                'email': 'info@befrienderskenya.org',
+                'phone': '+254 722 178 177',
                 'jurisdiction_level': 'country',
-                'jurisdiction_name': 'South Africa',
-                'tags': ['Cybercrime', 'Online Threats', 'Digital Violence'],
-                'priority': 10,
-                'notes': 'South African Police Service cybercrime division'
-            },
-            {
-                'agency_name': 'Ghana Domestic Violence Victim Support',
-                'email': 'support@dovvsu.gov.gh',
-                'phone': '+233-30-234-5678',
-                'jurisdiction_level': 'country',
-                'jurisdiction_name': 'Ghana',
-                'tags': ['Domestic Violence', 'Women Safety', 'Victim Support'],
+                'jurisdiction_name': 'Kenya',
+                'tags': ['Mental Health', 'Crisis Support', 'Emotional Support', 'Suicide Prevention'],
                 'priority': 9,
-                'notes': 'Ghana DOVVSU for domestic violence cases'
+                'notes': 'Mental health and crisis support via Befrienders Kenya. mentalhealthafrica.org'
             },
             {
-                'agency_name': 'Accra Women Rights Coalition',
-                'email': 'help@accrawrc.org',
-                'phone': '+233-30-111-2222',
-                'jurisdiction_level': 'city',
-                'jurisdiction_name': 'Accra',
-                'tags': ['Women Rights', 'Harassment', 'Legal Support'],
-                'priority': 7,
-                'notes': 'NGO providing legal support for women in Accra'
+                'agency_name': 'Childline Kenya - Youth Helpline',
+                'email': 'info@childlinekenya.co.ke',
+                'phone': '116',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Kenya',
+                'tags': ['Child Protection', 'Youth Support', 'Children Safety'],
+                'priority': 8,
+                'notes': 'Child and youth helpline in Kenya. Call 116 for free.'
             },
             {
-                'agency_name': 'Uganda Police - Child and Family Protection',
-                'email': 'cfpu@police.go.ug',
-                'phone': '+256-41-234-5678',
+                'agency_name': 'Mifumi Uganda - GBV Helpline',
+                'email': 'info@mifumi.org',
+                'phone': '0800 200 250',
                 'jurisdiction_level': 'country',
                 'jurisdiction_name': 'Uganda',
-                'tags': ['Family Protection', 'Women Safety', 'Child Protection'],
-                'priority': 9,
-                'notes': 'Uganda Police child and family protection unit'
+                'tags': ['Domestic Violence', 'Sexual Violence', 'GBV', 'Women Safety'],
+                'priority': 10,
+                'notes': 'Toll-free helpline for domestic and sexual violence in Uganda via Mifumi.'
             },
             {
-                'agency_name': 'Tanzania Women Legal Aid Centre',
-                'email': 'help@wlac.or.tz',
-                'phone': '+255-22-234-5678',
+                'agency_name': 'Mental Health Uganda - Crisis Line',
+                'email': 'info@mentalhealthuganda.org',
+                'phone': '+256 414 664 264',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Uganda',
+                'tags': ['Mental Health', 'Crisis Support', 'Emotional Support'],
+                'priority': 9,
+                'notes': 'General crisis and mental health support via Mental Health Uganda. mentalhealthafrica.org'
+            },
+            {
+                'agency_name': 'Sauti 116 Uganda - Child Helpline',
+                'email': 'info@sauti116.org',
+                'phone': '116',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Uganda',
+                'tags': ['Child Protection', 'Youth Support', 'Children Safety'],
+                'priority': 8,
+                'notes': 'Child and youth helpline in Uganda. Call 116 for free.'
+            },
+            {
+                'agency_name': 'WLAC Tanzania - Women Abuse Helpline',
+                'email': 'info@wlac.or.tz',
+                'phone': '0800 780 100',
                 'jurisdiction_level': 'country',
                 'jurisdiction_name': 'Tanzania',
-                'tags': ['Legal Aid', 'Women Rights', 'Harassment'],
+                'tags': ['Domestic Violence', 'Women Abuse', 'GBV', 'Legal Aid'],
+                'priority': 10,
+                'notes': 'Women Legal Aid Centre Tanzania. Alternative: +255 22 266 4051'
+            },
+            {
+                'agency_name': 'Tanzania Mental Health Trust',
+                'email': 'info@tzmht.org',
+                'phone': '+255 755 740 725',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Tanzania',
+                'tags': ['Mental Health', 'Crisis Support', 'Emotional Support'],
+                'priority': 9,
+                'notes': 'Mental health and general crisis support in Tanzania. mentalhealthafrica.org'
+            },
+            {
+                'agency_name': 'C-Sema Tanzania - Child Helpline',
+                'email': 'info@csema.or.tz',
+                'phone': '116',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Tanzania',
+                'tags': ['Child Protection', 'Youth Support', 'Children Safety'],
                 'priority': 8,
-                'notes': 'Legal aid for women in Tanzania'
+                'notes': 'Child helpline in Tanzania. Call 116 for free.'
+            },
+            {
+                'agency_name': 'SADAG South Africa - Mental Health Crisis',
+                'email': 'info@sadag.org',
+                'phone': '0800 567 567',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'South Africa',
+                'tags': ['Mental Health', 'Crisis Support', 'Suicide Prevention', 'Emotional Support'],
+                'priority': 10,
+                'notes': 'South African Depression and Anxiety Group. 24-hour crisis line. sadag.org'
+            },
+            {
+                'agency_name': 'GBV Command Centre South Africa',
+                'email': 'gbv@dsd.gov.za',
+                'phone': '0800 150 150',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'South Africa',
+                'tags': ['Gender-Based Violence', 'Domestic Violence', 'Women Safety', 'GBV'],
+                'priority': 10,
+                'notes': 'National GBV Command Centre. Toll-free 24/7 helpline for gender-based violence.'
+            },
+            {
+                'agency_name': 'SADAG Substance Abuse Line South Africa',
+                'email': 'substance@sadag.org',
+                'phone': '0800 12 13 14',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'South Africa',
+                'tags': ['Substance Abuse', 'Mental Health', 'Addiction Support'],
+                'priority': 7,
+                'notes': 'SADAG substance abuse and mental health support line. sadag.org'
+            },
+            {
+                'agency_name': 'MANI Nigeria - Mental Health Crisis',
+                'email': 'info@mentallyawareng.com',
+                'phone': '+234 809 111 6264',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Nigeria',
+                'tags': ['Mental Health', 'Crisis Support', 'Emotional Support'],
+                'priority': 10,
+                'notes': 'Mentally Aware Nigeria Initiative. Alternative: +234 811 680 686. mentalhealthafrica.org'
+            },
+            {
+                'agency_name': 'DSVRT Nigeria - GBV Helpline',
+                'email': 'info@dsvrtlagos.org',
+                'phone': '+234 0800 72 73 2255',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Nigeria',
+                'tags': ['Domestic Violence', 'Sexual Violence', 'GBV', 'Women Safety'],
+                'priority': 10,
+                'notes': 'Domestic and Sexual Violence Response Team. Emergency: 112. advancenigeria.org'
+            },
+            {
+                'agency_name': 'Women Safe House Nigeria',
+                'email': 'help@womensafehouse.org',
+                'phone': '+234 811 266 3348',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Nigeria',
+                'tags': ['Women Safety', 'Safe House', 'Crisis Support', 'Victim Support'],
+                'priority': 9,
+                'notes': 'Women and girl-victim support with safe-house crisis line. Evoca Foundation'
+            },
+            {
+                'agency_name': 'DOVVSU Ghana - GBV Helpline',
+                'email': 'dovvsu@police.gov.gh',
+                'phone': '055 1000 900',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Ghana',
+                'tags': ['Domestic Violence', 'Gender-Based Violence', 'GBV', 'Women Safety'],
+                'priority': 10,
+                'notes': 'Domestic Violence and Victims Support Unit. Ghana Police Service. commonwealthsaysnomore.org'
+            },
+            {
+                'agency_name': 'Ghana Mental Health Lifeline',
+                'email': 'info@mentalhealthghana.org',
+                'phone': '+233 244 471 279',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Ghana',
+                'tags': ['Mental Health', 'Crisis Support', 'Emotional Support'],
+                'priority': 9,
+                'notes': 'National mental health and crisis lifeline. mentalhealthafrica.org'
+            },
+            {
+                'agency_name': 'Stop Abuse Ghana',
+                'email': 'info@stopabuseghana.org',
+                'phone': '+233 302 522 902',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Ghana',
+                'tags': ['Abuse Support', 'Counselling', 'Women Safety', 'NGO'],
+                'priority': 8,
+                'notes': 'Abuse support and counselling services NGO. stopabuseghana.org'
+            },
+            {
+                'agency_name': 'Child Helpline Rwanda',
+                'email': 'info@childhelplinerw.org',
+                'phone': '116',
+                'jurisdiction_level': 'country',
+                'jurisdiction_name': 'Rwanda',
+                'tags': ['Child Protection', 'Youth Support', 'Children Safety'],
+                'priority': 10,
+                'notes': 'Child and youth helpline in Rwanda. Call 116 for free.'
             },
             {
                 'agency_name': 'Pan-African Women Safety Network',
                 'email': 'alerts@pawsn.org',
-                'phone': '+1-555-SAFETY',
+                'phone': '',
                 'jurisdiction_level': 'regional',
                 'jurisdiction_name': 'Africa',
-                'tags': ['Women Safety', 'Online Violence', 'Support Network'],
-                'priority': 5,
+                'tags': ['Women Safety', 'Online Violence', 'Support Network', 'Fallback'],
+                'priority': 3,
                 'notes': 'Fallback contact for regions without specific contacts'
             },
         ]
@@ -114,7 +214,8 @@ class Command(BaseCommand):
 
         for auth_data in authorities:
             authority, created = AuthorityContact.objects.update_or_create(
-                email=auth_data['email'],
+                agency_name=auth_data['agency_name'],
+                jurisdiction_name=auth_data['jurisdiction_name'],
                 defaults=auth_data
             )
             if created:

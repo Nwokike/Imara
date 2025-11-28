@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv()
 
@@ -16,6 +17,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.replit.dev',
     'https://*.replit.app',
     'https://*.repl.co',
+    'https://*.onrender.com',
+    'https://*.render.com',
 ]
 
 INSTALLED_APPS = [
@@ -63,27 +66,17 @@ TEMPLATES = [
 WSGI_APPLICATION = 'imara.wsgi.application'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
-PGHOST = os.environ.get('PGHOST')
-PGDATABASE = os.environ.get('PGDATABASE')
 
-if DATABASE_URL and PGDATABASE:
-    ssl_mode = os.environ.get('PGSSLMODE', 'prefer')
-    db_options = {}
-    if ssl_mode and ssl_mode != 'disable':
-        db_options['sslmode'] = ssl_mode
-    
+if DATABASE_URL:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': PGDATABASE,
-            'USER': os.environ.get('PGUSER'),
-            'PASSWORD': os.environ.get('PGPASSWORD'),
-            'HOST': PGHOST,
-            'PORT': os.environ.get('PGPORT', '5432'),
-            'OPTIONS': db_options,
-            'CONN_MAX_AGE': 300,
-        }
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=300,
+            conn_health_checks=True,
+        )
     }
+    if not DEBUG:
+        DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 else:
     DATABASES = {
         'default': {
