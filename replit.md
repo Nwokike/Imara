@@ -73,3 +73,27 @@ uv run python manage.py collectstatic
 - Added 19 real African helplines (Kenya, Uganda, Tanzania, South Africa, Nigeria, Ghana, Rwanda)
 - Added Render deployment configuration (render.yaml, Procfile)
 - Added Render domains to CSRF trusted origins
+- Implemented production security hardening (HTTPS, HSTS, secure cookies)
+- Dynamic ALLOWED_HOSTS based on environment (locked down in production)
+- Async email dispatch using threading for non-blocking requests
+
+## Production Security Features
+When DEBUG=False (production):
+- ALLOWED_HOSTS locked to specific domains (Render, Replit)
+- SECURE_SSL_REDIRECT enabled
+- SESSION_COOKIE_SECURE and CSRF_COOKIE_SECURE enabled
+- HSTS with 1 year max-age, preload, and subdomains
+- X_FRAME_OPTIONS set to DENY
+- SECURE_CONTENT_TYPE_NOSNIFF enabled
+
+## Launch Checklist
+- [x] Hybrid AI Engine (Groq + Gemini)
+- [x] Risk scoring (1-10) with ADVISE/REPORT logic
+- [x] Authority routing by location
+- [x] Chain of custody hashing (SHA-256)
+- [x] Async email dispatch (threading)
+- [x] PWA functionality (manifest, service worker)
+- [x] Production security hardening
+- [x] Render deployment configuration
+- [x] 19 African helplines seeded
+- [x] Superuser account created
