@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence">
+    <title>{% block title %}Project Imara - Digital Bodyguard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --imara-dark: #1a1a2e;
+            --imara-darker: #16213e;
+            --imara-accent: #e94560;
+            --imara-accent-light: #ff6b6b;
+            --imara-gold: #ffd93d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-imara {
+            background: linear-gradient(135deg, var(--imara-dark) 0%, var(--imara-darker) 100%);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .btn-imara {
+            background: linear-gradient(135deg, var(--imara-accent) 0%, var(--imara-accent-light) 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 30px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-imara:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
+            color: white;
+        }
+        
+        .btn-imara-outline {
+            border: 2px solid var(--imara-accent);
+            color: var(--imara-accent);
+            background: transparent;
+            font-weight: 600;
+            padding: 10px 28px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-imara-outline:hover {
+            background: var(--imara-accent);
+            color: white;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--imara-dark) 0%, var(--imara-darker) 100%);
+            color: white;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23e94560' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .shield-icon {
+            font-size: 5rem;
+            color: var(--imara-accent);
+            margin-bottom: 20px;
+        }
+        
+        .card-platform {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .card-platform:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+        
+        .card-platform.active {
+            border: 2px solid var(--imara-accent);
+        }
+        
+        .card-platform.coming-soon {
+            opacity: 0.7;
+        }
+        
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .badge-active {
+            background-color: #28a745;
+        }
+        
+        .badge-coming {
+            background-color: #6c757d;
+        }
+        
+        .footer-imara {
+            background: var(--imara-dark);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--imara-accent);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--imara-accent) 0%, var(--imara-accent-light) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .feature-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-imara">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-shield-check me-2"></i>Project Imara
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'report_form' %}">Report Abuse</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer class="footer-imara">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-shield-check me-2"></i>Project Imara</h5>
+                    <p class="text-muted">"Imara" means "Strong" in Swahili. We stand together against online gender-based violence.</p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}" class="text-muted text-decoration-none">Home</a></li>
+                        <li><a href="{% url 'report_form' %}" class="text-muted text-decoration-none">Report Abuse</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Emergency</h6>
+                    <p class="text-muted small">If you're in immediate danger, please contact your local emergency services.</p>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <div class="text-center text-muted">
+                <small>&copy; 2025 Project Imara. Power Hacks 2025 Hackathon.</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

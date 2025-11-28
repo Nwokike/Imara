@@ -1,0 +1,24 @@
+:root {
+    --imara-dark: #1a1a2e;
+    --imara-darker: #16213e;
+    --imara-accent: #e94560;
+    --imara-accent-light: #ff6b6b;
+    --imara-gold: #ffd93d;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.btn-imara {
+    background: linear-gradient(135deg, var(--imara-accent) 0%, var(--imara-accent-light) 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.btn-imara:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
+    color: white;
+}
