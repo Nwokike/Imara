@@ -373,7 +373,7 @@ class ReportProcessor:
         return {
             "success": True, 
             "recipient": authority.email,
-            "authority_name": authority.name,
+            "authority_name": authority.agency_name,
             "authority_email": authority.email
         }
     
