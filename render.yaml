@@ -1,6 +1,7 @@
 services:
   - type: web
     name: project-imara
+    plan: free
     runtime: python
     buildCommand: pip install uv && uv sync --no-dev && uv run python manage.py collectstatic --noinput && uv run python manage.py migrate && uv run python manage.py seed_authorities
     startCommand: uv run gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 imara.wsgi:application
