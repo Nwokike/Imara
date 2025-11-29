@@ -8,11 +8,6 @@ Project Imara is a "Zero-UI Digital Bodyguard" platform that protects women and 
 - Works through existing apps (Telegram, Web PWA) without requiring downloads
 - Serves as an educational platform for online safety
 
-## Current State
-- **Live on Render**: The production version runs on Render and must remain stable
-- **Replit Development**: All changes are tested in Replit before deployment
-- **Status**: Phase 1-3 implementation complete
-
 ## Recent Changes (November 29, 2025)
 
 ### Bug Fixes
@@ -92,8 +87,21 @@ python manage.py runserver 0.0.0.0:5000
 5. **Feedback buttons**: Every analysis result has thumbs up/down buttons
 6. **Safety warnings**: High-risk reports include reminder to delete conversation
 
-## User Preferences
-- Focus on education/mission, not just features
-- Avoid repetitive branding like "Imara means Strong"
-- Don't specify exact helpline counts (use general terms)
-- Keep navigation simple with mission-focused copy
+## Safe Word Race Condition Fix
+The safe word feature uses timestamp-based cancellation to handle race conditions:
+
+1. **`cancelled_until` field**: Stores when cancellation expires (60 seconds from trigger)
+2. **`is_cancelled()` method**: Checks if `cancelled_until > now`
+3. **`set_cancelled(seconds=60)`**: Sets a 60-second cancellation window
+4. **Flow**: 
+   - User sends high-risk message → Handler A starts processing
+   - User sends STOP → `cancelled_until = now + 60 seconds`
+   - User sends /start → Command processed, but cancellation NOT cleared
+   - Handler A completes → `is_cancelled()` returns True → Response blocked
+   - After 60 seconds, cancellation expires naturally
+
+## Localized Messaging
+Supports African languages with localized responses:
+- **Pidgin**: "STOP! Everything don stop. Your safety na first."
+- **Swahili**: "SIMAMA! Kila kitu kimesimama. Usalama wako ndio kwanza."
+- **English**: Default for other languages
