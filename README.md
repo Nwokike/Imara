@@ -50,24 +50,24 @@ We have tested the system end-to-end. Below are screenshots from our live deploy
 
 ### 1. The User Interface (Zero-UI)
 The survivor reports via Telegram (Voice/Text/Image) or our Camouflaged Web Portal.
-| Telegram (Voice Transcription) | Web Portal (Image Analysis) |
+| Telegram (Image Analysis) | Web Portal (Voice Transcription) |
 |:---:|:---:|
 | <img src="test/telegram_screenshot.jpg" width="100%"> | <img src="test/web.jpg" width="100%"> |
-| *Bot receives **forwarded screenshot**, transcribes it, and detects blackmail.* | *Web AI analyzes uploaded screenshots and warns the user.* |
+| *Bot receives **forwarded screenshot**, transcribes it, and detects blackmail.* | *Web AI analyzes uploaded data and warns the user.* |
 
 ### 2. The Backend Brain (Admin)
 The system automatically logs incidents, hashes evidence for legal validity, and maps them to authorities.
 | Incident Reports Log | Authority Database |
 |:---:|:---:|
 | <img src="test/Incident_reports.jpg" width="100%"> | <img src="test/Authority_Contacts.jpg" width="100%"> |
-| *Real-time tracking of cases (Voice/Text) with Risk Scores.* | *19+ Pre-seeded helplines across Africa.* |
+| *Real-time tracking of cases (Voice, Image, Text from Web, Telegram) with Risk Scores.* | *19+ Pre-seeded helplines across Africa.* |
 
 ### 3. The Action (Dispatch)
 High-risk threats trigger immediate email dispatch to the relevant authority.
 | Dispatch System | Email Confirmation |
 |:---:|:---:|
 | <img src="test/Dispatch_Log.jpg" width="100%"> | <img src="test/email_confirm.jpg" width="100%"> |
-| *System logs the sent email (to Nigerian Police).* | *The user is alerted via email.* |
+| *System logs the sent email (to Nigerian Police).* | *Web user is alerted via provided email.* |
 
 ## 🛠️ The "Zero-Cost" Tech Stack
 We built a production-grade safety ecosystem using 100% free tiers of enterprise tools.
