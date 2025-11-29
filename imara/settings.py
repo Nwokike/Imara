@@ -35,10 +35,16 @@ CSRF_TRUSTED_ORIGINS = [
     'https://project-imara.onrender.com',
     'https://*.onrender.com',
     'https://*.render.com',
+    'https://*.replit.dev',
+    'https://*.repl.co',
 ]
 
 if RENDER_EXTERNAL_HOSTNAME:
     CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
+
+REPLIT_DEV_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', '')
+if REPLIT_DEV_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{REPLIT_DEV_DOMAIN}')
 
 INSTALLED_APPS = [
     'django.contrib.admin',

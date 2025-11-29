@@ -7,21 +7,88 @@
 <section class="hero-section">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6 text-center text-lg-start">
-                <img src="{% static 'images/logo.png' %}" alt="Imara Logo" class="hero-logo">
-                <h1 class="hero-title">Report Online Violence Securely</h1>
-                <p class="hero-subtitle">Your Digital Bodyguard powered by AI. We protect women and girls from online harassment, threats, and violence.</p>
-                <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
+            <div class="col-lg-7 text-center text-lg-start">
+                <span class="hero-badge">Protecting Women & Girls Online</span>
+                <h1 class="hero-title">Your Digital Bodyguard Against Online Violence</h1>
+                <p class="hero-subtitle">70% of women experience online harassment. Project Imara uses AI to analyze threats, provide instant safety advice, and connect you with authorities when needed. No app download required.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Always Available</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">AI</span>
+                        <span class="stat-label">Powered Analysis</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">7</span>
+                        <span class="stat-label">African Countries</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap mt-4">
                     <a href="{% url 'report_form' %}" class="btn btn-primary btn-lg">
-                        <i class="bi bi-send-fill me-1"></i>Report Now
+                        <i class="bi bi-shield-check me-2"></i>Report Abuse Now
                     </a>
-                    <a href="#how-it-works" class="btn btn-outline-primary btn-lg">
-                        Learn More
+                    <a href="https://t.me/project_imara_bot" target="_blank" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-telegram me-2"></i>Use Telegram Bot
                     </a>
                 </div>
             </div>
-            <div class="col-lg-6 d-none d-lg-block text-center">
-                <img src="{% static 'images/logo.png' %}" alt="Imara" class="img-fluid hero-bg-logo">
+            <div class="col-lg-5 d-none d-lg-block text-center">
+                <div class="hero-visual">
+                    <img src="{% static 'images/icon-512x512.png' %}" alt="Project Imara" class="hero-main-img">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="about">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <span class="section-badge">About Project Imara</span>
+                <h2 class="section-title-lg">Your <span class="text-purple">Invisible</span> Digital Bodyguard</h2>
+                <p class="section-text">We believe no woman should suffer online violence in silence. Project Imara is a Zero-UI Digital Bodyguard that works inside the apps you already use - leaving no trace that could put you at risk.</p>
+                <div class="about-features">
+                    <div class="about-feature">
+                        <div class="about-feature-icon"><i class="bi bi-eye-slash"></i></div>
+                        <div>
+                            <h5>Invisible Protection</h5>
+                            <p>No app download needed. Works through Telegram and Web - leaving no trace on your device.</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon"><i class="bi bi-shield-lock"></i></div>
+                        <div>
+                            <h5>Forensic-Grade Evidence</h5>
+                            <p>Your reports are SHA-256 hashed for legal verification and court admissibility.</p>
+                        </div>
+                    </div>
+                    <div class="about-feature">
+                        <div class="about-feature-icon"><i class="bi bi-lightning"></i></div>
+                        <div>
+                            <h5>Instant AI Analysis</h5>
+                            <p>Multi-modal AI analyzes text, images, and voice to assess threat levels instantly.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="about-card">
+                    <h4><i class="bi bi-heart-fill text-danger me-2"></i>Our Mission</h4>
+                    <p>To unite and end digital violence against all women and girls by providing invisible, immediate, and legally robust protection tools.</p>
+                    <div class="mission-stats">
+                        <div class="mission-stat">
+                            <i class="bi bi-globe-africa"></i>
+                            <span>Serving Kenya, Nigeria, South Africa, Ghana, Uganda, Tanzania & Rwanda</span>
+                        </div>
+                        <div class="mission-stat">
+                            <i class="bi bi-people"></i>
+                            <span>Built by women, for women</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -29,152 +96,380 @@
 
 <section class="section section-alt" id="platforms">
     <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">Available Platforms</h2>
-            <p class="section-subtitle">Access protection wherever you are</p>
+        <div class="text-center mb-5">
+            <span class="section-badge">Get Protected Now</span>
+            <h2 class="section-title-lg">Use Project Imara Today</h2>
+            <p class="section-subtitle">Choose your preferred platform to report abuse and get help</p>
         </div>
-        <div class="platform-grid">
-            <a href="{% url 'report_form' %}" class="card-box card-box-clickable text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-globe"></i>
-                </div>
-                <h5 class="card-box-title">Web Portal</h5>
-                <p class="card-box-text">Upload screenshots, audio files and reports</p>
-                <span class="badge badge-status badge-active mt-2">Active</span>
-            </a>
-            <a href="https://t.me/project_imara_bot" target="_blank" class="card-box card-box-clickable text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-telegram"></i>
-                </div>
-                <h5 class="card-box-title">Telegram Bot</h5>
-                <p class="card-box-text">Forward abusive messages including voice notes and images</p>
-                <span class="badge badge-status badge-active mt-2">Active</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-whatsapp"></i>
-                </div>
-                <h5 class="card-box-title">WhatsApp</h5>
-                <p class="card-box-text">Protection in your chats</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-instagram"></i>
-                </div>
-                <h5 class="card-box-title">Instagram</h5>
-                <p class="card-box-text">Monitor DMs for threats</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-facebook"></i>
-                </div>
-                <h5 class="card-box-title">Facebook</h5>
-                <p class="card-box-text">Messenger protection</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-twitter-x"></i>
-                </div>
-                <h5 class="card-box-title">X (Twitter)</h5>
-                <p class="card-box-text">Report abusive tweets</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-tiktok"></i>
-                </div>
-                <h5 class="card-box-title">TikTok</h5>
-                <p class="card-box-text">Video threat detection</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
-            <a href="#" class="card-box card-box-clickable card-coming-soon text-center text-decoration-none">
-                <div class="card-box-icon mx-auto">
-                    <i class="bi bi-snapchat"></i>
-                </div>
-                <h5 class="card-box-title">Snapchat</h5>
-                <p class="card-box-text">Snap safety monitoring</p>
-                <span class="badge badge-status badge-coming mt-2">Coming Soon</span>
-            </a>
+        
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-5 mb-4">
+                <a href="{% url 'report_form' %}" class="platform-card-main text-decoration-none">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-globe"></i>
+                    </div>
+                    <h3>Web Portal</h3>
+                    <p>Upload screenshots, voice notes, and text reports securely through our website.</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Upload images & screenshots</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Submit voice recordings</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Receive email confirmation</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI-powered threat analysis</li>
+                    </ul>
+                    <span class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>Report via Web
+                    </span>
+                </a>
+            </div>
+            <div class="col-md-5 mb-4">
+                <a href="https://t.me/project_imara_bot" target="_blank" class="platform-card-main platform-card-telegram text-decoration-none">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-telegram"></i>
+                    </div>
+                    <h3>Telegram Bot</h3>
+                    <p>Forward abusive messages directly. Perfect for quick, discreet reporting.</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Forward any message instantly</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Send voice notes & images</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Get instant AI analysis</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Auto-report high threats</li>
+                    </ul>
+                    <span class="btn btn-telegram w-100">
+                        <i class="bi bi-telegram me-2"></i>Open @project_imara_bot
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <p class="text-muted"><i class="bi bi-clock me-1"></i> More platforms coming soon</p>
+        </div>
+        <div class="coming-soon-grid">
+            <div class="coming-soon-item">
+                <i class="bi bi-whatsapp"></i>
+                <span>WhatsApp</span>
+            </div>
+            <div class="coming-soon-item">
+                <i class="bi bi-instagram"></i>
+                <span>Instagram</span>
+            </div>
+            <div class="coming-soon-item">
+                <i class="bi bi-facebook"></i>
+                <span>Facebook</span>
+            </div>
+            <div class="coming-soon-item">
+                <i class="bi bi-twitter-x"></i>
+                <span>X (Twitter)</span>
+            </div>
+            <div class="coming-soon-item">
+                <i class="bi bi-tiktok"></i>
+                <span>TikTok</span>
+            </div>
+            <div class="coming-soon-item">
+                <i class="bi bi-snapchat"></i>
+                <span>Snapchat</span>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="section" id="how-it-works">
     <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Three simple steps to protection</p>
+        <div class="text-center mb-5">
+            <span class="section-badge">Simple & Quick</span>
+            <h2 class="section-title-lg">How Project Imara Protects You</h2>
         </div>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <a href="{% url 'report_form' %}" class="card-box card-box-clickable text-center text-decoration-none">
-                    <div class="step-number">1</div>
-                    <h5 class="card-box-title">Report</h5>
-                    <p class="card-box-text">Forward abusive messages, screenshots, or voice notes</p>
-                </a>
+        <div class="steps-container">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="bi bi-send"></i></div>
+                <h4>Report</h4>
+                <p>Forward abusive messages, screenshots, or voice notes through Web or Telegram</p>
             </div>
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <div class="step-number">2</div>
-                    <h5 class="card-box-title">AI Analysis</h5>
-                    <p class="card-box-text">Our hybrid AI analyzes the threat level instantly</p>
+            <div class="step-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="bi bi-cpu"></i></div>
+                <h4>AI Analysis</h4>
+                <p>Our hybrid AI instantly analyzes the content and rates the threat level (1-10)</p>
+            </div>
+            <div class="step-arrow"><i class="bi bi-arrow-right"></i></div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="bi bi-shield-check"></i></div>
+                <h4>Action</h4>
+                <p>Low risk: Get safety advice. High risk: Auto-report to nearest authorities</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt" id="threats">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">AI-Powered Detection</span>
+            <h2 class="section-title-lg">Types of Threats We Detect</h2>
+            <p class="section-subtitle">Our AI is trained to identify various forms of online violence</p>
+        </div>
+        <div class="threats-grid">
+            <div class="threat-item">
+                <div class="threat-icon threat-high"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                <h5>Death Threats</h5>
+                <p>Threats of physical violence or harm</p>
+            </div>
+            <div class="threat-item">
+                <div class="threat-icon threat-high"><i class="bi bi-geo-alt-fill"></i></div>
+                <h5>Doxing</h5>
+                <p>Sharing private info like address or phone</p>
+            </div>
+            <div class="threat-item">
+                <div class="threat-icon threat-high"><i class="bi bi-cash-coin"></i></div>
+                <h5>Blackmail</h5>
+                <p>Extortion and threatening demands</p>
+            </div>
+            <div class="threat-item">
+                <div class="threat-icon threat-high"><i class="bi bi-camera-video-fill"></i></div>
+                <h5>Revenge Porn</h5>
+                <p>Threats to share intimate content</p>
+            </div>
+            <div class="threat-item">
+                <div class="threat-icon threat-medium"><i class="bi bi-eye-fill"></i></div>
+                <h5>Stalking</h5>
+                <p>Persistent unwanted contact or tracking</p>
+            </div>
+            <div class="threat-item">
+                <div class="threat-icon threat-medium"><i class="bi bi-chat-dots-fill"></i></div>
+                <h5>Harassment</h5>
+                <p>Repeated abusive or threatening messages</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="safety-tips">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">Stay Safe Online</span>
+            <h2 class="section-title-lg">Online Safety Tips</h2>
+            <p class="section-subtitle">Protect yourself with these essential safety practices</p>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-lock-fill"></i></div>
+                    <h5>Protect Your Privacy</h5>
+                    <ul class="tip-list">
+                        <li>Review privacy settings on all social media</li>
+                        <li>Never share your location publicly</li>
+                        <li>Use strong, unique passwords</li>
+                        <li>Enable two-factor authentication</li>
+                    </ul>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card-box text-center">
-                    <div class="step-number">3</div>
-                    <h5 class="card-box-title">Action</h5>
-                    <p class="card-box-text">Get advice or automatic reporting to authorities</p>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-camera-fill"></i></div>
+                    <h5>Document Everything</h5>
+                    <ul class="tip-list">
+                        <li>Screenshot all threatening messages</li>
+                        <li>Save dates, times, and usernames</li>
+                        <li>Don't delete evidence</li>
+                        <li>Keep a written log of incidents</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-person-x-fill"></i></div>
+                    <h5>Block & Report</h5>
+                    <ul class="tip-list">
+                        <li>Block harassers immediately</li>
+                        <li>Report abuse to platforms</li>
+                        <li>Don't engage with trolls</li>
+                        <li>Inform trusted friends/family</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-telephone-fill"></i></div>
+                    <h5>Know Your Resources</h5>
+                    <ul class="tip-list">
+                        <li>Save local emergency numbers</li>
+                        <li>Know your nearest GBV helpline</li>
+                        <li>Identify safe people to contact</li>
+                        <li>Use Project Imara for support</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-heart-fill"></i></div>
+                    <h5>Take Care of Yourself</h5>
+                    <ul class="tip-list">
+                        <li>It's not your fault</li>
+                        <li>Seek emotional support</li>
+                        <li>Take breaks from social media</li>
+                        <li>Consider talking to a counselor</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                    <h5>Emergency Actions</h5>
+                    <ul class="tip-list">
+                        <li>If in immediate danger, call police</li>
+                        <li>Go to a safe location</li>
+                        <li>Tell someone you trust</li>
+                        <li>Use Imara to report & get help</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section section-alt">
+<section class="section section-alt" id="support">
     <div class="container">
-        <div class="text-center">
-            <h2 class="section-title">What We Detect</h2>
-            <p class="section-subtitle">AI-powered threat recognition</p>
+        <div class="text-center mb-5">
+            <span class="section-badge">You're Not Alone</span>
+            <h2 class="section-title-lg">Support Resources</h2>
+            <p class="section-subtitle">Find help and support in your region</p>
         </div>
-        <div class="row g-2">
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-exclamation-triangle text-danger"></i>
-                    <h6>Threats</h6>
-                </div>
-            </div>
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-geo-alt text-warning"></i>
-                    <h6>Doxing</h6>
-                </div>
-            </div>
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-cash-coin text-danger"></i>
-                    <h6>Blackmail</h6>
-                </div>
-            </div>
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-eye text-warning"></i>
-                    <h6>Stalking</h6>
-                </div>
-            </div>
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-chat-left-dots text-info"></i>
-                    <h6>Harassment</h6>
-                </div>
-            </div>
-            <div class="col-4 col-md-2">
-                <div class="threat-card">
-                    <i class="bi bi-camera-video text-danger"></i>
-                    <h6>Revenge Porn</h6>
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="support-accordion" id="supportAccordion">
+                    <div class="support-region">
+                        <button class="support-region-btn" type="button" data-bs-toggle="collapse" data-bs-target="#kenya" aria-expanded="true">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>Kenya</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="kenya" class="collapse show" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>Kenya GBV Helpline (FIDA Kenya)</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>1195</p>
+                                    <span class="support-tag">Gender-Based Violence</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>Befrienders Kenya</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>+254 722 178 177</p>
+                                    <span class="support-tag">Mental Health & Crisis</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>Childline Kenya</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>116 (Free)</p>
+                                    <span class="support-tag">Youth Support</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-region">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#nigeria">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>Nigeria</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="nigeria" class="collapse" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>MANI Nigeria - Mental Health</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>+234 809 111 6264</p>
+                                    <span class="support-tag">Mental Health & Crisis</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>DSVRT Nigeria - GBV Helpline</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>0800 72 73 2255</p>
+                                    <span class="support-tag">Domestic & Sexual Violence</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>Women Safe House Nigeria</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>+234 811 266 3348</p>
+                                    <span class="support-tag">Safe House & Crisis</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-region">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#southafrica">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>South Africa</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="southafrica" class="collapse" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>GBV Command Centre</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>0800 150 150 (24/7 Toll-Free)</p>
+                                    <span class="support-tag">Gender-Based Violence</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>SADAG Crisis Line</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>0800 567 567</p>
+                                    <span class="support-tag">Mental Health & Suicide Prevention</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-region">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ghana">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>Ghana</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="ghana" class="collapse" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>DOVVSU Ghana</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>055 1000 900</p>
+                                    <span class="support-tag">Domestic Violence Support</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>Ghana Mental Health Lifeline</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>+233 244 471 279</p>
+                                    <span class="support-tag">Mental Health & Crisis</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-region">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#uganda">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>Uganda</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="uganda" class="collapse" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>Mifumi Uganda - GBV Helpline</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>0800 200 250 (Toll-Free)</p>
+                                    <span class="support-tag">Domestic & Sexual Violence</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>Sauti 116 Uganda</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>116 (Free)</p>
+                                    <span class="support-tag">Child & Youth Helpline</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="support-region">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tanzania">
+                            <span><i class="bi bi-geo-alt-fill me-2"></i>Tanzania</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        <div id="tanzania" class="collapse" data-bs-parent="#supportAccordion">
+                            <div class="support-list">
+                                <div class="support-item">
+                                    <h6>WLAC Tanzania</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>0800 780 100</p>
+                                    <span class="support-tag">Women Legal Aid</span>
+                                </div>
+                                <div class="support-item">
+                                    <h6>C-Sema Tanzania</h6>
+                                    <p><i class="bi bi-telephone me-2"></i>116 (Free)</p>
+                                    <span class="support-tag">Child Helpline</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -183,11 +478,18 @@
 
 <section class="cta-section">
     <div class="container">
-        <h2>Ready to Get Protected?</h2>
-        <p>Don't suffer in silence. Report abuse now and let our AI help you.</p>
-        <a href="{% url 'report_form' %}" class="btn btn-lg">
-            <i class="bi bi-shield-check me-1"></i>Report Now
-        </a>
+        <div class="cta-content">
+            <h2>Don't Suffer in Silence</h2>
+            <p>You deserve to be safe online. Report abuse now and let our AI help protect you. Your report is confidential and secure.</p>
+            <div class="cta-buttons">
+                <a href="{% url 'report_form' %}" class="btn btn-light btn-lg">
+                    <i class="bi bi-shield-check me-2"></i>Report Abuse Now
+                </a>
+                <a href="https://t.me/project_imara_bot" target="_blank" class="btn btn-outline-light btn-lg">
+                    <i class="bi bi-telegram me-2"></i>Message on Telegram
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}

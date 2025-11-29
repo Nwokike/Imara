@@ -4,13 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence">
+    <meta name="description" content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence. Report abuse, get AI-powered threat analysis, and connect with support resources.">
     <meta name="theme-color" content="#6B4C9A">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Imara">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="msapplication-TileColor" content="#6B4C9A">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>{% block title %}Project Imara - Digital Bodyguard{% endblock %}</title>
     <link rel="manifest" href="{% static 'manifest.json' %}" crossorigin="use-credentials">
     <link rel="apple-touch-icon" href="{% static 'images/icon-192x192.png' %}">
@@ -24,19 +27,38 @@
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
 </head>
 <body class="d-flex flex-column min-vh-100">
-    <nav class="navbar">
+    <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
                 <img src="{% static 'images/logo.png' %}" alt="Imara Logo">
                 Project Imara
             </a>
-            <div class="d-flex align-items-center gap-2">
-                <a href="{% url 'report_form' %}" class="btn btn-primary btn-sm d-none d-md-inline-flex">
-                    <i class="bi bi-shield-check me-1"></i>Report
-                </a>
-                <button class="btn-theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                    <i class="bi bi-moon-fill"></i>
-                </button>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto me-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}#platforms">Get Protected</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}#safety-tips">Safety Tips</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}#support">Support</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'report_form' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-shield-check me-1"></i>Report Abuse
+                    </a>
+                    <button class="btn-theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                        <i class="bi bi-moon-fill"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
@@ -48,28 +70,44 @@
     <footer class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-6 mb-3 mb-md-0">
+                <div class="col-lg-4 mb-4 mb-lg-0">
                     <div class="footer-brand">
                         <img src="{% static 'images/logo.png' %}" alt="Imara Logo">
                         Project Imara
                     </div>
-                    <p class="footer-text">"Imara" means "Strong" in Swahili. We stand together against online gender-based violence.</p>
+                    <p class="footer-text">Standing together against online gender-based violence across Africa.</p>
+                    <div class="footer-social">
+                        <a href="https://t.me/project_imara_bot" target="_blank" class="social-link"><i class="bi bi-telegram"></i></a>
+                    </div>
                 </div>
-                <div class="col-6 col-md-3 mb-3 mb-md-0">
-                    <h6 class="fw-bold mb-2" style="font-size: 0.85rem;">Quick Links</h6>
+                <div class="col-6 col-lg-2 mb-4 mb-lg-0">
+                    <h6 class="footer-heading">Quick Links</h6>
                     <div class="footer-links">
                         <a href="{% url 'home' %}">Home</a>
                         <a href="{% url 'report_form' %}">Report Abuse</a>
+                        <a href="{% url 'home' %}#safety-tips">Safety Tips</a>
+                        <a href="{% url 'home' %}#support">Get Support</a>
                     </div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <h6 class="fw-bold mb-2" style="font-size: 0.85rem;">Emergency</h6>
-                    <p class="footer-text">If in immediate danger, contact local emergency services.</p>
+                <div class="col-6 col-lg-2 mb-4 mb-lg-0">
+                    <h6 class="footer-heading">Platforms</h6>
+                    <div class="footer-links">
+                        <a href="{% url 'report_form' %}">Web Portal</a>
+                        <a href="https://t.me/project_imara_bot" target="_blank">Telegram Bot</a>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="footer-heading">Emergency</h6>
+                    <p class="footer-text">If you are in immediate danger, please contact your local emergency services immediately.</p>
+                    <div class="emergency-box">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>In crisis? Use Project Imara to report and get connected to help.</span>
+                    </div>
                 </div>
             </div>
-            <hr class="my-3">
-            <div class="text-center footer-text">
-                <small>2025 Project Imara. Power Hacks 2025.</small>
+            <hr class="footer-divider">
+            <div class="footer-bottom">
+                <p class="footer-text mb-0">&copy; 2025 Project Imara. Built for Power Hacks 2025. UNiTE to End Digital Violence.</p>
             </div>
         </div>
     </footer>
@@ -106,6 +144,19 @@
                     .catch(function(err) { console.log('SW failed'); });
             });
         }
+        
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href.startsWith('#') && href.length > 1) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+        });
     </script>
 </body>
 </html>
