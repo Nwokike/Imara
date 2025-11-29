@@ -80,7 +80,7 @@ We built a production-grade safety ecosystem using 100% free tiers of enterprise
 | **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
 | **Database** | PostgreSQL (Neon) | Stores evidence with SHA-256 hashes. |
 | **Dispatch** | Brevo API | Transactional emails to authorities. |
-| **Hosting** | Render | Zero-downtime deployment. |
+| **Hosting** | Render | Temporal deployment. |
 
 ## 🔮 Roadmap: Coming Soon
 We are expanding the **Zero-UI** concept to the 6 most common platforms used by women in Africa:
@@ -103,6 +103,58 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 
 
 *Building from Nigeria & Kenya* 🇳🇬 🇰🇪
+
+### Project Structure
+```
+/
+├── imara/                  # Django project settings
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── cases/                  # Incident reports and evidence models
+│   ├── models.py           # IncidentReport, EvidenceAsset
+│   └── admin.py
+├── directory/              # Authority contacts database
+│   ├── models.py           # AuthorityContact
+│   └── management/commands/seed_authorities.py
+├── dispatch/               # Email dispatch service
+│   ├── models.py           # DispatchLog
+│   └── service.py          # BrevoDispatcher
+├── triage/                 # AI analysis engine
+│   ├── clients/
+│   │   ├── groq_client.py
+│   │   └── gemini_client.py
+│   └── decision_engine.py
+├── intake/                 # Web and Telegram interfaces
+│   ├── views.py            # HomeView, ReportFormView, TelegramWebhookView
+│   ├── services.py         # ReportProcessor
+│   └── forms.py
+├── templates/              # HTML templates
+│   ├── base.html
+│   └── intake/
+│       ├── index.html
+│       ├── report_form.html
+│       └── result.html
+├── static/                 # Static assets
+└── test/                  # Test Screenshots
+```
+
+## API Endpoints
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| / | GET | Landing page |
+| /report/ | GET/POST | Report form |
+| /result/ | GET | Analysis results |
+| /offline/ | GET | PWA offline page |
+| /webhook/telegram/ | POST | Telegram webhook |
+| /health/ | GET | Health check |
+| /ping/ | GET | Keep Render alive |
+| /admin/ | GET | Django admin |
+
+## Telegram Bot Commands
+- `/start` - Welcome message
+- `/help` - Usage instructions
+- `/status` - Bot status check
 
 ## 🔧 Installation (Local Dev)
 
