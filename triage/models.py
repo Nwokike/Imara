@@ -9,6 +9,7 @@ class ChatSession(models.Model):
     language_preference = models.CharField(max_length=10, blank=True, null=True)
     awaiting_location = models.BooleanField(default=False)
     pending_report_data = models.JSONField(blank=True, null=True)
+    cancelled_until = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -32,6 +33,24 @@ class ChatSession(models.Model):
     def clear_pending_state(self):
         self.awaiting_location = False
         self.pending_report_data = None
+        self.save()
+    
+    def is_cancelled(self):
+        from django.utils import timezone
+        if self.cancelled_until and self.cancelled_until > timezone.now():
+            return True
+        return False
+    
+    def set_cancelled(self, seconds=30):
+        from django.utils import timezone
+        from datetime import timedelta
+        self.cancelled_until = timezone.now() + timedelta(seconds=seconds)
+        self.awaiting_location = False
+        self.pending_report_data = None
+        self.save()
+    
+    def clear_cancelled(self):
+        self.cancelled_until = None
         self.save()
 
 

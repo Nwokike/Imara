@@ -18,6 +18,7 @@ class TriageResult:
     extracted_text: Optional[str] = None
     source_type: str = "text"
     error: Optional[str] = None
+    detected_language: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -28,7 +29,8 @@ class TriageResult:
             "advice": self.advice,
             "threat_type": self.threat_type,
             "extracted_text": self.extracted_text,
-            "source_type": self.source_type
+            "source_type": self.source_type,
+            "detected_language": self.detected_language
         }
     
     @property
@@ -72,7 +74,8 @@ class DecisionEngine:
                 summary=analysis.summary,
                 advice=analysis.advice,
                 threat_type=analysis.threat_type,
-                source_type="text"
+                source_type="text",
+                detected_language=getattr(analysis, 'detected_language', None)
             )
         except GroqClientError as e:
             logger.error(f"Groq client error: {e}")

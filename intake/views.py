@@ -8,6 +8,7 @@ from django.views import View
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from django.conf import settings
 
 from .services import report_processor
@@ -257,10 +258,11 @@ class TelegramWebhookView(View):
         document = message.get('document')
         
         if text and self.check_safe_word(text):
-            session.awaiting_location = False
-            session.pending_report_data = None
-            session.save()
-            self.send_message(chat_id, "🛡️ I've stopped all current processes. You're safe here.\n\nIf you're in immediate danger, please contact local emergency services.\n\nType /start when you're ready to continue.")
+            session.set_cancelled(seconds=60)
+            
+            safety_msg = self.get_localized_safety_message(session)
+            self.save_message(session, 'assistant', safety_msg, 'text')
+            self.send_message(chat_id, safety_msg)
             return
         
         if session.awaiting_location and text:
@@ -381,8 +383,18 @@ Stay safe! 🛡️"""
         context = session.get_conversation_context(limit=10) if session else None
         
         from triage.decision_engine import DecisionEngine
+        from triage.models import ChatSession
         engine = DecisionEngine()
         triage_result = engine.analyze_text(text, context)
+        
+        if session and hasattr(triage_result, 'detected_language') and triage_result.detected_language:
+            session.language_preference = triage_result.detected_language
+            session.save()
+        
+        if session:
+            session.refresh_from_db()
+            if session.is_cancelled():
+                return
         
         if triage_result.needs_location:
             if session:
@@ -390,7 +402,10 @@ Stay safe! 🛡️"""
                 session.pending_report_data = {'text': text, 'type': 'text'}
                 session.save()
             
-            location_request_msg = "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)"
+            location_request_msg = self.get_localized_message(
+                session,
+                "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)"
+            )
             if session:
                 self.save_message(session, 'assistant', location_request_msg, 'text')
             self.send_message(chat_id, location_request_msg)
@@ -406,6 +421,38 @@ Stay safe! 🛡️"""
         )
         
         self.send_result(chat_id, result, session)
+    
+    def get_localized_message(self, session, default_message):
+        if not session or not session.language_preference:
+            return default_message
+        
+        lang = session.language_preference.lower()
+        
+        if 'pidgin' in lang:
+            location_msg = "⚠️ This one look like serious matter wey we fit report to police.\n\n📍 Abeg tell me which city and country you dey:\n\n(Example: Lagos, Nigeria)"
+            if "Which city and country" in default_message:
+                return location_msg
+        elif 'swahili' in lang:
+            location_msg = "⚠️ Hii inaonekana ni tishio kubwa ambalo linaweza kuripotiwa kwa mamlaka.\n\n📍 Tafadhali niambie uko katika jiji na nchi gani:\n\n(Mfano: Nairobi, Kenya)"
+            if "Which city and country" in default_message:
+                return location_msg
+        
+        return default_message
+    
+    def get_localized_safety_message(self, session):
+        default_msg = "🛡️ I've stopped all current processes. You're safe here.\n\nIf you're in immediate danger, please contact local emergency services.\n\nType /start when you're ready to continue."
+        
+        if not session or not session.language_preference:
+            return default_msg
+        
+        lang = session.language_preference.lower()
+        
+        if 'pidgin' in lang:
+            return "🛡️ I don stop everything. You safe here.\n\nIf you dey danger, abeg call police or emergency number.\n\nType /start when you ready make we continue."
+        elif 'swahili' in lang:
+            return "🛡️ Nimesimamisha michakato yote. Uko salama hapa.\n\nIkiwa uko hatarini, tafadhali wasiliana na huduma za dharura.\n\nAndika /start utakapokuwa tayari kuendelea."
+        
+        return default_msg
     
     def handle_photo(self, chat_id, photos, username, caption=None, session=None):
         analyzing_msg = "🔍 Analyzing your screenshot..."
@@ -517,6 +564,12 @@ Stay safe! 🛡️"""
         return None, None
     
     def send_result(self, chat_id, result, session=None):
+        if session:
+            session.refresh_from_db()
+            if session.is_cancelled():
+                logger.info(f"Skipping result send for chat {chat_id} - session was cancelled")
+                return
+        
         case_id = result.get('case_id', 'N/A')[:8]
         
         if session:
