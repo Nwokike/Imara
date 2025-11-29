@@ -9,7 +9,7 @@
   <a href="https://t.me/project_imara_bot">
     <img src="https://img.shields.io/badge/Telegram_Bot-@project__imara__bot-blue?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Bot">
   </a>
-  <a href="https://docs.google.com/presentation/d/1Wu-p7hQKwKdXCwGyLVvJ5HY2jPbOPIZ0H5cEfX8nybs/edit?usp=sharing">
+  <a href="https://docs.google.com/presentation/d/1zAQIrsDssBgPdATzoxVS51R7D_amzc4K9-80rJbeGz4/edit?usp=sharing">
     <img src="https://img.shields.io/badge/Pitch_Deck-6B4C9A?style=for-the-badge&logo=slides&logoColor=white" alt="Pitch Deck Link">
   </a>
 </div>
