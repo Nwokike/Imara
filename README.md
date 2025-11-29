@@ -9,6 +9,9 @@
   <a href="https://t.me/project_imara_bot">
     <img src="https://img.shields.io/badge/Telegram_Bot-@project__imara__bot-blue?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram Bot">
   </a>
+  <a href="https://docs.google.com/presentation/d/1Wu-p7hQKwKdXCwGyLVvJ5HY2jPbOPIZ0H5cEfX8nybs/edit?usp=sharing">
+    <img src="https://img.shields.io/badge/Pitch_Deck-6B4C9A?style=for-the-badge&logo=slides&logoColor=white" alt="Pitch Deck Link">
+  </a>
 </div>
 
 <br>
@@ -90,6 +93,7 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 * **[Onyeka Nwokike](https://github.com/nwokike)**: Backend Architecture & AI Engineer.
 * **[Betsy Makamu](https://github.com/makamu-okinyi)**: Frontend Engineering & UI/UX.
 * **[Whitney Wairimu](https://github.com/PixelNjoki)**: Research Lead & Strategy.
+
 
 *Building from Nigeria & Kenya* 🇳🇬 🇰🇪
 
