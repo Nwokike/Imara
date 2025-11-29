@@ -1,0 +1,99 @@
+# Project Imara - Zero-UI Digital Bodyguard
+
+## Overview
+Project Imara is a "Zero-UI Digital Bodyguard" platform that protects women and girls from online violence across Africa. The platform:
+- Analyzes threats via AI (text, voice, image)
+- Provides instant safety advice
+- Automatically reports high-risk cases to authorities
+- Works through existing apps (Telegram, Web PWA) without requiring downloads
+- Serves as an educational platform for online safety
+
+## Current State
+- **Live on Render**: The production version runs on Render and must remain stable
+- **Replit Development**: All changes are tested in Replit before deployment
+- **Status**: Phase 1-3 implementation complete
+
+## Recent Changes (November 29, 2025)
+
+### Bug Fixes
+- Fixed session message storage to correctly save assistant responses with role="assistant"
+- Fixed ASK_LOCATION flow to properly pass location_hint when user provides location
+- Fixed safe word detection to fully clear both awaiting_location and pending_report_data
+- Added user feedback confirmation message when location is received
+
+### Frontend Modernization
+- Redesigned hero section with mission-focused messaging
+- Updated navigation with education-first approach
+- Stats show: 24/7 availability, AI-powered analysis, 7 African countries
+- Removed repetitive "Imara means Strong" branding
+- Footer updated with simplified messaging
+
+### Smart Conversational Logic (Telegram)
+- Session context tracking (ChatSession model)
+- Message history storage (ChatMessage model)
+- ASK_LOCATION action when threat is high but location unknown
+- Safe word detection ("IMARA STOP", "STOP", "CANCEL", "HELP ME", "EXIT", "EMERGENCY")
+- Feedback buttons on analysis results
+- Safety warnings on report confirmations
+- Dialect/language detection for African languages
+
+### Database Models Added
+- `triage.ChatSession`: Tracks user sessions with location, language, pending state
+- `triage.ChatMessage`: Stores conversation history (last 10 messages for context)
+- `triage.UserFeedback`: Collects helpful/not helpful ratings
+
+## Project Structure
+```
+imara/
+├── imara/          # Django settings and configuration
+├── intake/         # Main app: views, forms, services for report processing
+├── triage/         # AI analysis: Groq client, decision engine, models
+├── cases/          # Incident reports and evidence storage
+├── directory/      # Authority contacts database
+├── dispatch/       # Email dispatch to authorities via Brevo
+├── templates/      # HTML templates (base.html, intake/)
+├── static/         # CSS, JS, images
+└── test/           # Test cases
+```
+
+## Key Files
+- `triage/clients/groq_client.py`: AI threat analysis with Groq API
+- `triage/decision_engine.py`: Orchestrates AI analysis (text, image, audio)
+- `intake/views.py`: Web and Telegram webhook handlers
+- `intake/services.py`: Report processing logic
+- `templates/intake/index.html`: Landing page
+- `static/css/styles.css`: All styling
+
+## API Endpoints
+- `/` - Landing page
+- `/report/` - Web report form
+- `/telegram/webhook/` - Telegram bot webhook
+- `/health/` - Health check
+- `/keep-alive/` - Keep-alive endpoint
+
+## Environment Variables
+- `GROQ_API_KEY`: For AI text analysis
+- `GOOGLE_AI_API_KEY`: For image/audio analysis (Gemini)
+- `BREVO_API_KEY`: For sending emails to authorities
+- `TELEGRAM_BOT_TOKEN`: For Telegram bot
+- `DATABASE_URL`: PostgreSQL connection
+
+## Running Locally
+```bash
+python manage.py migrate
+python manage.py runserver 0.0.0.0:5000
+```
+
+## Key Design Decisions
+1. **Zero-UI approach**: Works inside existing apps, no separate download needed
+2. **Session context**: Last 10 messages used for conversation context
+3. **ASK_LOCATION**: For high-risk threats without location, bot asks for location before reporting
+4. **Safe words**: User can type "STOP" anytime to halt processes
+5. **Feedback buttons**: Every analysis result has thumbs up/down buttons
+6. **Safety warnings**: High-risk reports include reminder to delete conversation
+
+## User Preferences
+- Focus on education/mission, not just features
+- Avoid repetitive branding like "Imara means Strong"
+- Don't specify exact helpline counts (use general terms)
+- Keep navigation simple with mission-focused copy

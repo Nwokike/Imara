@@ -257,7 +257,9 @@ class TelegramWebhookView(View):
         document = message.get('document')
         
         if text and self.check_safe_word(text):
-            session.clear_pending_state()
+            session.awaiting_location = False
+            session.pending_report_data = None
+            session.save()
             self.send_message(chat_id, "🛡️ I've stopped all current processes. You're safe here.\n\nIf you're in immediate danger, please contact local emergency services.\n\nType /start when you're ready to continue.")
             return
         
@@ -293,6 +295,8 @@ class TelegramWebhookView(View):
             self.send_message(chat_id, "Forward me any abusive message, screenshot, or voice note and I'll analyze it for you.")
     
     def handle_location_response(self, chat_id, text, session):
+        self.save_message(session, 'user', text, 'text')
+        
         session.last_detected_location = text
         pending_data = session.pending_report_data or {}
         session.awaiting_location = False
@@ -301,11 +305,9 @@ class TelegramWebhookView(View):
         
         original_text = pending_data.get('text', '')
         if original_text:
-            from triage.decision_engine import DecisionEngine
-            engine = DecisionEngine()
-            
-            context = session.get_conversation_context(limit=10)
-            context.append(f"User location: {text}")
+            confirmation_msg = f"📍 Got it - {text}. Processing your report now..."
+            self.save_message(session, 'assistant', confirmation_msg, 'text')
+            self.send_message(chat_id, confirmation_msg)
             
             result = report_processor.process_text_report(
                 text=original_text,
@@ -315,6 +317,10 @@ class TelegramWebhookView(View):
             )
             
             self.send_result(chat_id, result, session)
+        else:
+            saved_msg = f"📍 Location saved as {text}. You can now send me content to analyze."
+            self.save_message(session, 'assistant', saved_msg, 'text')
+            self.send_message(chat_id, saved_msg)
     
     def handle_command(self, chat_id, text, username):
         command = text.split()[0].lower()
@@ -367,7 +373,10 @@ Stay safe! 🛡️"""
             self.send_message(chat_id, "I don't recognize that command. Type /help to see what I can do.")
     
     def handle_text(self, chat_id, text, username, session=None):
-        self.send_message(chat_id, "🔍 Analyzing your message...")
+        analyzing_msg = "🔍 Analyzing your message..."
+        if session:
+            self.save_message(session, 'assistant', analyzing_msg, 'text')
+        self.send_message(chat_id, analyzing_msg)
         
         context = session.get_conversation_context(limit=10) if session else None
         
@@ -381,7 +390,10 @@ Stay safe! 🛡️"""
                 session.pending_report_data = {'text': text, 'type': 'text'}
                 session.save()
             
-            self.send_message(chat_id, "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)")
+            location_request_msg = "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)"
+            if session:
+                self.save_message(session, 'assistant', location_request_msg, 'text')
+            self.send_message(chat_id, location_request_msg)
             return
         
         location_hint = session.last_detected_location if session else None
@@ -396,7 +408,10 @@ Stay safe! 🛡️"""
         self.send_result(chat_id, result, session)
     
     def handle_photo(self, chat_id, photos, username, caption=None, session=None):
-        self.send_message(chat_id, "🔍 Analyzing your screenshot...")
+        analyzing_msg = "🔍 Analyzing your screenshot..."
+        if session:
+            self.save_message(session, 'assistant', analyzing_msg, 'text')
+        self.send_message(chat_id, analyzing_msg)
         
         largest_photo = max(photos, key=lambda p: p.get('file_size', 0))
         file_id = largest_photo.get('file_id')
@@ -424,7 +439,10 @@ Stay safe! 🛡️"""
             self.send_message(chat_id, "❌ Sorry, I couldn't download the image. Please try again.")
     
     def handle_voice(self, chat_id, voice_data, username, session=None):
-        self.send_message(chat_id, "🔍 Analyzing your voice note...")
+        analyzing_msg = "🔍 Analyzing your voice note..."
+        if session:
+            self.save_message(session, 'assistant', analyzing_msg, 'text')
+        self.send_message(chat_id, analyzing_msg)
         
         file_id = voice_data.get('file_id')
         audio_bytes, mime_type = self.download_file(file_id)
@@ -502,7 +520,9 @@ Stay safe! 🛡️"""
         case_id = result.get('case_id', 'N/A')[:8]
         
         if session:
-            response_content = f"Case {case_id}: {result.get('summary', 'Analysis complete')}"
+            summary = result.get('summary', 'Analysis complete')
+            action = result.get('action', 'advise')
+            response_content = f"[{action.upper()}] Case {case_id}: {summary}"
             self.save_message(session, 'assistant', response_content, 'text')
         
         if result.get('action') == 'report':
