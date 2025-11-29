@@ -16,8 +16,6 @@
 
 <br>
 
-> **"Imara"** means *"Strong"* or *"Stable"* in Swahili.
-
 ## 🚨 The Problem
 70% of women have faced online violence, but reporting it is hard. Most safety apps require a download—leaving a digital trace that abusers can find. **Survivors need protection that is invisible, immediate, and legally robust.**
 
@@ -32,10 +30,19 @@
     * **Voice Transcription:** Users can forward **Voice Notes** (from WhatsApp/Telegram) directly to the bot. We use **Groq Whisper** to instantly transcribe dialects and detect hidden threats in audio.
     * **Visual Analysis:** Uses **Gemini 2.5 Flash** to OCR screenshots and detect doxing/harassment in images.
     * **Text Reasoning:** Uses **Llama-3-70b** for context-aware safety planning.
-2.  **Automatic Triage & Dispatch:**
+
+2.  **Smart Conversational Safety:**
+    * **Session Context:** Remembers last 10 messages for coherent conversation flow
+    * **Localized Language Detection:** Responds in user's language (English, Pidgin, Swahili)
+    * **Safe Word Protection:** Type "STOP", "HELP ME", or "EMERGENCY" to halt any active operation
+    * **ASK_LOCATION:** When a threat is severe but location unknown, the bot asks for it before reporting
+
+3.  **Automatic Triage & Dispatch:**
     * **Risk Scoring:** AI rates threats 1-10.
     * **Auto-Escalation:** Risk scores >7 automatically email the nearest registered authority (e.g., FIDA Kenya, Cybercrime Unit Nigeria).
-3.  **Real-World Network:**
+    * **Feedback Collection:** Users rate advice helpfulness (thumbs up/down) to improve the system
+    
+4.  **Real-World Network:**
     * Database pre-seeded with **19+ verified helplines** across Kenya, Nigeria, South Africa, and Ghana.
 
 ## 📸 Evidence of Functionality (Live Demo)
