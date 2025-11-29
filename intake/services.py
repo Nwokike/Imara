@@ -21,13 +21,15 @@ class ReportProcessor:
         text: str,
         source: str = "web",
         reporter_handle: Optional[str] = None,
-        reporter_email: Optional[str] = None
+        reporter_email: Optional[str] = None,
+        location_hint: Optional[str] = None
     ) -> Dict[str, Any]:
         incident = IncidentReport.objects.create(
             source=source,
             reporter_handle=reporter_handle,
             reporter_email=reporter_email,
-            original_text=text
+            original_text=text,
+            detected_location=location_hint
         )
         
         text_evidence = EvidenceAsset.objects.create(
@@ -44,7 +46,9 @@ class ReportProcessor:
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
-            incident.detected_location = result.location
+            final_location = location_hint or result.location
+            incident.detected_location = final_location
+            result.location = final_location
             incident.save()
             
             incident.generate_chain_hash()
@@ -108,13 +112,15 @@ class ReportProcessor:
         source: str = "web",
         reporter_handle: Optional[str] = None,
         reporter_email: Optional[str] = None,
-        additional_text: Optional[str] = None
+        additional_text: Optional[str] = None,
+        location_hint: Optional[str] = None
     ) -> Dict[str, Any]:
         incident = IncidentReport.objects.create(
             source=source,
             reporter_handle=reporter_handle,
             reporter_email=reporter_email,
-            original_text=additional_text
+            original_text=additional_text,
+            detected_location=location_hint
         )
         
         try:
@@ -145,7 +151,9 @@ class ReportProcessor:
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
-            incident.detected_location = result.location
+            final_location = location_hint or result.location
+            incident.detected_location = final_location
+            result.location = final_location
             incident.extracted_text = result.extracted_text
             incident.save()
             
@@ -216,12 +224,14 @@ class ReportProcessor:
         audio_file,
         source: str = "web",
         reporter_handle: Optional[str] = None,
-        reporter_email: Optional[str] = None
+        reporter_email: Optional[str] = None,
+        location_hint: Optional[str] = None
     ) -> Dict[str, Any]:
         incident = IncidentReport.objects.create(
             source=source,
             reporter_handle=reporter_handle,
-            reporter_email=reporter_email
+            reporter_email=reporter_email,
+            detected_location=location_hint
         )
         
         try:
@@ -247,7 +257,9 @@ class ReportProcessor:
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
-            incident.detected_location = result.location
+            final_location = location_hint or result.location
+            incident.detected_location = final_location
+            result.location = final_location
             incident.transcribed_text = result.extracted_text
             incident.save()
             

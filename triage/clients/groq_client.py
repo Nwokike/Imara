@@ -20,6 +20,7 @@ class ThreatAnalysis(BaseModel):
     summary: str
     advice: Optional[str] = None
     threat_type: Optional[str] = None
+    detected_language: Optional[str] = None
 
 
 class GroqClientError(Exception):
@@ -96,9 +97,13 @@ class GroqClient:
         
         raise GroqClientError(f"Groq API failed after {MAX_RETRIES} attempts: {last_error}")
     
-    def analyze_text(self, text: str) -> ThreatAnalysis:
+    def analyze_text(self, text: str, conversation_context: list = None) -> ThreatAnalysis:
         if not self._available:
             return self._get_fallback_analysis(text)
+        
+        context_str = ""
+        if conversation_context:
+            context_str = "\n".join(conversation_context[-10:])
         
         system_prompt = """You are Project Imara's AI Triage System - a specialized threat assessment engine designed to protect women and girls from online gender-based violence (OGBV).
 
@@ -106,41 +111,46 @@ Your role is to analyze messages/content and determine the appropriate response.
 
 CLASSIFICATION RULES:
 - risk_score: 1-10 scale (1-3: low/insults, 4-6: moderate/harassment, 7-10: severe/threats/doxing)
-- action: "ADVISE" for low-moderate risk (give advice) OR "REPORT" for high risk (escalate to authorities)
+- action: "ADVISE" for low-moderate risk, "REPORT" for high risk, or "ASK_LOCATION" when location is needed
 
-ALWAYS REPORT (action: "REPORT", risk_score 7-10):
-- Death threats or threats of physical violence
-- Doxing (sharing private information like address, phone, workplace)
-- Blackmail or extortion
-- Sexual assault threats
-- Stalking behavior
-- Revenge porn threats
-- Threats to family members
+ACTION LOGIC:
+1. REPORT (risk_score 7-10 AND location is known):
+   - Death threats, physical violence threats
+   - Doxing, blackmail, extortion
+   - Sexual assault threats, stalking, revenge porn threats
+   
+2. ASK_LOCATION (risk_score 7-10 BUT location is "Unknown"):
+   - Use this when threat is severe but you cannot identify a city/country
+   - We need location to route to the correct authorities
+   
+3. ADVISE (risk_score 1-6):
+   - General insults, rude comments, mild harassment
+   - Offensive language without threats
 
-ADVISE ONLY (action: "ADVISE", risk_score 1-6):
-- General insults or name-calling
-- Rude comments
-- Mild harassment
-- Offensive language without threats
+LANGUAGE MATCHING:
+- Detect the language and tone of the user's message
+- If they write in Pidgin, Swahili, or other African languages, note it in detected_language
+- Common languages: english, pidgin, swahili, hausa, yoruba, igbo, zulu, amharic
 
 LOCATION EXTRACTION:
-- Extract any location mentioned (city, state, country)
-- Default to "Unknown" if no location found
+- Look for cities, states, or countries in both current message AND conversation history
+- African locations to watch for: Lagos, Nairobi, Johannesburg, Accra, Kampala, Dar es Salaam, etc.
 
 You MUST respond with valid JSON only, no other text."""
 
-        user_prompt = f"""Analyze this message for threats against women/girls:
+        user_prompt = f"""Analyze this message for threats against women/girls.
 
-MESSAGE: "{text}"
+{"CONVERSATION HISTORY:" + chr(10) + context_str + chr(10) + chr(10) if context_str else ""}CURRENT MESSAGE: "{text}"
 
 Respond with this exact JSON structure:
 {{
     "risk_score": <1-10>,
-    "action": "ADVISE" or "REPORT",
+    "action": "ADVISE" or "REPORT" or "ASK_LOCATION",
     "location": "<extracted location or 'Unknown'>",
     "summary": "<brief 1-sentence summary of the threat>",
-    "advice": "<helpful advice if action is ADVISE, null if REPORT>",
-    "threat_type": "<type: insult/harassment/threat/doxing/blackmail/stalking/other>"
+    "advice": "<helpful advice if action is ADVISE, null otherwise>",
+    "threat_type": "<type: insult/harassment/threat/doxing/blackmail/stalking/other>",
+    "detected_language": "<language detected: english/pidgin/swahili/etc>"
 }}"""
 
         try:
@@ -177,7 +187,7 @@ Respond with this exact JSON structure:
             
             analysis_data['risk_score'] = max(1, min(10, int(analysis_data.get('risk_score', 5))))
             analysis_data['action'] = analysis_data.get('action', 'ADVISE').upper()
-            if analysis_data['action'] not in ['ADVISE', 'REPORT']:
+            if analysis_data['action'] not in ['ADVISE', 'REPORT', 'ASK_LOCATION']:
                 analysis_data['action'] = 'ADVISE'
             
             return ThreatAnalysis(**analysis_data)

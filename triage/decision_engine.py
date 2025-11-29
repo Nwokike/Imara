@@ -38,6 +38,10 @@ class TriageResult:
     @property
     def should_advise(self) -> bool:
         return self.action.upper() == "ADVISE"
+    
+    @property
+    def needs_location(self) -> bool:
+        return self.action.upper() == "ASK_LOCATION"
 
 
 class DecisionEngine:
@@ -57,9 +61,9 @@ class DecisionEngine:
             self._gemini_client = get_gemini_client()
         return self._gemini_client
     
-    def analyze_text(self, text: str) -> TriageResult:
+    def analyze_text(self, text: str, conversation_context: list = None) -> TriageResult:
         try:
-            analysis = self.groq_client.analyze_text(text)
+            analysis = self.groq_client.analyze_text(text, conversation_context)
             
             return TriageResult(
                 risk_score=analysis.risk_score,
