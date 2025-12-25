@@ -3,7 +3,7 @@
   <h1>Project Imara: The Zero-UI Digital Bodyguard</h1>
   <p><strong>UNiTE to End Digital Violence Against All Women & Girls</strong></p>
   
-  <a href="https://project-imara.onrender.com">
+  <a href="https://imara.africa">
     <img src="https://img.shields.io/badge/Live_Portal-Active-success?style=for-the-badge&logo=render&logoColor=white" alt="Live Portal">
   </a>
   <a href="https://t.me/project_imara_bot">
@@ -80,7 +80,6 @@ We built a production-grade safety ecosystem using 100% free tiers of enterprise
 | **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
 | **Database** | PostgreSQL (Neon) | Stores evidence with SHA-256 hashes. |
 | **Dispatch** | Brevo API | Transactional emails to authorities. |
-| **Hosting** | Render | Temporal deployment. |
 
 ## 🔮 Roadmap: Coming Soon
 We are expanding the **Zero-UI** concept to the 6 most common platforms used by women in Africa:
@@ -148,7 +147,7 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 | /offline/ | GET | PWA offline page |
 | /webhook/telegram/ | POST | Telegram webhook |
 | /health/ | GET | Health check |
-| /ping/ | GET | Keep Render alive |
+| /ping/ | GET | Keep alive |
 | /admin/ | GET | Django admin |
 
 ## Telegram Bot Commands
