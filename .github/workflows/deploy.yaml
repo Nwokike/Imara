@@ -33,7 +33,7 @@ jobs:
           # 4. Sync Dependencies (using uv)
           uv sync
 
-          # 5. Run Database Migrations
+          # 5. Run Database Migrations 
           uv run python manage.py migrate
 
           # 6. Update Static Files
