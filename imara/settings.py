@@ -7,44 +7,29 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get('SESSION_SECRET', 'django-dev-key-change-in-production')
+# Security: Always keep secret key in .env
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-dev-key-change-in-production')
 
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+# Security: This should be False in your .env for production
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-REPLIT_DOMAINS = os.environ.get('REPLIT_DOMAINS', '')
-
+# ALLOWED_HOSTS: Explicitly allow your Domain and VM IP
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = [
         'localhost',
         '127.0.0.1',
-        '.onrender.com',
-        '.render.com',
+        'imara.africa',
+        'www.imara.africa',
+        '35.209.14.56',
     ]
-    if RENDER_EXTERNAL_HOSTNAME:
-        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-    if REPLIT_DOMAINS:
-        for domain in REPLIT_DOMAINS.split(','):
-            domain = domain.strip()
-            if domain:
-                ALLOWED_HOSTS.append(domain)
 
+# CSRF Protection: Allow forms to work on your domain
 CSRF_TRUSTED_ORIGINS = [
-    'https://project-imara.onrender.com',
-    'https://*.onrender.com',
-    'https://*.render.com',
-    'https://*.replit.dev',
-    'https://*.repl.co',
+    'https://imara.africa',
+    'https://www.imara.africa',
 ]
-
-if RENDER_EXTERNAL_HOSTNAME:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{RENDER_EXTERNAL_HOSTNAME}')
-
-REPLIT_DEV_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN', '')
-if REPLIT_DEV_DOMAIN:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{REPLIT_DEV_DOMAIN}')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -53,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Your Apps
     'cases.apps.CasesConfig',
     'directory.apps.DirectoryConfig',
     'dispatch.apps.DispatchConfig',
@@ -90,6 +76,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'imara.wsgi.application'
 
+# Database: Connects to Neon using the URL in your .env
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
@@ -98,11 +85,11 @@ if DATABASE_URL:
             default=DATABASE_URL,
             conn_max_age=300,
             conn_health_checks=True,
+            ssl_require=True,
         )
     }
-    if not DEBUG:
-        DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 else:
+    # Fallback for local testing if no URL provided
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -122,6 +109,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Static Files (CSS/JS)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -132,11 +120,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# API Keys
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 
+# Security Settings for Production
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
