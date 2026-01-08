@@ -218,15 +218,25 @@ Respond with this exact JSON structure:
                 if isinstance(audio_file_or_path, str):
                     f = open(audio_file_or_path, 'rb')
                     should_close = True
+                    filename = os.path.basename(audio_file_or_path)
                 else:
                     f = audio_file_or_path
                     if hasattr(f, 'seek'):
                         f.seek(0)
+                    filename = getattr(f, 'name', 'audio.ogg')
+                    if filename:
+                        filename = os.path.basename(filename)
+                    else:
+                        filename = "audio.ogg"
+
+                # Ensure filename has a valid extension for Whisper
+                if '.' not in filename:
+                    filename += ".ogg"
                 
                 response = requests.post(
                     "https://api.groq.com/openai/v1/audio/transcriptions",
                     headers={"Authorization": f"Bearer {self.api_key}"},
-                    files={"file": f},
+                    files={"file": (filename, f)},
                     data={
                         "model": "whisper-large-v3",
                         "response_format": "text"
@@ -242,6 +252,18 @@ Respond with this exact JSON structure:
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(RETRY_DELAY * (attempt + 1))
                     
+            except requests.exceptions.HTTPError as e:
+                last_error = e
+                try:
+                    error_msg = response.json().get('error', {}).get('message', response.text)
+                except:
+                    error_msg = response.text
+                logger.error(f"Groq API HTTP error: {error_msg}")
+                if response.status_code != 429: # Don't retry non-429 HTTP errors unless it's a timeout
+                    raise GroqClientError(f"Groq API error: {error_msg}")
+                if attempt < MAX_RETRIES - 1:
+                    time.sleep(RETRY_DELAY * (attempt + 1) * 2)
+
             except requests.exceptions.RequestException as e:
                 last_error = e
                 logger.warning(f"Audio transcription failed (attempt {attempt + 1}/{MAX_RETRIES}): {e}")
