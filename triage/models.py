@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 
 
 class ChatSession(models.Model):
@@ -36,14 +38,11 @@ class ChatSession(models.Model):
         self.save()
     
     def is_cancelled(self):
-        from django.utils import timezone
         if self.cancelled_until and self.cancelled_until > timezone.now():
             return True
         return False
     
     def set_cancelled(self, seconds=30):
-        from django.utils import timezone
-        from datetime import timedelta
         self.cancelled_until = timezone.now() + timedelta(seconds=seconds)
         self.awaiting_location = False
         self.pending_report_data = None

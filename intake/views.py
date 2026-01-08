@@ -707,3 +707,44 @@ def health_check(request):
 
 def keep_alive(request):
     return HttpResponse("OK", content_type="text/plain")
+
+
+class PartnerView(View):
+    """Partnership page with inquiry form"""
+    def get(self, request):
+        return render(request, 'intake/partner.html')
+    
+    def post(self, request):
+        """Handle partnership inquiry form submission"""
+        org_name = request.POST.get('organization_name', '').strip()
+        contact_name = request.POST.get('contact_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        country = request.POST.get('country', '').strip()
+        partnership_type = request.POST.get('partnership_type', '').strip()
+        org_type = request.POST.get('org_type', '').strip()
+        message = request.POST.get('message', '').strip()
+        
+        # Basic validation
+        if not all([org_name, contact_name, email, country, partnership_type, org_type]):
+            return render(request, 'intake/partner.html', {
+                'error': 'Please fill in all required fields.'
+            })
+        
+        # Log the inquiry
+        logger.info(f"Partnership inquiry from {org_name} ({email}) - {partnership_type}")
+        
+        # TODO: Send confirmation email via Brevo
+        # TODO: Store inquiry in database
+        
+        return render(request, 'intake/partner.html', {'success': True})
+
+
+def consent_view(request):
+    """User consent and data protection page"""
+    return render(request, 'intake/consent.html')
+
+
+def policies_view(request):
+    """Reporting policies page"""
+    return render(request, 'intake/policies.html')
+
