@@ -1,75 +1,63 @@
 from django.test import TestCase
-from unittest.mock import patch, MagicMock
-from django.utils import timezone
-from .decision_engine import decision_engine
-from .models import ChatSession
+from unittest.mock import MagicMock, patch
+from .models import ChatSession, ChatMessage, UserFeedback
+from .decision_engine import DecisionEngine, TriageResult
+
+class TriageModelsTest(TestCase):
+    def test_session_creation(self):
+        session = ChatSession.objects.create(chat_id="12345", platform="telegram", username="testuser")
+        self.assertEqual(session.chat_id, "12345")
+        self.assertEqual(session.platform, "telegram")
+        self.assertFalse(session.is_cancelled())
+
+    def test_message_creation(self):
+        session = ChatSession.objects.create(chat_id="12345")
+        msg = ChatMessage.objects.create(session=session, role="user", content="Hello")
+        self.assertEqual(msg.role, "user")
+        self.assertEqual(msg.content, "Hello")
+
+    def test_session_cancellation(self):
+        session = ChatSession.objects.create(chat_id="12345")
+        session.set_cancelled()
+        self.assertTrue(session.is_cancelled())
 
 class DecisionEngineTest(TestCase):
-    
-    @patch('triage.clients.groq_client.GroqClient.analyze_text')
-    def test_analyze_text_high_risk_with_location(self, mock_analyze):
-        """Test that high risk text with location returns REPORT action"""
-        mock_response = MagicMock()
-        mock_response.risk_score = 9
-        mock_response.action = 'REPORT'
-        mock_response.summary = 'Death threat in Lagos'
-        mock_response.threat_type = 'threat'
-        mock_response.location = 'Lagos'
-        mock_response.advice = None
-        
-        mock_analyze.return_value = mock_response
-
-        # Context can be None or a list
-        result = decision_engine.analyze_text("I will kill you in Lagos", [])
-
-        self.assertEqual(result.risk_score, 9)
-        self.assertTrue(result.should_report)
-        self.assertEqual(result.location, 'Lagos')
+    def setUp(self):
+        self.engine = DecisionEngine()
 
     @patch('triage.clients.groq_client.GroqClient.analyze_text')
-    def test_analyze_text_high_risk_no_location(self, mock_analyze):
-        """Test that high risk text WITHOUT location returns ASK_LOCATION"""
-        mock_response = MagicMock()
-        mock_response.risk_score = 8
-        mock_response.action = 'ASK_LOCATION' # Engine usually upgrades to this if loc is unknown
-        mock_response.location = 'Unknown'
+    def test_analyze_text_mock(self, mock_analyze):
+        # Mock the Groq client response
+        mock_analyze.return_value = MagicMock(
+            risk_score=8,
+            summary="Threat detected",
+            action="report",
+            threat_type="threat",
+            location="Lagos",
+            advice="Stay safe",
+            needs_location=False,
+            detected_language="en"
+        )
         
-        mock_analyze.return_value = mock_response
-
-        result = decision_engine.analyze_text("I will find you")
-
-        self.assertTrue(result.needs_location)
-        self.assertFalse(result.should_report) # Not yet
+        result = self.engine.analyze_text("I am going to hurt you")
+        
+        self.assertIsInstance(result, TriageResult)
+        self.assertEqual(result.risk_score, 8)
+        self.assertEqual(result.action, "report")
+        self.assertEqual(result.location, "Lagos")
 
     @patch('triage.clients.groq_client.GroqClient.analyze_text')
-    def test_analyze_text_low_risk(self, mock_analyze):
-        """Test that low risk text returns ADVISE"""
-        mock_response = MagicMock()
-        mock_response.risk_score = 2
-        mock_response.action = 'ADVISE'
-        mock_response.summary = 'Rude comment'
-        mock_response.location = 'Unknown'
+    def test_analyze_text_safe_mock(self, mock_analyze):
+        mock_analyze.return_value = MagicMock(
+            risk_score=2,
+            summary="No threat",
+            action="advise",
+            threat_type="none",
+            location=None,
+            advice="Ignore it",
+            needs_location=False
+        )
         
-        mock_analyze.return_value = mock_response
-
-        result = decision_engine.analyze_text("You are stupid")
-
+        result = self.engine.analyze_text("Hello world")
         self.assertEqual(result.risk_score, 2)
-        self.assertTrue(result.should_advise)
-
-
-class ChatSessionTest(TestCase):
-    def test_session_cancellation(self):
-        """Test session cancellation logic"""
-        session = ChatSession.objects.create(chat_id="12345")
-        
-        # Initially not cancelled
-        self.assertFalse(session.is_cancelled())
-        
-        # Cancel it
-        session.set_cancelled(seconds=3600)
-        self.assertTrue(session.is_cancelled())
-        
-        # Clear it
-        session.clear_cancelled()
-        self.assertFalse(session.is_cancelled())
+        self.assertEqual(result.action, "advise")

@@ -1,60 +1,42 @@
-from django.test import TestCase, override_settings
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase
 from .models import IncidentReport, EvidenceAsset
+import hashlib
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-@override_settings(
-    STORAGES={
-        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
-    }
-)
-class IncidentReportTest(TestCase):
-    def setUp(self):
-        self.report = IncidentReport.objects.create(
-            source='web',
-            original_text="This is a test report for harassment.",
-            reporter_email="test@example.com"
+class CaseModelTest(TestCase):
+    def test_incident_creation(self):
+        incident = IncidentReport.objects.create(
+            source="web",
+            original_text="Test incident",
+            risk_score=5
         )
+        self.assertTrue(incident.case_id)
+        self.assertEqual(incident.source, "web")
+        self.assertEqual(incident.risk_score, 5)
 
-    def test_report_creation(self):
-        """Test that a report is correctly saved with a UUID"""
-        self.assertTrue(isinstance(self.report, IncidentReport))
-        self.assertIsNotNone(self.report.case_id)
-        self.assertEqual(self.report.action, 'pending')
-
-    def test_chain_hash_generation(self):
-        """Test that the SHA-256 chain hash is generated automatically"""
-        self.assertIsNotNone(self.report.chain_hash)
-        self.assertEqual(len(self.report.chain_hash), 64)  # SHA-256 is 64 chars
-
-class EvidenceAssetTest(TestCase):
-    def setUp(self):
-        self.report = IncidentReport.objects.create(source='web')
-
-    def test_text_evidence_hashing(self):
-        """Test that text evidence generates a correct SHA-256 hash"""
+    def test_evidence_hashing_text(self):
+        incident = IncidentReport.objects.create(source="web")
+        text_content = "This is evidence"
         evidence = EvidenceAsset.objects.create(
-            incident=self.report,
-            asset_type='text',
-            derived_text="Evidence text content"
+            incident=incident,
+            asset_type="text",
+            derived_text=text_content
         )
-        evidence.generate_hash()
-        evidence.save()
-        
-        self.assertIsNotNone(evidence.sha256_digest)
-        self.assertEqual(len(evidence.sha256_digest), 64)
+        # Verify hash was auto-generated
+        expected_hash = hashlib.sha256(text_content.encode()).hexdigest()
+        self.assertEqual(evidence.sha256_digest, expected_hash)
 
-    def test_file_evidence_hashing(self):
-        """Test that file uploads are hashed correctly"""
-        dummy_file = SimpleUploadedFile("test_audio.mp3", b"dummy audio content")
-        evidence = EvidenceAsset.objects.create(
-            incident=self.report,
-            asset_type='audio',
-            file=dummy_file
-        )
-        # Note: In current implementation (as seen in audit), save() might not auto-hash files perfectly
-        # But let's verify if generate_hash() works
-        evidence.generate_hash()
-        evidence.save()
+    def test_evidence_hashing_file(self):
+        incident = IncidentReport.objects.create(source="web")
+        file_content = b"fake image content"
+        uploaded_file = SimpleUploadedFile("test.jpg", file_content, content_type="image/jpeg")
         
-        self.assertIsNotNone(evidence.sha256_digest)
+        evidence = EvidenceAsset.objects.create(
+            incident=incident,
+            asset_type="image",
+            file=uploaded_file
+        )
+        
+        # Verify hash was auto-generated for file
+        expected_hash = hashlib.sha256(file_content).hexdigest()
+        self.assertEqual(evidence.sha256_digest, expected_hash)

@@ -76,9 +76,9 @@ We built a production-grade safety ecosystem using 100% free tiers of enterprise
 | :--- | :--- | :--- |
 | **Backend** | Django 5.0 (Python) | The "Brain" orchestrating logic & security. |
 | **Audio Engine** | **Groq Whisper** | **Core Feature:** Instant transcription of voice notes/audio evidence. |
-| **Reasoning** | Groq (Llama-3) | Instant (<0.5s) text threat analysis. |
+| **Reasoning** | Groq (Llama-3.3) | Instant (<0.5s) text threat analysis. |
 | **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
-| **Database** | PostgreSQL (Neon) | Stores evidence with SHA-256 hashes. |
+| **Database** | SQLite (WAL Mode) | Optimized for low-memory 1GB environments. |
 | **Dispatch** | Brevo API | Transactional emails to authorities. |
 
 ## 🔮 Roadmap: Coming Soon
@@ -178,5 +178,4 @@ python manage.py runserver
 
 -----
 
-*Built by Kiri Research Labs. United to End Digital Violence.*
-*© 2025-2026 Kiri Research Labs. All rights reserved.*
+*© 2025-2026 [Kiri Research Labs](https://kiri.ng). All rights reserved.*

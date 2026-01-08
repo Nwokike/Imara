@@ -99,6 +99,5 @@ class EvidenceAsset(models.Model):
     def save(self, *args, **kwargs):
         # Auto-generate hash if not set
         if not self.sha256_digest:
-            if self.derived_text:
-                self.sha256_digest = hashlib.sha256(self.derived_text.encode()).hexdigest()
+            self.generate_hash()
         super().save(*args, **kwargs)

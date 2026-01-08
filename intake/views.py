@@ -166,8 +166,15 @@ class TelegramWebhookView(View):
 
     def post(self, request):
         try:
+            secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
+            expected_token = os.environ.get('TELEGRAM_SECRET_TOKEN')
+            
+            if expected_token and secret_token != expected_token:
+                logger.warning(f"Invalid Telegram secret token: {secret_token}")
+                return HttpResponse(status=403)
+
             data = json.loads(request.body)
-            logger.info(f"Received Telegram update: {data}")
+            logger.debug(f"Received Telegram update: {data}")
             
             callback_query = data.get('callback_query')
             if callback_query:

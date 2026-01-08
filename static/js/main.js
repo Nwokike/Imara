@@ -3,7 +3,7 @@
  * Externalized from base.html inline scripts
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     initThemeToggle();
     registerServiceWorker();
     initSmoothScroll();
@@ -16,14 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
 function initThemeToggle() {
     const toggle = document.getElementById('themeToggle');
     if (!toggle) return;
-    
+
     const html = document.documentElement;
     const savedTheme = localStorage.getItem('theme') || 'light';
 
     html.setAttribute('data-bs-theme', savedTheme);
     updateThemeIcon(savedTheme);
 
-    toggle.addEventListener('click', function() {
+    toggle.addEventListener('click', function () {
         const current = html.getAttribute('data-bs-theme');
         const next = current === 'dark' ? 'light' : 'dark';
         html.setAttribute('data-bs-theme', next);
@@ -47,11 +47,8 @@ function updateThemeIcon(theme) {
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
-            .then(function(reg) { 
-                console.log('Service Worker registered successfully'); 
-            })
-            .catch(function(err) { 
-                console.log('Service Worker registration failed:', err); 
+            .catch(function (err) {
+                // Silently fail in production or send to Sentry
             });
     }
 }
@@ -61,7 +58,7 @@ function registerServiceWorker() {
  */
 function initSmoothScroll() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+        anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
             if (href.startsWith('#') && href.length > 1) {
                 e.preventDefault();
@@ -80,9 +77,9 @@ function initSmoothScroll() {
 function initFormSubmit() {
     const reportForm = document.getElementById('reportForm');
     const submitBtn = document.getElementById('submitBtn');
-    
+
     if (reportForm && submitBtn) {
-        reportForm.addEventListener('submit', function(e) {
+        reportForm.addEventListener('submit', function (e) {
             // Check for offline status
             if (!navigator.onLine) {
                 e.preventDefault();

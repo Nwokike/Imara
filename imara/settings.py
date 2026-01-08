@@ -19,23 +19,27 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("SECRET_KEY environment variable is required in production")
 
-# ALLOWED_HOSTS: Explicitly allow your Domain and VM IP
+# ALLOWED_HOSTS: Dynamic configuration
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    ALLOWED_HOSTS = [
-        'localhost',
-        '127.0.0.1',
-        'imara.africa',
-        'www.imara.africa',
-        '35.209.14.56',
-    ]
+    # Get hosts from env, default to safe list
+    env_hosts = os.environ.get('ALLOWED_HOSTS', '').split(',')
+    ALLOWED_HOSTS = [host.strip() for host in env_hosts if host.strip()]
+    if not ALLOWED_HOSTS:
+        ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'imara.africa', 'www.imara.africa', '35.209.14.56']
 
 # CSRF Protection: Allow forms to work on your domain
 CSRF_TRUSTED_ORIGINS = [
     'https://imara.africa',
     'https://www.imara.africa',
 ]
+# Add configured allowed hosts to trusted origins
+for host in ALLOWED_HOSTS:
+    if host not in ['*', 'localhost', '127.0.0.1']:
+        if not host.startswith('http'):
+            CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -83,18 +87,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'imara.wsgi.application'
 
-# Database: SQLite with WAL (Write-Ahead Logging) for concurrency
+# Database: Configured via DATABASE_URL
+# Default to SQLite if not provided (Local Dev / Simple Prod)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-        'OPTIONS': {
-            'timeout': 20,
-        }
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
-# SQLite Optimization: Enable WAL Mode
+# SQLite Optimization: Enable WAL Mode (Only if using SQLite)
 from django.db.backends.signals import connection_created
 from django.dispatch import receiver
 
