@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'dispatch.apps.DispatchConfig',
     'intake.apps.IntakeConfig',
     'triage.apps.TriageConfig',
+    'django_huey',
 ]
 
 MIDDLEWARE = [
@@ -82,26 +83,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'imara.wsgi.application'
 
-# Database: Connects to Neon using the URL in your .env
-DATABASE_URL = os.environ.get('DATABASE_URL')
-
-if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
-            conn_max_age=60,  # Reduced for 1GB RAM constraint
-            conn_health_checks=True,
-            ssl_require=True,
-        )
-    }
-else:
-    # Fallback for local testing if no URL provided
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+# Database: SQLite with WAL (Write-Ahead Logging) for concurrency
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
         }
     }
+}
+
+# SQLite Optimization: Enable WAL Mode
+from django.db.backends.signals import connection_created
+from django.dispatch import receiver
+
+@receiver(connection_created)
+def configure_sqlite_pragmas(sender, connection, **kwargs):
+    """Enable WAL mode for better concurrency on SQLite"""
+    if connection.vendor == 'sqlite':
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA journal_mode=WAL;')
+        cursor.execute('PRAGMA synchronous=NORMAL;')
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -120,14 +124,34 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Django 5.1+ STORAGES setting (replaces deprecated STATICFILES_STORAGE)
+# Storage Configuration: S3 (R2) for Media, Whitenoise for Static
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": os.environ.get("R2_ACCESS_KEY_ID"),
+            "secret_key": os.environ.get("R2_SECRET_ACCESS_KEY"),
+            "bucket_name": os.environ.get("R2_BUCKET_NAME"),
+            "endpoint_url": os.environ.get("R2_ENDPOINT_URL"),
+            "custom_domain": os.environ.get("R2_CUSTOM_DOMAIN"),
+            "file_overwrite": False,
+        },
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
+}
+
+# Django Huey Configuration (Task Queue)
+DJANGO_HUEY = {
+    'default': 'dispatch',
+    'queues': {
+        'dispatch': {
+            'huey_class': 'huey.SqliteHuey',
+            'filename': BASE_DIR / 'huey.sqlite3',
+            'immediate': DEBUG,  # Run synchronously in debug
+        }
+    }
 }
 
 MEDIA_URL = '/media/'

@@ -1,5 +1,5 @@
-from django.test import TestCase, Client
 from django.urls import reverse
+from django.test import TestCase, Client, override_settings
 from .forms import ReportForm
 
 class ReportFormTest(TestCase):
@@ -21,9 +21,17 @@ class ReportFormTest(TestCase):
         }
         form = ReportForm(data=data)
         self.assertFalse(form.is_valid())
-        self.assertIn("Please provide at least one form of evidence", form.non_field_errors())
+        errors = str(form.non_field_errors())
+        self.assertIn("Please provide at least one form of evidence", errors)
 
-class ReportViewTest(TestCase):
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class IntakeViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
 
@@ -31,3 +39,33 @@ class ReportViewTest(TestCase):
         response = self.client.get(reverse('report_form'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'intake/report_form.html')
+
+    def test_partner_page_loads(self):
+        response = self.client.get(reverse('partner'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/partner.html')
+
+    def test_consent_page_loads(self):
+        response = self.client.get(reverse('consent'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/consent.html')
+
+    def test_policies_page_loads(self):
+        response = self.client.get(reverse('policies'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/policies.html')
+
+    def test_partner_inquiry_submission(self):
+        """Test POST request to partner form"""
+        data = {
+            'organization_name': 'Test NGO',
+            'contact_name': 'Jane Doe',
+            'email': 'jane@example.com',
+            'country': 'Kenya',
+            'partnership_type': 'outreach',
+            'org_type': 'ngo',
+            'message': 'We want to partner.'
+        }
+        response = self.client.post(reverse('partner'), data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['success'])

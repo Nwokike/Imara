@@ -1,7 +1,13 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import IncidentReport, EvidenceAsset
 
+@override_settings(
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
 class IncidentReportTest(TestCase):
     def setUp(self):
         self.report = IncidentReport.objects.create(
@@ -46,6 +52,8 @@ class EvidenceAssetTest(TestCase):
             asset_type='audio',
             file=dummy_file
         )
+        # Note: In current implementation (as seen in audit), save() might not auto-hash files perfectly
+        # But let's verify if generate_hash() works
         evidence.generate_hash()
         evidence.save()
         

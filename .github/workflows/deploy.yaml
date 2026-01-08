@@ -41,6 +41,7 @@ jobs:
 
           # 7. Restart the Web Server
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart imara
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
           echo "Deployment Complete! 🚀"

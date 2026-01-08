@@ -1,11 +1,11 @@
 import os
 import logging
-import threading
-from concurrent.futures import ThreadPoolExecutor
 import requests
+import threading
 from datetime import datetime
 from typing import Optional, Callable
 from django.utils import timezone
+from dispatch.tasks import send_email_task
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +32,6 @@ class BrevoDispatcher:
     def __init__(self):
         if BrevoDispatcher._initialized:
             return
-        
-        # ThreadPoolExecutor with max_workers=2 for 1GB RAM constraint
-        self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="brevo_dispatch")
         
         self.api_key = os.environ.get('BREVO_API_KEY')
         self._available = bool(self.api_key)
@@ -308,39 +305,40 @@ class BrevoDispatcher:
         source: str = "Web Form",
         callback: Optional[Callable] = None
     ) -> None:
-        def send_task():
-            try:
-                result = self.send_forensic_alert(
-                    recipient_email=recipient_email,
-                    case_id=case_id,
-                    evidence_text=evidence_text,
-                    risk_score=risk_score,
-                    threat_type=threat_type,
-                    location=location,
-                    chain_hash=chain_hash,
-                    summary=summary,
-                    source=source
-                )
-                if callback:
-                    try:
-                        callback(result)
-                    except Exception as e:
-                        logger.error(f"Dispatch callback error: {e}")
-            except Exception as e:
-                logger.error(f"Async dispatch failed: {e}")
-                if callback:
-                    try:
-                        callback({
-                            "success": False,
-                            "error": str(e),
-                            "recipient": recipient_email
-                        })
-                    except Exception as cb_error:
-                        logger.error(f"Dispatch callback error: {cb_error}")
+        """
+        Enqueues the email sending task to Huey.
+        Note: Callback is ignored in the Huey implementation as tasks are fire-and-forget.
+        """
+        if not self._available:
+            logger.warning("Brevo API not configured - skipping async dispatch")
+            return
+
+        html_content = self._generate_forensic_email_html(
+            case_id=case_id,
+            evidence_text=evidence_text,
+            risk_score=risk_score,
+            threat_type=threat_type,
+            location=location,
+            chain_hash=chain_hash,
+            summary=summary,
+            source=source
+        )
         
-        # Submit task to the thread pool instead of creating a new thread
-        self._executor.submit(send_task)
-        logger.info(f"Async dispatch submitted for case {case_id[:8]} to {recipient_email}")
+        subject = f"OFFICIAL FORENSIC ALERT - Case #{str(case_id)[:8].upper()}"
+        
+        payload = {
+            "sender": {
+                "name": self.sender_name,
+                "email": self.sender_email
+            },
+            "to": [{"email": recipient_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        # Dispatch to Huey
+        send_email_task(payload)
+        logger.info(f"Huey task queued for case {case_id[:8]} to {recipient_email}")
 
 
     def send_user_confirmation(
@@ -506,18 +504,32 @@ class BrevoDispatcher:
         summary: str,
         location: str
     ) -> None:
-        def send_task():
-            self.send_user_confirmation(
-                user_email=user_email,
-                case_id=case_id,
-                authority_name=authority_name,
-                authority_email=authority_email,
-                risk_score=risk_score,
-                summary=summary,
-                location=location
-            )
+        if not self._available:
+            return
+
+        subject = f"Your Report Has Been Submitted - Case #{str(case_id)[:8].upper()}"
         
-        self._executor.submit(send_task)
+        html_content = self._generate_user_confirmation_html(
+            case_id=case_id,
+            authority_name=authority_name,
+            authority_email=authority_email,
+            risk_score=risk_score,
+            summary=summary,
+            location=location
+        )
+        
+        payload = {
+            "sender": {
+                "name": self.sender_name,
+                "email": self.sender_email
+            },
+            "to": [{"email": user_email}],
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        send_email_task(payload)
+        logger.info(f"Huey user confirmation task queued for {user_email}")
 
 
 def get_brevo_dispatcher() -> Optional[BrevoDispatcher]:

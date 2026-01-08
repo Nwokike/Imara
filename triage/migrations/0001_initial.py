@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
                 ('platform', models.CharField(default='telegram', max_length=20)),
                 ('last_detected_location', models.CharField(blank=True, max_length=255, null=True)),
                 ('language_preference', models.CharField(blank=True, max_length=10, null=True)),
+                ('cancelled_until', models.DateTimeField(blank=True, null=True)),
                 ('awaiting_location', models.BooleanField(default=False)),
                 ('pending_report_data', models.JSONField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
