@@ -93,6 +93,7 @@ class BrevoDispatcher:
                 "email": self.sender_email
             },
             "to": [{"email": recipient_email}],
+            "bcc": [{"email": "projectimarahq@gmail.com"}],
             "subject": subject,
             "htmlContent": html_content
         }
@@ -332,6 +333,7 @@ class BrevoDispatcher:
                 "email": self.sender_email
             },
             "to": [{"email": recipient_email}],
+            "bcc": [{"email": "projectimarahq@gmail.com"}],
             "subject": subject,
             "htmlContent": html_content
         }
