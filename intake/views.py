@@ -1,8 +1,10 @@
 import json
 import logging
 import os
-import hashlib
-import hmac
+import tempfile
+import requests
+from concurrent.futures import ThreadPoolExecutor
+
 from django.shortcuts import render, redirect
 from django.views import View
 from django.http import JsonResponse, HttpResponse
@@ -10,10 +12,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.conf import settings
-from concurrent.futures import ThreadPoolExecutor
-import shutil
-import tempfile
 from django.core.files import File
+from django.db import close_old_connections
+
+from triage.models import ChatSession, ChatMessage, UserFeedback
+from triage.decision_engine import DecisionEngine
 
 from .services import report_processor
 from .forms import ReportForm
@@ -157,7 +160,8 @@ SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TelegramWebhookView(View):
-    _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="telegram_worker")
+    # Reduced to 2 workers for 1GB RAM constraint
+    _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="telegram_worker")
 
     def post(self, request):
         try:
@@ -178,7 +182,6 @@ class TelegramWebhookView(View):
             return HttpResponse(status=200)
 
     def process_update_task(self, data):
-        from django.db import close_old_connections
         try:
             close_old_connections()
             self.process_update(data)
@@ -188,7 +191,6 @@ class TelegramWebhookView(View):
             close_old_connections()
     
     def get_or_create_session(self, chat_id, username=None):
-        from triage.models import ChatSession
         session, created = ChatSession.objects.get_or_create(
             chat_id=str(chat_id),
             defaults={'username': username, 'platform': 'telegram'}
@@ -512,7 +514,6 @@ Stay safe! 🛡️"""
             self.save_message(session, 'assistant', analyzing_msg, 'text')
         self.send_message(chat_id, analyzing_msg)
         
-        file_id = voice_data.get('file_id')
         file_id = voice_data.get('file_id')
         audio_path, mime_type = self.download_file(file_id)
         

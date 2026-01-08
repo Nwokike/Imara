@@ -10,4 +10,8 @@ urlpatterns = [
     path('webhook/telegram/', views.TelegramWebhookView.as_view(), name='telegram_webhook'),
     path('health/', views.health_check, name='health_check'),
     path('ping/', views.keep_alive, name='keep_alive'),
+    # Partner pages
+    path('partner/', views.PartnerView.as_view(), name='partner'),
+    path('consent/', views.consent_view, name='consent'),
+    path('policies/', views.policies_view, name='policies'),
 ]

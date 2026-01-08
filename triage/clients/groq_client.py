@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import time
+import threading
 import requests
 from typing import Optional
 from pydantic import BaseModel, ValidationError
@@ -9,6 +10,8 @@ from pydantic import BaseModel, ValidationError
 logger = logging.getLogger(__name__)
 
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+WHISPER_MODEL = os.environ.get('WHISPER_MODEL', 'whisper-large-v3')
 MAX_RETRIES = 3
 RETRY_DELAY = 1
 
@@ -30,10 +33,12 @@ class GroqClientError(Exception):
 class GroqClient:
     _instance = None
     _initialized = False
+    _lock = threading.Lock()
     
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(self):

@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import time
+import threading
 from typing import Optional
 from pydantic import BaseModel, ValidationError
 
@@ -9,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 RETRY_DELAY = 1
+GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-2.5-flash')
 
 
 class ImageAnalysis(BaseModel):
@@ -28,10 +30,12 @@ class GeminiClientError(Exception):
 class GeminiClient:
     _instance = None
     _initialized = False
+    _lock = threading.Lock()
     
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(self):
@@ -87,7 +91,8 @@ class GeminiClient:
         
         data['risk_score'] = max(1, min(10, int(data.get('risk_score', 5))))
         data['action'] = str(data.get('action', 'ADVISE')).upper()
-        if data['action'] not in ['ADVISE', 'REPORT']:
+        # Now supports ASK_LOCATION like Groq client
+        if data['action'] not in ['ADVISE', 'REPORT', 'ASK_LOCATION']:
             data['action'] = 'ADVISE'
         
         return data

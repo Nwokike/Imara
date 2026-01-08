@@ -18,8 +18,8 @@ class IncidentReport(models.Model):
         ('report', 'Reported to Authority'),
     ]
     
-    case_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    source = models.CharField(max_length=20, choices=SOURCE_CHOICES)
+    case_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, db_index=True)
     reporter_handle = models.CharField(max_length=255, blank=True, null=True)
     reporter_email = models.EmailField(blank=True, null=True)
     
@@ -28,20 +28,24 @@ class IncidentReport(models.Model):
     extracted_text = models.TextField(blank=True, null=True)
     
     ai_analysis = models.JSONField(blank=True, null=True)
-    risk_score = models.IntegerField(default=0)
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='pending')
-    detected_location = models.CharField(max_length=255, blank=True, null=True)
+    risk_score = models.IntegerField(default=0, db_index=True)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='pending', db_index=True)
+    detected_location = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     
     chain_hash = models.CharField(max_length=64, blank=True, null=True)
     
     dispatched_at = models.DateTimeField(blank=True, null=True)
     dispatched_to = models.EmailField(blank=True, null=True)
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['source', 'action']),
+            models.Index(fields=['risk_score', 'created_at']),
+        ]
         
     def __str__(self):
         return f"Case {self.case_id} - {self.get_source_display()} - {self.get_action_display()}"
@@ -52,9 +56,12 @@ class IncidentReport(models.Model):
         return self.chain_hash
     
     def save(self, *args, **kwargs):
-        if not self.chain_hash and self.pk:
-            self.generate_chain_hash()
+        is_new = self.pk is None
         super().save(*args, **kwargs)
+        # Generate chain hash after first save (when pk exists and created_at is set)
+        if is_new and not self.chain_hash:
+            self.generate_chain_hash()
+            super().save(update_fields=['chain_hash'])
 
 
 class EvidenceAsset(models.Model):
@@ -88,3 +95,10 @@ class EvidenceAsset(models.Model):
         elif self.derived_text:
             self.sha256_digest = hashlib.sha256(self.derived_text.encode()).hexdigest()
         return self.sha256_digest
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate hash if not set
+        if not self.sha256_digest:
+            if self.derived_text:
+                self.sha256_digest = hashlib.sha256(self.derived_text.encode()).hexdigest()
+        super().save(*args, **kwargs)

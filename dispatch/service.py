@@ -1,3 +1,4 @@
+import os
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -20,19 +21,20 @@ class BrevoDispatcherError(Exception):
 class BrevoDispatcher:
     _instance = None
     _initialized = False
+    _lock = threading.Lock()
     
     def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
         return cls._instance
     
     def __init__(self):
         if BrevoDispatcher._initialized:
             return
         
-        # Initialize ThreadPoolExecutor with max_workers=4 to match 1GB RAM constraints
-        # This prevents thread explosion during viral usage
-        self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="brevo_dispatch")
+        # ThreadPoolExecutor with max_workers=2 for 1GB RAM constraint
+        self._executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="brevo_dispatch")
         
         self.api_key = os.environ.get('BREVO_API_KEY')
         self._available = bool(self.api_key)

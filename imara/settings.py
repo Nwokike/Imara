@@ -2,17 +2,22 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Security: Always keep secret key in .env
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-dev-key-change-in-production')
-
 # Security: This should be False in your .env for production
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
+# Security: Always keep secret key in .env - REQUIRED in production
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-dev-key-for-local-development-only'
+    else:
+        raise ImproperlyConfigured("SECRET_KEY environment variable is required in production")
 
 # ALLOWED_HOSTS: Explicitly allow your Domain and VM IP
 if DEBUG:
@@ -66,6 +71,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -83,7 +89,7 @@ if DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
-            conn_max_age=300,
+            conn_max_age=60,  # Reduced for 1GB RAM constraint
             conn_health_checks=True,
             ssl_require=True,
         )
@@ -113,10 +119,23 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Django 5.1+ STORAGES setting (replaces deprecated STATICFILES_STORAGE)
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# File upload limits (for 1GB RAM VM)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB max
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5MB before temp file
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
