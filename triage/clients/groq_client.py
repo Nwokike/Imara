@@ -229,14 +229,33 @@ Respond with this exact JSON structure:
                     else:
                         filename = "audio.ogg"
 
-                # Ensure filename has a valid extension for Whisper
-                if '.' not in filename:
-                    filename += ".ogg"
+                # Normalize extension for Groq/Whisper strict requirements
+                supported_exts = ['flac', 'mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'ogg', 'opus', 'wav', 'webm']
+                name_parts = filename.rsplit('.', 1)
+                ext = name_parts[1].lower() if len(name_parts) > 1 else ''
                 
+                if ext not in supported_exts:
+                    if ext == 'oga': # Common Telegram voice note extension
+                        filename = name_parts[0] + '.ogg'
+                        mime_type = 'audio/ogg'
+                    else:
+                        # Fallback to .ogg if extension is unknown or missing
+                        filename = (name_parts[0] if ext else filename) + '.ogg'
+                        mime_type = 'audio/ogg'
+                else:
+                    # Map common mime types
+                    mime_map = {
+                        'mp3': 'audio/mpeg',
+                        'wav': 'audio/wav',
+                        'ogg': 'audio/ogg',
+                        'm4a': 'audio/mp4',
+                    }
+                    mime_type = mime_map.get(ext, 'audio/mpeg')
+
                 response = requests.post(
                     "https://api.groq.com/openai/v1/audio/transcriptions",
                     headers={"Authorization": f"Bearer {self.api_key}"},
-                    files={"file": (filename, f)},
+                    files={"file": (filename, f, mime_type)},
                     data={
                         "model": "whisper-large-v3",
                         "response_format": "text"
