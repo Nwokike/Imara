@@ -97,20 +97,35 @@ class GeminiClient:
         
         return data
     
-    def analyze_image(self, image_path: str) -> ImageAnalysis:
+    def analyze_image(self, image_file_or_path, mime_type: Optional[str] = None) -> ImageAnalysis:
         if not self.is_available:
             return self._get_fallback_analysis()
         
+        f = None
+        should_close = False
         try:
-            with open(image_path, 'rb') as f:
-                image_bytes = f.read()
+            if isinstance(image_file_or_path, str):
+                f = open(image_file_or_path, 'rb')
+                should_close = True
+                if not mime_type:
+                    mime_type = self._get_mime_type(image_file_or_path)
+            else:
+                f = image_file_or_path
+                if hasattr(f, 'seek'):
+                    f.seek(0)
+                if not mime_type:
+                    mime_type = "image/jpeg"
+            
+            image_bytes = f.read()
+            return self.analyze_image_bytes(image_bytes, mime_type)
+            
         except FileNotFoundError:
-            raise GeminiClientError(f"Image file not found: {image_path}")
+            raise GeminiClientError(f"Image file not found: {image_file_or_path}")
         except Exception as e:
-            raise GeminiClientError(f"Failed to read image file: {e}")
-        
-        mime_type = self._get_mime_type(image_path)
-        return self.analyze_image_bytes(image_bytes, mime_type)
+            raise GeminiClientError(f"Failed to process image: {e}")
+        finally:
+            if should_close and f:
+                f.close()
     
     def analyze_image_bytes(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> ImageAnalysis:
         if not self.is_available:

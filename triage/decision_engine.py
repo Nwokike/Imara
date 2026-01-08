@@ -84,9 +84,9 @@ class DecisionEngine:
             logger.error(f"Text analysis failed: {e}")
             return self._get_fallback_result("text", str(e))
     
-    def analyze_image(self, image_path: str) -> TriageResult:
+    def analyze_image(self, image_file_or_path: Any) -> TriageResult:
         try:
-            analysis = self.gemini_client.analyze_image(image_path)
+            analysis = self.gemini_client.analyze_image(image_file_or_path)
             
             return TriageResult(
                 risk_score=analysis.risk_score,
@@ -126,9 +126,9 @@ class DecisionEngine:
             logger.error(f"Image bytes analysis failed: {e}")
             return self._get_fallback_result("image", str(e))
     
-    def analyze_audio(self, audio_path: str) -> TriageResult:
+    def analyze_audio(self, audio_file_or_path: Any) -> TriageResult:
         try:
-            transcribed_text = self.groq_client.transcribe_audio(audio_path)
+            transcribed_text = self.groq_client.transcribe_audio(audio_file_or_path)
             
             if not transcribed_text:
                 return TriageResult(
@@ -164,9 +164,9 @@ class DecisionEngine:
     def process_evidence(
         self,
         text: Optional[str] = None,
-        image_path: Optional[str] = None,
+        image_path: Optional[Any] = None,
         image_bytes: Optional[bytes] = None,
-        audio_path: Optional[str] = None,
+        audio_path: Optional[Any] = None,
         mime_type: str = "image/jpeg"
     ) -> TriageResult:
         if image_bytes:

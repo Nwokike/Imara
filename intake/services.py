@@ -274,8 +274,8 @@ class ReportProcessor:
             evidence.sha256_digest = file_hash
             evidence.save()
             
-            audio_path = evidence.file.path
-            result = decision_engine.analyze_audio(audio_path)
+            with evidence.file.open('rb') as f:
+                result = decision_engine.analyze_audio(f)
             
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score

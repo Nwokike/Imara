@@ -206,26 +206,35 @@ Respond with this exact JSON structure:
             logger.error(f"Groq analysis failed: {e}")
             raise GroqClientError(f"Analysis failed: {e}")
     
-    def transcribe_audio(self, audio_path: str) -> str:
+    def transcribe_audio(self, audio_file_or_path) -> str:
         if not self._available:
             raise GroqClientError("Groq API key not configured for audio transcription")
         
         last_error = None
         for attempt in range(MAX_RETRIES):
+            f = None
+            should_close = False
             try:
-                with open(audio_path, 'rb') as audio_file:
-                    response = requests.post(
-                        "https://api.groq.com/openai/v1/audio/transcriptions",
-                        headers={"Authorization": f"Bearer {self.api_key}"},
-                        files={"file": audio_file},
-                        data={
-                            "model": "whisper-large-v3",
-                            "response_format": "text"
-                        },
-                        timeout=60
-                    )
-                    response.raise_for_status()
-                    return response.text.strip()
+                if isinstance(audio_file_or_path, str):
+                    f = open(audio_file_or_path, 'rb')
+                    should_close = True
+                else:
+                    f = audio_file_or_path
+                    if hasattr(f, 'seek'):
+                        f.seek(0)
+                
+                response = requests.post(
+                    "https://api.groq.com/openai/v1/audio/transcriptions",
+                    headers={"Authorization": f"Bearer {self.api_key}"},
+                    files={"file": f},
+                    data={
+                        "model": "whisper-large-v3",
+                        "response_format": "text"
+                    },
+                    timeout=60
+                )
+                response.raise_for_status()
+                return response.text.strip()
                     
             except requests.exceptions.Timeout as e:
                 last_error = e
@@ -239,10 +248,13 @@ Respond with this exact JSON structure:
                 if attempt < MAX_RETRIES - 1:
                     time.sleep(RETRY_DELAY * (attempt + 1))
             except FileNotFoundError as e:
-                raise GroqClientError(f"Audio file not found: {audio_path}")
+                raise GroqClientError(f"Audio file not found: {audio_file_or_path}")
             except Exception as e:
                 logger.error(f"Audio transcription failed: {e}")
                 raise GroqClientError(f"Audio transcription failed: {e}")
+            finally:
+                if should_close and f:
+                    f.close()
         
         raise GroqClientError(f"Audio transcription failed after {MAX_RETRIES} attempts: {last_error}")
     
