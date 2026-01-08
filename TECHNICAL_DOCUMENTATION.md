@@ -77,8 +77,18 @@ imara/
 
 ## Running Locally
 ```bash
+# 1. Install dependencies
+uv sync  # or pip install -e .
+
+# 2. Setup environment
+cp .env.example .env
+
+# 3. Initialize database
 python manage.py migrate
-python manage.py runserver 0.0.0.0:5000
+python manage.py seed_authorities
+
+# 4. Run server
+python manage.py runserver
 ```
 
 ## Key Design Decisions

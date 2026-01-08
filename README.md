@@ -79,6 +79,7 @@ We built a production-grade safety ecosystem using 100% free tiers of enterprise
 | **Reasoning** | Groq (Llama-3.3) | Instant (<0.5s) text threat analysis. |
 | **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
 | **Database** | SQLite (WAL Mode) | Optimized for low-memory 1GB environments. |
+| **Storage** | **Cloudflare R2 (S3)** | Secure, forensic-ready evidence storage. |
 | **Dispatch** | Brevo API | Transactional emails to authorities. |
 
 ## 🔮 Roadmap: Coming Soon
@@ -158,10 +159,13 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 
 ```bash
 # 1. Clone
-git clone [https://github.com/nwokike/imara.git](https://github.com/nwokike/imara.git)
+git clone https://github.com/nwokike/imara.git
 
-# 2. Install
-pip install -r requirements.txt
+# 2. Install (using uv - recommended)
+uv sync
+
+# OR using pip
+pip install -e .
 
 # 3. Environment
 cp .env.example .env  # Add your API Keys
@@ -172,7 +176,7 @@ python manage.py seed_authorities  # Loads the 19+ helplines
 
 # 5. Run
 python manage.py runserver
-````
+```
 
 -----
 
