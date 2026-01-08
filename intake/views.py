@@ -10,6 +10,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.conf import settings
+from concurrent.futures import ThreadPoolExecutor
+import shutil
+import tempfile
+from django.core.files import File
 
 from .services import report_processor
 from .forms import ReportForm
@@ -153,6 +157,8 @@ SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 @method_decorator(csrf_exempt, name='dispatch')
 class TelegramWebhookView(View):
+    _executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="telegram_worker")
+
     def post(self, request):
         try:
             data = json.loads(request.body)
@@ -163,13 +169,23 @@ class TelegramWebhookView(View):
                 self.handle_callback(callback_query)
                 return HttpResponse(status=200)
             
-            self.process_update(data)
+            self._executor.submit(self.process_update_task, data)
             
             return HttpResponse(status=200)
             
         except Exception as e:
             logger.error(f"Error processing Telegram webhook: {e}")
             return HttpResponse(status=200)
+
+    def process_update_task(self, data):
+        from django.db import close_old_connections
+        try:
+            close_old_connections()
+            self.process_update(data)
+        except Exception as e:
+            logger.error(f"Async update processing failed: {e}")
+        finally:
+            close_old_connections()
     
     def get_or_create_session(self, chat_id, username=None):
         from triage.models import ChatSession
@@ -463,25 +479,30 @@ Stay safe! 🛡️"""
         largest_photo = max(photos, key=lambda p: p.get('file_size', 0))
         file_id = largest_photo.get('file_id')
         
-        image_bytes, mime_type = self.download_file(file_id)
+        image_path, mime_type = self.download_file(file_id)
         
-        if image_bytes:
-            from io import BytesIO
-            
-            file_obj = BytesIO(image_bytes)
-            file_obj.seek(0)
-            
-            location_hint = session.last_detected_location if session else None
-            
-            result = report_processor.process_image_report(
-                image_file=file_obj,
-                source="telegram",
-                reporter_handle=f"@{username}",
-                additional_text=caption,
-                location_hint=location_hint
-            )
-            
-            self.send_result(chat_id, result, session)
+        if image_path:
+            try:
+                # Open with 'rb' to provide a file-like object
+                with open(image_path, 'rb') as f:
+                    # Wrap in Django File object
+                    django_file = File(f, name=os.path.basename(image_path))
+                    
+                    location_hint = session.last_detected_location if session else None
+                    
+                    result = report_processor.process_image_report(
+                        image_file=django_file,
+                        source="telegram",
+                        reporter_handle=f"@{username}",
+                        additional_text=caption,
+                        location_hint=location_hint
+                    )
+                
+                self.send_result(chat_id, result, session)
+            finally:
+                # Clean up temp file
+                if os.path.exists(image_path):
+                    os.unlink(image_path)
         else:
             self.send_message(chat_id, "❌ Sorry, I couldn't download the image. Please try again.")
     
@@ -492,35 +513,27 @@ Stay safe! 🛡️"""
         self.send_message(chat_id, analyzing_msg)
         
         file_id = voice_data.get('file_id')
-        audio_bytes, mime_type = self.download_file(file_id)
+        file_id = voice_data.get('file_id')
+        audio_path, mime_type = self.download_file(file_id)
         
-        if audio_bytes:
-            import tempfile
-            
-            ext = '.ogg' if 'ogg' in (mime_type or '') else '.mp3'
-            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
-                tmp.write(audio_bytes)
-                tmp_path = tmp.name
-            
-            from django.core.files.uploadedfile import SimpleUploadedFile
-            audio_file = SimpleUploadedFile(
-                name=f"voice{ext}",
-                content=audio_bytes,
-                content_type=mime_type or 'audio/ogg'
-            )
-            
-            location_hint = session.last_detected_location if session else None
-            
-            result = report_processor.process_audio_report(
-                audio_file=audio_file,
-                source="telegram",
-                reporter_handle=f"@{username}",
-                location_hint=location_hint
-            )
-            
-            os.unlink(tmp_path)
-            
-            self.send_result(chat_id, result, session)
+        if audio_path:
+            try:
+                with open(audio_path, 'rb') as f:
+                    django_file = File(f, name=os.path.basename(audio_path))
+                    
+                    location_hint = session.last_detected_location if session else None
+                    
+                    result = report_processor.process_audio_report(
+                        audio_file=django_file,
+                        source="telegram",
+                        reporter_handle=f"@{username}",
+                        location_hint=location_hint
+                    )
+                
+                self.send_result(chat_id, result, session)
+            finally:
+                if os.path.exists(audio_path):
+                    os.unlink(audio_path)
         else:
             self.send_message(chat_id, "❌ Sorry, I couldn't download the voice note. Please try again.")
     
@@ -539,6 +552,7 @@ Stay safe! 🛡️"""
             return None, None
         
         try:
+            # Step 1: Get File Path
             response = requests.get(
                 f"https://api.telegram.org/bot{token}/getFile",
                 params={'file_id': file_id},
@@ -549,17 +563,32 @@ Stay safe! 🛡️"""
             file_path = file_info.get('file_path')
             
             if file_path:
-                file_response = requests.get(
-                    f"https://api.telegram.org/file/bot{token}/{file_path}",
-                    timeout=60
-                )
-                file_response.raise_for_status()
+                # Step 2: Stream Download to Temp File
+                file_url = f"https://api.telegram.org/file/bot{token}/{file_path}"
                 
-                mime_type = file_response.headers.get('content-type', 'application/octet-stream')
-                return file_response.content, mime_type
+                # Determine extension
+                ext = os.path.splitext(file_path)[1]
+                if not ext:
+                    ext = '.bin'
+                
+                # Create temp file
+                tmp_fd, tmp_path = tempfile.mkstemp(suffix=ext)
+                os.close(tmp_fd)
+                
+                with requests.get(file_url, stream=True, timeout=60) as r:
+                    r.raise_for_status()
+                    mime_type = r.headers.get('content-type', 'application/octet-stream')
+                    with open(tmp_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192):
+                            f.write(chunk)
+                            
+                return tmp_path, mime_type
                 
         except Exception as e:
             logger.error(f"Failed to download file: {e}")
+            # Clean up if partial file exists
+            if 'tmp_path' in locals() and os.path.exists(tmp_path):
+                os.unlink(tmp_path)
         
         return None, None
     

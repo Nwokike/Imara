@@ -94,7 +94,7 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 | **Snapchat** | ⏳ Planned | Ephemeral Evidence Capture |
 
 ## 👥 The Team
-**Imara** was built by a diverse team committed to the *"Survivor Support"* and *"Transforming Masculinities"* themes.
+**Imara** is a flagship project of **Kiri Research Labs**, built by a diverse team committed to the *"Survivor Support"* and *"Transforming Masculinities"* themes.
 
 * **[Onyeka Nwokike](https://github.com/nwokike)**: Backend Architecture & AI Engineer.
 * **[Betsy Makamu](https://github.com/makamu-okinyi)**: Frontend Engineering & UI/UX.
@@ -147,7 +147,6 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 | /offline/ | GET | PWA offline page |
 | /webhook/telegram/ | POST | Telegram webhook |
 | /health/ | GET | Health check |
-| /ping/ | GET | Keep alive |
 | /admin/ | GET | Django admin |
 
 ## Telegram Bot Commands
@@ -177,4 +176,7 @@ python manage.py runserver
 
 -----
 
-*Built for Power Hacks 2025. United to End Digital Violence.*
+-----
+
+*Built by Kiri Research Labs. United to End Digital Violence.*
+*© 2025-2026 Kiri Research Labs. All rights reserved.*

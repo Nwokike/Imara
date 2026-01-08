@@ -1,6 +1,8 @@
 # Project Imara - Zero-UI Digital Bodyguard
 
 ## Overview
+**A project of Kiri Research Labs**
+
 Project Imara is a "Zero-UI Digital Bodyguard" platform that protects women and girls from online violence across Africa. The platform:
 - Analyzes threats via AI (text, voice, image)
 - Provides instant safety advice

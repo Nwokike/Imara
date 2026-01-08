@@ -126,12 +126,18 @@ class ReportProcessor:
         try:
             if hasattr(image_file, 'seek'):
                 image_file.seek(0)
-            image_bytes = image_file.read()
             
-            file_name = getattr(image_file, 'name', 'screenshot.jpg')
-            if not file_name:
-                file_name = 'screenshot.jpg'
+            # Calculate hash via streaming (low memory usage)
+            hasher = hashlib.sha256()
+            for chunk in image_file.chunks():
+                hasher.update(chunk)
+            file_hash = hasher.hexdigest()
             
+            image_file.seek(0)
+            
+            file_name = getattr(image_file, 'name', 'screenshot.jpg') or 'screenshot.jpg'
+            
+            # Determine mime type
             mime_type = getattr(image_file, 'content_type', None)
             if not mime_type:
                 ext = file_name.lower().split('.')[-1] if '.' in file_name else 'jpg'
@@ -142,9 +148,21 @@ class ReportProcessor:
                 incident=incident,
                 asset_type="image"
             )
-            evidence.file.save(file_name, ContentFile(image_bytes))
-            evidence.sha256_digest = hashlib.sha256(image_bytes).hexdigest()
+            # Django save() streams from the file object
+            evidence.file.save(file_name, image_file)
+            evidence.sha256_digest = file_hash
             evidence.save()
+            
+            # For AI analysis, we might need bytes if the client requires it.
+            # However, for 1GB RAM, we should ideally pass a path or stream if the client supports it.
+            # If the client strictly requires bytes, we are limited, but at least we saved safely.
+            # Current Google GenAI client often works with paths or bytes. 
+            # We will read bytes here ONLY if necessary for the specific AI client call that follows,
+            # but ideally we should refactor the decision engine to accept paths/streams too.
+            # For now, we unfortunately have to read it back for the current DecisionEngine signature,
+            # BUT we have secured the saving/hashing part.
+            image_file.seek(0)
+            image_bytes = image_file.read() 
             
             result = decision_engine.analyze_image_bytes(image_bytes, mime_type)
             
@@ -237,18 +255,23 @@ class ReportProcessor:
         try:
             if hasattr(audio_file, 'seek'):
                 audio_file.seek(0)
-            audio_bytes = audio_file.read()
+                
+            # Stream hash calculation
+            hasher = hashlib.sha256()
+            for chunk in audio_file.chunks():
+                hasher.update(chunk)
+            file_hash = hasher.hexdigest()
             
-            file_name = getattr(audio_file, 'name', 'voice_note.ogg')
-            if not file_name:
-                file_name = 'voice_note.ogg'
+            audio_file.seek(0)
+            
+            file_name = getattr(audio_file, 'name', 'voice_note.ogg') or 'voice_note.ogg'
             
             evidence = EvidenceAsset.objects.create(
                 incident=incident,
                 asset_type="audio"
             )
-            evidence.file.save(file_name, ContentFile(audio_bytes))
-            evidence.sha256_digest = hashlib.sha256(audio_bytes).hexdigest()
+            evidence.file.save(file_name, audio_file)
+            evidence.sha256_digest = file_hash
             evidence.save()
             
             audio_path = evidence.file.path

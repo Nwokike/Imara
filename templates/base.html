@@ -1,10 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence. Report abuse, get AI-powered threat analysis, and connect with support resources.">
+    <meta name="description"
+        content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence. Report abuse, get AI-powered threat analysis, and connect with support resources.">
     <meta name="theme-color" content="#6B4C9A">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,6 +28,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
 </head>
+
 <body class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
@@ -77,7 +80,8 @@
                     </div>
                     <p class="footer-text">Standing together against online gender-based violence across Africa.</p>
                     <div class="footer-social">
-                        <a href="https://t.me/project_imara_bot" target="_blank" class="social-link"><i class="bi bi-telegram"></i></a>
+                        <a href="https://t.me/project_imara_bot" target="_blank" class="social-link"><i
+                                class="bi bi-telegram"></i></a>
                     </div>
                 </div>
                 <div class="col-6 col-lg-2 mb-4 mb-lg-0">
@@ -98,7 +102,8 @@
                 </div>
                 <div class="col-lg-4">
                     <h6 class="footer-heading">Emergency</h6>
-                    <p class="footer-text">If you are in immediate danger, please contact your local emergency services immediately.</p>
+                    <p class="footer-text">If you are in immediate danger, please contact your local emergency services
+                        immediately.</p>
                     <div class="emergency-box">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>In crisis? Use Project Imara to report and get connected to help.</span>
@@ -107,7 +112,7 @@
             </div>
             <hr class="footer-divider">
             <div class="footer-bottom">
-                <p class="footer-text mb-0">&copy; 2025 Project Imara. Built for Power Hacks 2025. UNiTE to End Digital Violence.</p>
+                <p class="footer-text mb-0">&copy; 2025 - {% now "Y" %} Kiri Research Labs. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -115,36 +120,36 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
     <script>
-        (function() {
+        (function () {
             const toggle = document.getElementById('themeToggle');
             const html = document.documentElement;
             const savedTheme = localStorage.getItem('theme') || 'light';
-            
+
             html.setAttribute('data-bs-theme', savedTheme);
             updateIcon(savedTheme);
-            
-            toggle.addEventListener('click', function() {
+
+            toggle.addEventListener('click', function () {
                 const current = html.getAttribute('data-bs-theme');
                 const next = current === 'dark' ? 'light' : 'dark';
                 html.setAttribute('data-bs-theme', next);
                 localStorage.setItem('theme', next);
                 updateIcon(next);
             });
-            
+
             function updateIcon(theme) {
                 const icon = toggle.querySelector('i');
                 icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
             }
         })();
-        
+
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
+            window.addEventListener('load', function () {
                 navigator.serviceWorker.register('/serviceworker.js', { scope: '/' })
-                    .then(function(reg) { console.log('SW registered'); })
-                    .catch(function(err) { console.log('SW failed'); });
+                    .then(function (reg) { console.log('SW registered'); })
+                    .catch(function (err) { console.log('SW failed'); });
             });
         }
-        
+
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 const href = this.getAttribute('href');
@@ -159,4 +164,5 @@
         });
     </script>
 </body>
+
 </html>

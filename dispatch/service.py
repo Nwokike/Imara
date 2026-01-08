@@ -1,6 +1,6 @@
-import os
 import logging
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import requests
 from datetime import datetime
 from typing import Optional, Callable
@@ -29,6 +29,10 @@ class BrevoDispatcher:
     def __init__(self):
         if BrevoDispatcher._initialized:
             return
+        
+        # Initialize ThreadPoolExecutor with max_workers=4 to match 1GB RAM constraints
+        # This prevents thread explosion during viral usage
+        self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="brevo_dispatch")
         
         self.api_key = os.environ.get('BREVO_API_KEY')
         self._available = bool(self.api_key)
@@ -301,7 +305,7 @@ class BrevoDispatcher:
         summary: str,
         source: str = "Web Form",
         callback: Optional[Callable] = None
-    ) -> threading.Thread:
+    ) -> None:
         def send_task():
             try:
                 result = self.send_forensic_alert(
@@ -332,10 +336,9 @@ class BrevoDispatcher:
                     except Exception as cb_error:
                         logger.error(f"Dispatch callback error: {cb_error}")
         
-        thread = threading.Thread(target=send_task, daemon=True, name=f"dispatch_{case_id[:8]}")
-        thread.start()
-        logger.info(f"Async dispatch started for case {case_id[:8]} to {recipient_email}")
-        return thread
+        # Submit task to the thread pool instead of creating a new thread
+        self._executor.submit(send_task)
+        logger.info(f"Async dispatch submitted for case {case_id[:8]} to {recipient_email}")
 
 
     def send_user_confirmation(
@@ -500,7 +503,7 @@ class BrevoDispatcher:
         risk_score: int,
         summary: str,
         location: str
-    ) -> threading.Thread:
+    ) -> None:
         def send_task():
             self.send_user_confirmation(
                 user_email=user_email,
@@ -512,9 +515,7 @@ class BrevoDispatcher:
                 location=location
             )
         
-        thread = threading.Thread(target=send_task, daemon=True)
-        thread.start()
-        return thread
+        self._executor.submit(send_task)
 
 
 def get_brevo_dispatcher() -> Optional[BrevoDispatcher]:

@@ -13,6 +13,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-dev-key-change-in-production')
 # Security: This should be False in your .env for production
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
+
 # ALLOWED_HOSTS: Explicitly allow your Domain and VM IP
 if DEBUG:
     ALLOWED_HOSTS = ['*']
@@ -30,7 +31,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://imara.africa',
     'https://www.imara.africa',
 ]
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
