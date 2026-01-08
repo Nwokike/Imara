@@ -19,7 +19,8 @@ from triage.models import ChatSession, ChatMessage, UserFeedback
 from triage.decision_engine import DecisionEngine
 
 from .services import report_processor
-from .forms import ReportForm
+from .forms import ReportForm, ContactForm
+from dispatch.tasks import send_email_task
 
 logger = logging.getLogger(__name__)
 
@@ -733,8 +734,29 @@ class PartnerView(View):
         # Log the inquiry
         logger.info(f"Partnership inquiry from {org_name} ({email}) - {partnership_type}")
         
-        # TODO: Send confirmation email via Brevo
-        # TODO: Store inquiry in database
+        # Send email to Admin
+        subject = f"New Partner Inquiry: {org_name}"
+        html_content = f"""
+        <h3>New Partnership Inquiry</h3>
+        <p><strong>Organization:</strong> {org_name}</p>
+        <p><strong>Type:</strong> {org_type}</p>
+        <p><strong>Contact:</strong> {contact_name}</p>
+        <p><strong>Email:</strong> {email}</p>
+        <p><strong>Country:</strong> {country}</p>
+        <p><strong>Partnership Interest:</strong> {partnership_type}</p>
+        <p><strong>Message:</strong></p>
+        <p>{message}</p>
+        """
+        
+        payload = {
+            "sender": {"name": "Imara Web System", "email": "noreply@imara.africa"},
+            "to": [{"email": "projectimarahq@gmail.com"}],
+            "replyTo": {"email": email, "name": contact_name},
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        send_email_task(payload)
         
         return render(request, 'intake/partner.html', {'success': True})
 
@@ -747,4 +769,44 @@ def consent_view(request):
 def policies_view(request):
     """Reporting policies page"""
     return render(request, 'intake/policies.html')
+
+
+class ContactView(View):
+    """Contact Us page"""
+    def get(self, request):
+        form = ContactForm()
+        return render(request, 'intake/contact.html', {'form': form})
+    
+    def post(self, request):
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+            
+            # Send email to Admin
+            email_subject = f"Contact Form: {subject}"
+            html_content = f"""
+            <h3>New Contact Form Message</h3>
+            <p><strong>Name:</strong> {name}</p>
+            <p><strong>Email:</strong> {email}</p>
+            <p><strong>Subject:</strong> {subject}</p>
+            <p><strong>Message:</strong></p>
+            <p>{message}</p>
+            """
+            
+            payload = {
+                "sender": {"name": "Imara Web System", "email": "noreply@imara.africa"},
+                "to": [{"email": "projectimarahq@gmail.com"}],
+                "replyTo": {"email": email, "name": name},
+                "subject": email_subject,
+                "htmlContent": html_content
+            }
+            
+            send_email_task(payload)
+            
+            return render(request, 'intake/contact.html', {'form': ContactForm(), 'success': True})
+        
+        return render(request, 'intake/contact.html', {'form': form})
 

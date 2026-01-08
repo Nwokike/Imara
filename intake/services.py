@@ -404,6 +404,28 @@ class ReportProcessor:
             source=incident.get_source_display(),
             callback=on_dispatch_complete
         )
+
+        # Notify Admin (Project Imara HQ) of the escalation
+        from dispatch.tasks import send_email_task
+        admin_subject = f"ADMIN ALERT: High Risk Case Escalated #{str(incident.case_id)[:8]}"
+        admin_html = f"""
+        <h3>High Risk Case Escalated</h3>
+        <p><strong>Case ID:</strong> {str(incident.case_id)}</p>
+        <p><strong>Risk Score:</strong> {result.risk_score}/10</p>
+        <p><strong>Authority:</strong> {authority.agency_name} ({authority.email})</p>
+        <p><strong>Location:</strong> {result.location}</p>
+        <p><strong>Summary:</strong> {result.summary}</p>
+        <hr>
+        <p>Check Django Admin for full details.</p>
+        """
+        
+        admin_payload = {
+            "sender": {"name": "Imara System", "email": "noreply@imara.africa"},
+            "to": [{"email": "projectimarahq@gmail.com"}],
+            "subject": admin_subject,
+            "htmlContent": admin_html
+        }
+        send_email_task(admin_payload)
         
         return {
             "success": True, 

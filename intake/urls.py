@@ -14,4 +14,5 @@ urlpatterns = [
     path('partner/', views.PartnerView.as_view(), name='partner'),
     path('consent/', views.consent_view, name='consent'),
     path('policies/', views.policies_view, name='policies'),
+    path('contact/', views.ContactView.as_view(), name='contact'),
 ]

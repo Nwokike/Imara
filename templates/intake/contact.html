@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - Project Imara{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3 class="mb-1"><i class="bi bi-envelope me-2"></i>Contact Us</h3>
+                        <p class="mb-0 opacity-75">Have questions? We're here to help.</p>
+                    </div>
+                    <div class="form-card-body">
+                        {% if success %}
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Your message has been sent successfully! We'll get back to you shortly.
+                        </div>
+                        {% endif %}
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div class="info-box h-100">
+                                    <h6 class="text-purple"><i class="bi bi-geo-alt me-2"></i>Location</h6>
+                                    <p class="small mb-0">Project Imara HQ<br>Lagos, Nigeria</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box h-100">
+                                    <h6 class="text-purple"><i class="bi bi-envelope-at me-2"></i>Direct Email</h6>
+                                    <p class="small mb-0">hello@imara.africa<br>partners@imara.africa</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Your Name</label>
+                                    {{ form.name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    {{ form.email }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                {{ form.subject }}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Message</label>
+                                {{ form.message }}
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-send me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
