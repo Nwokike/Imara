@@ -45,7 +45,8 @@
 <body
     class="bg-imara-cream dark:bg-imara-dark-bg text-imara-text dark:text-gray-100 font-sans antialiased transition-colors duration-300">
 
-    {% if user.is_authenticated and user.partner_profile %}
+    {% with has_partner=user.partner_profile.id|default:False %}
+    {% if user.is_authenticated and has_partner %}
     <!-- ========== PARTNER DASHBOARD LAYOUT (Authenticated) ========== -->
     <aside
         class="hidden lg:flex flex-col w-52 h-screen fixed top-0 left-0 bg-white dark:bg-imara-dark-surface border-r border-gray-200 dark:border-gray-800 z-50">
@@ -290,6 +291,7 @@
         </div>
     </footer>
     {% endif %}
+    {% endwith %}
 
     <!-- Scripts -->
     <script>
