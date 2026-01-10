@@ -97,9 +97,9 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 ## 👥 The Team
 **Imara** is a flagship project of **Kiri Research Labs**, built by a diverse team committed to the *"Survivor Support"* and *"Transforming Masculinities"* themes.
 
-* **[Onyeka Nwokike](https://github.com/nwokike)**: Backend Architecture & AI Engineer.
-* **[Betsy Makamu](https://github.com/makamu-okinyi)**: Frontend Engineering & UI/UX.
-* **[Whitney Wairimu](https://github.com/PixelNjoki)**: Research Lead & Strategy.
+* **[Onyeka Nwokike](https://github.com/nwokike)**: Technical Architecture and Security.
+* **[Betsy Makamu](https://github.com/makamu-okinyi)**: Partnerships and External Communications.
+* **[Whitney Wairimu](https://github.com/PixelNjoki)**: Product Roadmap and User Experience.
 
 
 *Building from Nigeria & Kenya* 🇳🇬 🇰🇪
