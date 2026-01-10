@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #2D1B36;
+  --accent-color: #C8A165;
+  --bg-color: #F5F5F0;
+  --text-color: #1A1A1A;
+}
+
+[data-theme="dark"] {
+  --primary-color: #C8A165;
+  --accent-color: #2D1B36;
+  --bg-color: #121212;
+  --text-color: #F5F5F0;
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-imara-deep text-white px-6 py-2 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300;
+    }
+    
+    .glass-panel {
+        @apply bg-white bg-opacity-70 backdrop-blur-md border border-white/20 shadow-glass rounded-xl;
+    }
+
+    .dark .glass-panel {
+        @apply bg-imara-dark-surface bg-opacity-70 border-white/10;
+    }
+    
+    .nav-item {
+        @apply flex items-center p-3 text-gray-700 dark:text-gray-300 hover:bg-imara-gold/10 hover:text-imara-deep dark:hover:text-imara-gold rounded-lg transition-colors;
+    }
+
+    .nav-item.active {
+        @apply bg-imara-deep text-white dark:bg-imara-gold dark:text-black;
+    }
+}
+
+/* Custom Scrollbar for Sidebar */
+.sidebar-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-700 rounded-full;
+}

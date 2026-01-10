@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Become a Partner | Project Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-imara-deep dark:text-imara-gold mb-2">Partner With Us</h1>
+            <p class="text-gray-600 dark:text-gray-400">
+                Join Project Imara's network of responders protecting women and girls from online violence.
+            </p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Organization Name *
+                    </label>
+                    <input type="text" name="org_name" required
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Organization Type *
+                    </label>
+                    <select name="org_type" required
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold">
+                        <option value="NGO">Non-Governmental Organization</option>
+                        <option value="LEA">Law Enforcement Agency</option>
+                        <option value="GOV">Government Body</option>
+                        <option value="LEGAL">Legal Aid Provider</option>
+                        <option value="HEALTH">Healthcare Provider</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Jurisdiction (Country/Region) *
+                </label>
+                <input type="text" name="jurisdiction" required placeholder="e.g., Kenya, Nigeria, East Africa"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Contact Person Name *
+                    </label>
+                    <input type="text" name="contact_name" required
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Contact Email *
+                    </label>
+                    <input type="email" name="contact_email" required
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Phone Number
+                    </label>
+                    <input type="tel" name="contact_phone"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Website
+                    </label>
+                    <input type="url" name="website" placeholder="https://"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Tell us about your organization *
+                </label>
+                <textarea name="description" rows="4" required
+                    placeholder="Describe your organization's mission and how you'd like to partner with Imara..."
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent resize-none"></textarea>
+            </div>
+
+            <!-- Cloudflare Turnstile -->
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+
+            <button type="submit"
+                class="w-full py-4 bg-imara-deep hover:bg-imara-deep/90 text-white font-bold rounded-xl shadow-lg transition-all text-lg">
+                Submit Application
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

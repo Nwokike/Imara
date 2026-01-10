@@ -32,6 +32,35 @@ class IncidentReport(models.Model):
     action = models.CharField(max_length=20, choices=ACTION_CHOICES, default='pending', db_index=True)
     detected_location = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     
+    # Jurisdiction Pool System
+    jurisdiction = models.CharField(
+        max_length=100, 
+        blank=True, 
+        null=True, 
+        db_index=True,
+        help_text="Country/Region for partner visibility (auto-set from detected_location)"
+    )
+    assigned_partner = models.ForeignKey(
+        'partners.PartnerOrganization',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_cases',
+        help_text="Partner organization handling this case"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('OPEN', 'Open'),
+            ('CLAIMED', 'Claimed'),
+            ('IN_PROGRESS', 'In Progress'),
+            ('RESOLVED', 'Resolved'),
+            ('CLOSED', 'Closed'),
+        ],
+        default='OPEN',
+        db_index=True
+    )
+    
     chain_hash = models.CharField(max_length=64, blank=True, null=True)
     
     dispatched_at = models.DateTimeField(blank=True, null=True)

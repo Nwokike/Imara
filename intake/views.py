@@ -114,6 +114,19 @@ class ReportFormView(View):
         return render(request, 'intake/report_form.html', {'form': form})
     
     def post(self, request):
+        # Security: Validate Cloudflare Turnstile
+        from utils.captcha import validate_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
+        
+        if not is_valid:
+            # Configure message for UI failure
+            form = ReportForm(request.POST, request.FILES)
+            return render(request, 'intake/report_form.html', {
+                'form': form, 
+                'error': error_msg
+            })
+
         form = ReportForm(request.POST, request.FILES)
         
         if form.is_valid():

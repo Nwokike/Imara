@@ -1,146 +1,147 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="light">
-
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Project Imara - Your Digital Bodyguard protecting women and girls from online violence. Report abuse, get AI-powered threat analysis, and connect with support resources.">
-    <meta name="theme-color" content="#6B4C9A">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Imara">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="msapplication-TileColor" content="#6B4C9A">
-
-    <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="{% block og_title %}Project Imara - Digital Bodyguard{% endblock %}">
-    <meta property="og:description"
-        content="Your Digital Bodyguard protecting women and girls from online violence across Africa.">
-    <meta property="og:image" content="{% static 'images/icon-512x512.png' %}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://imara.africa">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Project Imara - Digital Bodyguard">
-    <meta name="twitter:description" content="AI-powered protection against online violence for women and girls.">
-
-    <title>{% block title %}Project Imara - Digital Bodyguard{% endblock %}</title>
-    <link rel="manifest" href="{% static 'manifest.json' %}" crossorigin="use-credentials">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Project Imara - Digital Bodyguard">
+    <meta name="theme-color" content="#2D1B36">
+    
+    <!-- PWA -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
     <link rel="apple-touch-icon" href="{% static 'images/icon-192x192.png' %}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/icon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/icon-16x16.png' %}">
+
+    <title>{% block title %}Project Imara{% endblock %}</title>
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind (Local Build) -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Cloudflare Turnstile (Privacy-First CAPTCHA) -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
+<body class="bg-imara-cream dark:bg-imara-dark-bg text-imara-text dark:text-gray-100 font-sans antialiased transition-colors duration-300">
 
-<body class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'images/logo.png' %}" alt="Imara Logo">
-                Project Imara
+    <!-- DESKTOP SIDEBAR (Visible on lg+) -->
+    <aside class="hidden lg:flex flex-col w-64 h-screen fixed top-0 left-0 bg-white dark:bg-imara-dark-surface border-r border-gray-200 dark:border-gray-800 z-50">
+        <div class="p-6 flex items-center gap-3">
+            <img src="{% static 'images/logo.png' %}" alt="Imara" class="w-8 h-8">
+            <span class="text-xl font-bold tracking-tight text-imara-deep dark:text-imara-gold">IMARA</span>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-2 sidebar-scroll overflow-y-auto">
+            <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="bi bi-shield-check text-xl mr-3"></i>
+                <span>Home</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <a href="{% url 'report_form' %}" class="nav-item {% if request.resolver_match.url_name == 'report_form' %}active{% endif %}">
+                <i class="bi bi-exclamation-triangle text-xl mr-3"></i>
+                <span>Report Abuse</span>
+            </a>
+            <a href="{% url 'home' %}#safety" class="nav-item">
+                <i class="bi bi-heart-pulse text-xl mr-3"></i>
+                <span>Safety Tips</span>
+            </a>
+            <a href="{% url 'partner' %}" class="nav-item {% if request.resolver_match.url_name == 'partner' %}active{% endif %}">
+                <i class="bi bi-people text-xl mr-3"></i>
+                <span>Partners</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <button id="themeToggleDesktop" class="nav-item w-full">
+                <i class="bi bi-moon-stars text-xl mr-3"></i>
+                <span>Dark Mode</span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto me-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#about">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#platforms">Get Protected</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#safety-tips">Safety Tips</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#support">Support</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'partner' %}">Partner With Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{% url 'report_form' %}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-shield-check me-1"></i>Report Abuse
-                    </a>
-                    <button class="btn-theme-toggle" id="themeToggle" aria-label="Toggle theme">
-                        <i class="bi bi-moon-fill"></i>
-                    </button>
+        </div>
+    </aside>
+
+    <!-- MOBILE BOTTOM NAV (Visible on < lg) -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-imara-dark-surface border-t border-gray-200 dark:border-gray-800 pb-safe z-50 shadow-lg">
+        <div class="flex justify-around items-center h-16">
+            <a href="{% url 'home' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'home' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+                <i class="bi bi-house text-xl mb-1"></i>
+                Home
+            </a>
+            <a href="{% url 'report_form' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'report_form' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+                <div class="bg-imara-deep dark:bg-imara-gold text-white dark:text-black rounded-full w-10 h-10 flex items-center justify-center -mt-6 shadow-lg border-4 border-imara-cream dark:border-imara-dark-bg">
+                    <i class="bi bi-plus-lg text-xl"></i>
                 </div>
-            </div>
+                Report
+            </a>
+            <a href="{% url 'partner' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'partner' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+                <i class="bi bi-grid text-xl mb-1"></i>
+                Menu
+            </a>
         </div>
     </nav>
 
-    <main class="flex-grow-1">
-        {% block content %}{% endblock %}
+    <!-- MAIN CONTENT WRAPPER -->
+    <main class="lg:ml-64 min-h-screen pb-20 lg:pb-0 relative">
+        <!-- Mobile Header -->
+        <header class="lg:hidden flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-imara-dark-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800">
+            <div class="flex items-center gap-2">
+                <img src="{% static 'images/logo.png' %}" alt="Imara" class="w-8 h-8">
+                <span class="font-bold text-imara-deep dark:text-imara-gold">Imara</span>
+            </div>
+            <button id="themeToggleMobile" class="p-2 rounded-full text-gray-600 dark:text-gray-300">
+                <i class="bi bi-moon-stars"></i>
+            </button>
+        </header>
+
+        <!-- Page Content -->
+        <div class="p-4 lg:p-8 max-w-7xl mx-auto">
+            {% block content %}{% endblock %}
+        </div>
+        
+        <!-- Footer (Desktop Only) -->
+        <footer class="hidden lg:block border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-imara-dark-surface mt-auto">
+            <div class="max-w-7xl mx-auto py-8 px-8 text-center text-sm text-gray-500">
+                &copy; {% now "Y" %} Kiri Research Labs. Built for Project Imara.
+            </div>
+        </footer>
     </main>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-4 mb-4 mb-lg-0">
-                    <div class="footer-brand">
-                        <img src="{% static 'images/logo.png' %}" alt="Imara Logo">
-                        Project Imara
-                    </div>
-                    <p class="footer-text">Standing together against online gender-based violence across Africa.</p>
-                    <div class="footer-social">
-                        <a href="https://t.me/project_imara_bot" target="_blank" class="social-link"><i
-                                class="bi bi-telegram"></i></a>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-2 mb-4 mb-lg-0">
-                    <h6 class="footer-heading">Quick Links</h6>
-                    <div class="footer-links">
-                        <a href="{% url 'report_form' %}">Report Abuse</a>
-                        <a href="{% url 'home' %}#safety-tips">Safety Tips</a>
-                        <a href="{% url 'home' %}#support">Get Support</a>
-                    </div>
-                </div>
-                <div class="col-6 col-lg-2 mb-4 mb-lg-0">
-                    <h6 class="footer-heading">For Partners</h6>
-                    <div class="footer-links">
-                        <a href="{% url 'partner' %}">Partner With Us</a>
-                        <a href="{% url 'policies' %}">Reporting Policies</a>
-                        <a href="{% url 'consent' %}">User Consent</a>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <h6 class="footer-heading">Contact Us</h6>
-                    <div class="footer-links">
-                        <a href="mailto:hello@imara.africa" class="footer-text mb-2 d-block text-decoration-none"><i
-                                class="bi bi-envelope me-2"></i>hello@imara.africa</a>
-                        <a href="{% url 'contact' %}" class="footer-text mb-2 d-block text-decoration-none"><i
-                                class="bi bi-person-lines-fill me-2"></i>Contact Page</a>
-                    </div>
-                    <div class="emergency-box mt-3">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>In crisis? Use Project Imara to report and get connected to help.</span>
-                    </div>
-                </div>
-            </div>
-            <hr class="footer-divider">
-            <div class="footer-bottom text-center">
-                <p class="footer-text mb-0">&copy; 2025-{% now "Y" %} <a href="https://kiri.ng" target="_blank"
-                        class="text-decoration-none text-muted">Kiri Research Labs</a>. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW registered:', reg))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+        // Theme Toggle Logic
+        const toggleBtn = document.querySelectorAll('#themeToggleDesktop, #themeToggleMobile');
+        const html = document.documentElement;
+        
+        // Check local storage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.setAttribute('data-theme', 'dark');
+        } else {
+            html.setAttribute('data-theme', 'light');
+        }
+
+        toggleBtn.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (html.getAttribute('data-theme') === 'dark') {
+                    html.setAttribute('data-theme', 'light');
+                    localStorage.theme = 'light';
+                } else {
+                    html.setAttribute('data-theme', 'dark');
+                    localStorage.theme = 'dark';
+                }
+            });
+        });
+    </script>
+    
+    {% block scripts %}{% endblock %}
 </body>
-
 </html>

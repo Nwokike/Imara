@@ -1,0 +1,15 @@
+{
+  "name": "imara",
+  "version": "1.0.0",
+  "description": "Project Imara - Digital Safety Platform",
+  "main": "index.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

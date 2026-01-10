@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'dispatch.apps.DispatchConfig',
     'intake.apps.IntakeConfig',
     'triage.apps.TriageConfig',
+    'partners.apps.PartnersConfig',
     'django_huey',
 ]
 
@@ -80,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'imara.context_processors.turnstile_context',
             ],
         },
     },
@@ -171,6 +173,10 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+
+# Cloudflare Turnstile (CAPTCHA)
+TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '0x4AAAAAACLro269PpnXFjvn')
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '0x4AAAAAACLro_e5H4S0hE74xyZK-9NVTEQ')
 
 # Security Settings for Production
 if not DEBUG:
