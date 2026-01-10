@@ -31,8 +31,7 @@ venv/
 ENV/
 
 staticfiles/
-media/uploads/
-media/evidence/
+media/
 
 *.pot
 *.pyc

@@ -4,115 +4,134 @@
 {% block title %}Report Abuse - Project Imara{% endblock %}
 
 {% block content %}
-<section class="section">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="form-card">
-                    <div class="form-card-header">
-                        <img src="{% static 'images/logo.png' %}" alt="Imara Logo">
-                        <h3 class="mb-1">Report Online Abuse</h3>
-                        <p class="mb-0 opacity-75">Your report is confidential and secure</p>
-                    </div>
-                    <div class="form-card-body">
-                        {% if error %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                        {% endif %}
-                        
-                        {% if form.errors %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="bi bi-exclamation-circle me-2"></i>
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    {{ error }}<br>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                {{ error }}<br>
-                            {% endfor %}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                        {% endif %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-6 lg:p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+                <i class="bi bi-shield-exclamation text-3xl text-red-600 dark:text-red-400"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-gold mb-2">Report Online Abuse</h1>
+            <p class="text-gray-500 dark:text-gray-400">Your report is confidential and secure</p>
+        </div>
 
-                        <form method="post" enctype="multipart/form-data" id="reportForm">
-                            {% csrf_token %}
-                            
-                            <div class="mb-4">
-                                <label class="form-label">
-                                    <i class="bi bi-chat-text me-2"></i>{{ form.message_text.label }}
-                                </label>
-                                {{ form.message_text }}
-                                <div class="form-text">Paste the abusive message or describe the incident</div>
-                            </div>
+        <!-- Error Messages -->
+        {% if error %}
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+            <i class="bi bi-exclamation-circle text-xl"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
 
-                            <div class="row mb-4">
-                                <div class="col-md-6 mb-3 mb-md-0">
-                                    <label class="form-label">
-                                        <i class="bi bi-image me-2"></i>{{ form.screenshot.label }}
-                                    </label>
-                                    {{ form.screenshot }}
-                                    <div class="form-text">Upload a screenshot of the abuse</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">
-                                        <i class="bi bi-mic me-2"></i>{{ form.voice_note.label }}
-                                    </label>
-                                    {{ form.voice_note }}
-                                    <div class="form-text">Upload a voice recording</div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label">
-                                    <i class="bi bi-envelope me-2"></i>{{ form.email.label }}
-                                </label>
-                                {{ form.email }}
-                                <div class="form-text">{{ form.email.help_text }}</div>
-                            </div>
-
-                            <div class="mb-4">
-                                <div class="form-check">
-                                    {{ form.consent }}
-                                    <label class="form-check-label" for="{{ form.consent.id_for_label }}">
-                                        {{ form.consent.label }}
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="alert alert-info-custom mb-4">
-                                <div class="d-flex">
-                                    <i class="bi bi-info-circle me-3" style="font-size: 1.5rem;"></i>
-                                    <div>
-                                        <strong>How it works:</strong>
-                                        <ul class="mb-0 mt-2">
-                                            <li>Our AI analyzes your report for threat level</li>
-                                            <li>Low-risk: You'll receive helpful advice</li>
-                                            <li>High-risk: Automatically reported to authorities</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
-                                    <i class="bi bi-send-fill me-2"></i>Submit Report
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="text-center mt-4">
-                    <p class="footer-text">
-                        <i class="bi bi-lock-fill me-1"></i>
-                        Your information is encrypted and secure. We never share your data without consent.
-                    </p>
+        {% if form.errors %}
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+            <div class="flex items-start gap-3">
+                <i class="bi bi-exclamation-circle text-xl"></i>
+                <div>
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" id="reportForm" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Message Text -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-chat-text mr-2"></i>{{ form.message_text.label }}
+                </label>
+                <textarea name="message_text" rows="4"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent resize-none"
+                    placeholder="Describe the incident or paste the abusive message...">{{ form.message_text.value|default:'' }}</textarea>
+                <p class="mt-1 text-sm text-gray-500">Paste the abusive message or describe the incident</p>
+            </div>
+
+            <!-- File Uploads Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="bi bi-image mr-2"></i>{{ form.screenshot.label }}
+                    </label>
+                    <input type="file" name="screenshot" accept="image/*"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-imara-gold file:text-imara-deep file:font-semibold">
+                    <p class="mt-1 text-sm text-gray-500">Upload a screenshot</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="bi bi-mic mr-2"></i>{{ form.voice_note.label }}
+                    </label>
+                    <input type="file" name="voice_note" accept="audio/*"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-imara-gold file:text-imara-deep file:font-semibold">
+                    <p class="mt-1 text-sm text-gray-500">Upload a voice recording</p>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-envelope mr-2"></i>{{ form.email.label }}
+                </label>
+                <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent"
+                    placeholder="your@email.com">
+                <p class="mt-1 text-sm text-gray-500">{{ form.email.help_text }}</p>
+            </div>
+
+            <!-- Consent Checkbox -->
+            <div class="flex items-start gap-3">
+                <input type="checkbox" name="consent" id="id_consent" required
+                    class="mt-1 w-5 h-5 text-imara-gold border-gray-300 rounded focus:ring-imara-gold">
+                <label for="id_consent" class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ form.consent.label }}
+                </label>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <i class="bi bi-info-circle text-2xl text-blue-600 dark:text-blue-400"></i>
+                    <div>
+                        <p class="font-semibold text-blue-800 dark:text-blue-300 mb-2">How it works:</p>
+                        <ul class="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                            <li>• Our AI analyzes your report for threat level</li>
+                            <li>• Low-risk: You'll receive helpful advice</li>
+                            <li>• High-risk: Automatically reported to authorities</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Turnstile CAPTCHA -->
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn"
+                class="w-full py-4 bg-imara-deep hover:bg-imara-deep/90 text-white font-bold rounded-xl shadow-lg transition-all text-lg flex items-center justify-center gap-2">
+                <i class="bi bi-send-fill"></i>
+                Submit Report
+            </button>
+        </form>
     </div>
-</section>
+
+    <!-- Footer Note -->
+    <div class="text-center mt-6">
+        <p class="text-sm text-gray-500 flex items-center justify-center gap-2">
+            <i class="bi bi-lock-fill"></i>
+            Your information is encrypted and secure. We never share your data without consent.
+        </p>
+    </div>
+</div>
 {% endblock %}
