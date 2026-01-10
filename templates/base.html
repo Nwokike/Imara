@@ -1,46 +1,65 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Project Imara - Digital Bodyguard">
     <meta name="theme-color" content="#2D1B36">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
     <link rel="apple-touch-icon" href="{% static 'images/icon-192x192.png' %}">
 
     <title>{% block title %}Project Imara{% endblock %}</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind (Local Build) -->
     <link href="{% static 'css/styles.css' %}" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <!-- Cloudflare Turnstile (Privacy-First CAPTCHA) -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-SYW9VT6H8T"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-SYW9VT6H8T');
+    </script>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6665308905326890"
+        crossorigin="anonymous"></script>
 </head>
-<body class="bg-imara-cream dark:bg-imara-dark-bg text-imara-text dark:text-gray-100 font-sans antialiased transition-colors duration-300">
+
+<body
+    class="bg-imara-cream dark:bg-imara-dark-bg text-imara-text dark:text-gray-100 font-sans antialiased transition-colors duration-300">
 
     <!-- DESKTOP SIDEBAR (Visible on lg+) -->
-    <aside class="hidden lg:flex flex-col w-64 h-screen fixed top-0 left-0 bg-white dark:bg-imara-dark-surface border-r border-gray-200 dark:border-gray-800 z-50">
+    <aside
+        class="hidden lg:flex flex-col w-64 h-screen fixed top-0 left-0 bg-white dark:bg-imara-dark-surface border-r border-gray-200 dark:border-gray-800 z-50">
         <div class="p-6 flex items-center gap-3">
             <img src="{% static 'images/logo.png' %}" alt="Imara" class="w-8 h-8">
             <span class="text-xl font-bold tracking-tight text-imara-deep dark:text-imara-gold">IMARA</span>
         </div>
-        
+
         <nav class="flex-1 px-4 space-y-2 sidebar-scroll overflow-y-auto">
-            <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <a href="{% url 'home' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                 <i class="bi bi-shield-check text-xl mr-3"></i>
                 <span>Home</span>
             </a>
-            <a href="{% url 'report_form' %}" class="nav-item {% if request.resolver_match.url_name == 'report_form' %}active{% endif %}">
+            <a href="{% url 'report_form' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'report_form' %}active{% endif %}">
                 <i class="bi bi-exclamation-triangle text-xl mr-3"></i>
                 <span>Report Abuse</span>
             </a>
@@ -48,12 +67,13 @@
                 <i class="bi bi-heart-pulse text-xl mr-3"></i>
                 <span>Safety Tips</span>
             </a>
-            <a href="{% url 'partner' %}" class="nav-item {% if request.resolver_match.url_name == 'partner' %}active{% endif %}">
+            <a href="{% url 'partner' %}"
+                class="nav-item {% if request.resolver_match.url_name == 'partner' %}active{% endif %}">
                 <i class="bi bi-people text-xl mr-3"></i>
                 <span>Partners</span>
             </a>
         </nav>
-        
+
         <div class="p-4 border-t border-gray-200 dark:border-gray-700">
             <button id="themeToggleDesktop" class="nav-item w-full">
                 <i class="bi bi-moon-stars text-xl mr-3"></i>
@@ -63,19 +83,24 @@
     </aside>
 
     <!-- MOBILE BOTTOM NAV (Visible on < lg) -->
-    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-imara-dark-surface border-t border-gray-200 dark:border-gray-800 pb-safe z-50 shadow-lg">
+    <nav
+        class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-imara-dark-surface border-t border-gray-200 dark:border-gray-800 pb-safe z-50 shadow-lg">
         <div class="flex justify-around items-center h-16">
-            <a href="{% url 'home' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'home' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+            <a href="{% url 'home' %}"
+                class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'home' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
                 <i class="bi bi-house text-xl mb-1"></i>
                 Home
             </a>
-            <a href="{% url 'report_form' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'report_form' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
-                <div class="bg-imara-deep dark:bg-imara-gold text-white dark:text-black rounded-full w-10 h-10 flex items-center justify-center -mt-6 shadow-lg border-4 border-imara-cream dark:border-imara-dark-bg">
+            <a href="{% url 'report_form' %}"
+                class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'report_form' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+                <div
+                    class="bg-imara-deep dark:bg-imara-gold text-white dark:text-black rounded-full w-10 h-10 flex items-center justify-center -mt-6 shadow-lg border-4 border-imara-cream dark:border-imara-dark-bg">
                     <i class="bi bi-plus-lg text-xl"></i>
                 </div>
                 Report
             </a>
-            <a href="{% url 'partner' %}" class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'partner' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
+            <a href="{% url 'partner' %}"
+                class="flex flex-col items-center justify-center w-full h-full text-xs text-gray-500 dark:text-gray-400 {% if request.resolver_match.url_name == 'partner' %}text-imara-deep dark:text-imara-gold font-bold{% endif %}">
                 <i class="bi bi-grid text-xl mb-1"></i>
                 Menu
             </a>
@@ -85,7 +110,8 @@
     <!-- MAIN CONTENT WRAPPER -->
     <main class="lg:ml-64 min-h-screen pb-20 lg:pb-0 relative">
         <!-- Mobile Header -->
-        <header class="lg:hidden flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-imara-dark-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800">
+        <header
+            class="lg:hidden flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-imara-dark-surface/80 backdrop-blur-md sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800">
             <div class="flex items-center gap-2">
                 <img src="{% static 'images/logo.png' %}" alt="Imara" class="w-8 h-8">
                 <span class="font-bold text-imara-deep dark:text-imara-gold">Imara</span>
@@ -99,9 +125,10 @@
         <div class="p-4 lg:p-8 max-w-7xl mx-auto">
             {% block content %}{% endblock %}
         </div>
-        
+
         <!-- Footer (Desktop Only) -->
-        <footer class="hidden lg:block border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-imara-dark-surface mt-auto">
+        <footer
+            class="hidden lg:block border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-imara-dark-surface mt-auto">
             <div class="max-w-7xl mx-auto py-8 px-8 text-center text-sm text-gray-500">
                 &copy; {% now "Y" %} Kiri Research Labs. Built for Project Imara.
             </div>
@@ -121,7 +148,7 @@
         // Theme Toggle Logic
         const toggleBtn = document.querySelectorAll('#themeToggleDesktop, #themeToggleMobile');
         const html = document.documentElement;
-        
+
         // Check local storage or system preference
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             html.setAttribute('data-theme', 'dark');
@@ -141,7 +168,8 @@
             });
         });
     </script>
-    
+
     {% block scripts %}{% endblock %}
 </body>
+
 </html>
