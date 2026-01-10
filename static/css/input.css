@@ -566,10 +566,49 @@
 }
 
 /* Collapse handling for support accordion */
+.support-content {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.support-content.open,
+.collapse.show {
+    display: block;
+    max-height: 500px;
+}
+
 .collapse:not(.show) {
     display: none;
 }
 
-.collapse.show {
-    display: block;
+.support-region-btn.collapsed .bi-chevron-down {
+    transform: rotate(0deg);
+}
+
+.support-region-btn:not(.collapsed) .bi-chevron-down {
+    transform: rotate(180deg);
+}
+
+/* Float Animation */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Safe Area for Mobile Bottom Nav */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }

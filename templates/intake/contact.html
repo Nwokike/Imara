@@ -77,6 +77,12 @@
                                 <label class="form-label">Message</label>
                                 {{ form.message }}
                             </div>
+
+                            <!-- Turnstile CAPTCHA -->
+                            <div class="mb-4">
+                                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+                            </div>
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="bi bi-send me-2"></i>Send Message

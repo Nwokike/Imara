@@ -243,6 +243,12 @@
                                 <textarea class="form-control" name="message" rows="4"
                                     placeholder="Describe your organization's work and how you'd like to collaborate with Project Imara..."></textarea>
                             </div>
+
+                            <!-- Turnstile CAPTCHA -->
+                            <div class="mb-4">
+                                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+                            </div>
+
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="bi bi-send-fill me-2"></i>Submit Inquiry

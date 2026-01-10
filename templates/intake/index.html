@@ -10,7 +10,9 @@
             <div class="col-lg-7 text-center text-lg-start">
                 <span class="hero-badge">Protecting Women & Girls Online</span>
                 <h1 class="hero-title">Your Digital Bodyguard Against Online Violence</h1>
-                <p class="hero-subtitle">70% of women experience online harassment. Project Imara uses AI to analyze threats, provide instant safety advice, and connect you with authorities when needed. No app download required.</p>
+                <p class="hero-subtitle">70% of women experience online harassment. Project Imara uses AI to analyze
+                    threats, provide instant safety advice, and connect you with authorities when needed. No app
+                    download required.</p>
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number">24/7</span>
@@ -36,12 +38,14 @@
             </div>
             <div class="col-lg-5 d-none d-lg-block text-center">
                 <div class="hero-visual">
-                    <img src="{% static 'images/icon-512x512.png' %}" alt="Project Imara" class="hero-main-img">
+                    <img src="{% static 'images/icon-512x512.png' %}" alt="Project Imara"
+                        class="hero-main-img dark:brightness-0 dark:invert animate-float">
                 </div>
             </div>
         </div>
     </div>
 </section>
+
 
 <section class="section" id="about">
     <div class="container">
@@ -49,13 +53,16 @@
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <span class="section-badge">About Project Imara</span>
                 <h2 class="section-title-lg">Your <span class="text-purple">Invisible</span> Digital Bodyguard</h2>
-                <p class="section-text">We believe no woman should suffer online violence in silence. Project Imara is a Zero-UI Digital Bodyguard that works inside the apps you already use - leaving no trace that could put you at risk.</p>
+                <p class="section-text">We believe no woman should suffer online violence in silence. Project Imara is a
+                    Zero-UI Digital Bodyguard that works inside the apps you already use - leaving no trace that could
+                    put you at risk.</p>
                 <div class="about-features">
                     <div class="about-feature">
                         <div class="about-feature-icon"><i class="bi bi-eye-slash"></i></div>
                         <div>
                             <h5>Invisible Protection</h5>
-                            <p>No app download needed. Works through Telegram and Web - leaving no trace on your device.</p>
+                            <p>No app download needed. Works through Telegram and Web - leaving no trace on your device.
+                            </p>
                         </div>
                     </div>
                     <div class="about-feature">
@@ -77,7 +84,8 @@
             <div class="col-lg-6">
                 <div class="about-card">
                     <h4><i class="bi bi-heart-fill text-danger me-2"></i>Our Mission</h4>
-                    <p>To unite and end digital violence against all women and girls by providing invisible, immediate, and legally robust protection tools.</p>
+                    <p>To unite and end digital violence against all women and girls by providing invisible, immediate,
+                        and legally robust protection tools.</p>
                     <div class="mission-stats">
                         <div class="mission-stat">
                             <i class="bi bi-globe-africa"></i>
@@ -101,7 +109,7 @@
             <h2 class="section-title-lg">Use Project Imara Today</h2>
             <p class="section-subtitle">Choose your preferred platform to report abuse and get help</p>
         </div>
-        
+
         <div class="row justify-content-center mb-5">
             <div class="col-md-5 mb-4">
                 <a href="{% url 'report_form' %}" class="platform-card-main text-decoration-none">
@@ -122,7 +130,8 @@
                 </a>
             </div>
             <div class="col-md-5 mb-4">
-                <a href="https://t.me/project_imara_bot" target="_blank" class="platform-card-main platform-card-telegram text-decoration-none">
+                <a href="https://t.me/project_imara_bot" target="_blank"
+                    class="platform-card-main platform-card-telegram text-decoration-none">
                     <div class="platform-card-icon-lg">
                         <i class="bi bi-telegram"></i>
                     </div>
@@ -341,11 +350,12 @@
             <div class="col-lg-10">
                 <div class="support-accordion" id="supportAccordion">
                     <div class="support-region">
-                        <button class="support-region-btn" type="button" data-bs-toggle="collapse" data-bs-target="#kenya" aria-expanded="true">
+                        <button class="support-region-btn" type="button" onclick="toggleAccordion('kenya')"
+                            aria-expanded="true">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>Kenya</span>
-                            <i class="bi bi-chevron-down"></i>
+                            <i class="bi bi-chevron-down transition-transform"></i>
                         </button>
-                        <div id="kenya" class="collapse show" data-bs-parent="#supportAccordion">
+                        <div id="kenya" class="support-content">
                             <div class="support-list">
                                 <div class="support-item">
                                     <h6>Kenya GBV Helpline (FIDA Kenya)</h6>
@@ -366,7 +376,8 @@
                         </div>
                     </div>
                     <div class="support-region">
-                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#nigeria">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#nigeria">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>Nigeria</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -391,7 +402,8 @@
                         </div>
                     </div>
                     <div class="support-region">
-                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#southafrica">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#southafrica">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>South Africa</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -411,7 +423,8 @@
                         </div>
                     </div>
                     <div class="support-region">
-                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ghana">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#ghana">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>Ghana</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -431,7 +444,8 @@
                         </div>
                     </div>
                     <div class="support-region">
-                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#uganda">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#uganda">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>Uganda</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -451,7 +465,8 @@
                         </div>
                     </div>
                     <div class="support-region">
-                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tanzania">
+                        <button class="support-region-btn collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#tanzania">
                             <span><i class="bi bi-geo-alt-fill me-2"></i>Tanzania</span>
                             <i class="bi bi-chevron-down"></i>
                         </button>
@@ -480,7 +495,8 @@
     <div class="container">
         <div class="cta-content">
             <h2>Don't Suffer in Silence</h2>
-            <p>You deserve to be safe online. Report abuse now and let our AI help protect you. Your report is confidential and secure.</p>
+            <p>You deserve to be safe online. Report abuse now and let our AI help protect you. Your report is
+                confidential and secure.</p>
             <div class="cta-buttons">
                 <a href="{% url 'report_form' %}" class="btn btn-light btn-lg">
                     <i class="bi bi-shield-check me-2"></i>Report Abuse Now
