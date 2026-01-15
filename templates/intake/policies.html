@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Terms of Service - Imara{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3 class="mb-1">Terms of Service</h3>
+                        <p class="mb-0 opacity-75">Rules for using Imara and our reporting service</p>
+                    </div>
+                    <div class="form-card-body">
+                        <h5><i class="bi bi-diagram-3 text-purple me-2"></i>Report Processing Flow</h5>
+                        <p class="section-text">When you submit a report to Imara, it goes through a structured
+                            analysis and response process:</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 max-w-4xl mx-auto">
+                            <div class="step-card">
+                                <div class="step-number">1</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="step-icon"><i class="bi bi-cloud-upload"></i></div>
+                                    <div class="text-start">
+                                        <h4>Submission</h4>
+                                        <p class="mb-0">Report received via Telegram or Web portal. Evidence is
+                                            immediately hashed for integrity.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">2</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="step-icon"><i class="bi bi-cpu"></i></div>
+                                    <div class="text-start">
+                                        <h4>Smart Analysis</h4>
+                                        <p class="mb-0">Multi-modal AI analyzes text, images, and audio to assess threat
+                                            level.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">3</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="step-icon"><i class="bi bi-signpost-split"></i></div>
+                                    <div class="text-start">
+                                        <h4>Triage Decision</h4>
+                                        <p class="mb-0">Based on risk score: low (advice) or high (automatic escalation
+                                            to authorities).</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">4</div>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="step-icon"><i class="bi bi-send"></i></div>
+                                    <div class="text-start">
+                                        <h4>Response</h4>
+                                        <p class="mb-0">User receives immediate feedback. High-risk cases get authority
+                                            notification.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-speedometer2 text-purple me-2"></i>Risk Score Thresholds</h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Score</th>
+                                    <th>Level</th>
+                                    <th>Response</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-success">1-3</span></td>
+                                    <td>Low Risk</td>
+                                    <td>Safety advice provided, no escalation</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-warning text-dark">4-6</span></td>
+                                    <td>Moderate Risk</td>
+                                    <td>Detailed safety guidance, optional escalation</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-danger">7-10</span></td>
+                                    <td>High Risk</td>
+                                    <td>Automatic notification to authorities with evidence</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-building text-purple me-2"></i>Authority Escalation</h5>
+                        <p class="section-text">When a high-risk case is detected, we:</p>
+                        <ul class="section-text">
+                            <li>Identify the appropriate authority based on user's location</li>
+                            <li>Send a secure forensic alert via email within minutes</li>
+                            <li>Include: Case ID, risk assessment, evidence hashes, and summary</li>
+                            <li>Do NOT share your personal contact information unless you opt-in</li>
+                        </ul>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-clock-history text-purple me-2"></i>Data Retention</h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Data Type</th>
+                                    <th>Retention Period</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Case records (high-risk)</td>
+                                    <td>7 years (legal requirements)</td>
+                                </tr>
+                                <tr>
+                                    <td>Case records (low-risk)</td>
+                                    <td>1 year</td>
+                                </tr>
+                                <tr>
+                                    <td>Chat session data</td>
+                                    <td>30 days after last interaction</td>
+                                </tr>
+                                <tr>
+                                    <td>Uploaded files</td>
+                                    <td>As per case retention</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-exclamation-triangle text-purple me-2"></i>False Reports</h5>
+                        <p class="section-text">We take false reporting seriously:</p>
+                        <ul class="section-text">
+                            <li>Deliberately false reports may result in service suspension</li>
+                            <li>We may share information with law enforcement if false reports cause harm</li>
+                            <li>AI safeguards help detect potentially fabricated content</li>
+                        </ul>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-hand-index text-purple me-2"></i>Report Cancellation</h5>
+                        <p class="section-text">You can cancel a report at any time before final submission:</p>
+                        <ul class="section-text">
+                            <li><strong>Telegram:</strong> Say "IMARA STOP", "STOP", or "CANCEL"</li>
+                            <li><strong>Web:</strong> Close the browser before clicking Submit</li>
+                        </ul>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> Once a report is submitted and escalated, it cannot be fully recalled
+                            as authorities may have already been notified.
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-question-circle text-purple me-2"></i>Questions?</h5>
+                        <p class="section-text">For policy questions, please <a href="{% url 'contact' %}"
+                                class="text-imara-gold hover:underline">contact us</a>.</p>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="{% url 'consent' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-2"></i>View Privacy Policy
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-primary">
+                                <i class="bi bi-house me-2"></i>Return Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+
+

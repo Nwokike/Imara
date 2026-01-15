@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.meta_title|default:article.title }} - Imara{% endblock %}
+{% block meta_description %}{{ article.meta_description }}{% endblock %}
+
+{% block extra_head %}
+<!-- Article Schema Markup -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{{ article.title }}",
+    "description": "{{ article.meta_description|default:article.content|striptags|truncatewords:30 }}",
+    "author": {
+        "@type": "Person",
+        "name": "{{ article.author.get_full_name|default:article.author.username }}"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "Imara",
+        "url": "https://imara.africa"
+    },
+    "datePublished": "{{ article.published_at|date:'c' }}",
+    "dateModified": "{{ article.updated_at|date:'c' }}"{% if article.intro_image %},
+    "image": "{{ article.intro_image.url }}"{% endif %}
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<article class="bg-white dark:bg-imara-dark-bg min-h-screen">
+    {% if article.intro_image %}
+    <div class="h-[40vh] md:h-[50vh] w-full relative">
+        <div class="absolute inset-0 bg-black/40 z-10"></div>
+        <img src="{{ article.intro_image.url }}" alt="{{ article.title }}" class="w-full h-full object-cover">
+        <div
+            class="absolute bottom-0 left-0 w-full z-20 pb-12 md:pb-20 pt-32 bg-gradient-to-t from-black/80 to-transparent">
+            <div class="max-w-4xl mx-auto px-6">
+                {% if article.category %}
+                <span
+                    class="inline-block px-3 py-1 bg-imara-gold text-imara-deep text-xs font-bold uppercase rounded mb-4">{{
+                    article.category.name }}</span>
+                {% endif %}
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{{ article.title }}</h1>
+                <div class="flex items-center text-gray-200 text-sm md:text-base gap-6">
+                    <span class="flex items-center"><i class="bi bi-person-circle mr-2"></i> {{
+                        article.author.get_full_name|default:article.author.username }}</span>
+                    <span class="flex items-center"><i class="bi bi-calendar3 mr-2"></i> {{ article.published_at|date:"F
+                        d, Y" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="pt-32 pb-12 bg-imara-deep relative">
+        <div class="absolute inset-0 bg-pattern opacity-10"></div>
+        <div class="max-w-4xl mx-auto px-6 relative z-10">
+            {% if article.category %}
+            <span
+                class="inline-block px-3 py-1 bg-white/20 backdrop-blur text-white text-xs font-bold uppercase rounded mb-4">{{
+                article.category.name }}</span>
+            {% endif %}
+            <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight">{{ article.title }}</h1>
+            <div class="flex items-center text-gray-200 text-sm md:text-base gap-6 mt-6">
+                <span class="flex items-center"><i class="bi bi-person-circle mr-2"></i> {{
+                    article.author.get_full_name|default:article.author.username }}</span>
+                <span class="flex items-center"><i class="bi bi-calendar3 mr-2"></i> {{ article.published_at|date:"F d,
+                    Y" }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="max-w-4xl mx-auto px-6 py-12 md:py-20">
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+            {{ article.content_preview }}
+        </div>
+
+        <!-- Author Organization -->
+        {% if article.author_organization %}
+        <div class="flex items-center gap-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl my-8">
+            {% if article.author_organization.logo %}
+            <img src="{{ article.author_organization.logo.url }}" alt="{{ article.author_organization.name }}"
+                class="w-16 h-16 object-contain rounded-xl">
+            {% else %}
+            <div class="w-16 h-16 bg-imara-gold/20 rounded-xl flex items-center justify-center">
+                <i class="bi bi-building text-2xl text-imara-gold"></i>
+            </div>
+            {% endif %}
+            <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Written by</p>
+                <p class="font-semibold text-imara-deep dark:text-imara-cream">{{ article.author_organization.name }}
+                </p>
+                <p class="text-xs text-gray-400">{{ article.author_organization.get_org_type_display }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Tags -->
+        {% if article.tags.exists %}
+        <div class="flex flex-wrap gap-2 my-8">
+            {% for tag in article.tags.all %}
+            <span class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-sm rounded-full">
+                #{{ tag.name }}
+            </span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Related Posts -->
+        {% with related=article.get_related_articles %}
+        {% if related %}
+        <div class="my-12">
+            <h3 class="text-xl font-bold text-imara-deep dark:text-imara-cream mb-6">Related Articles</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for post in related %}
+                <a href="{% url 'publications:article_detail' post.slug %}" class="group block">
+                    <div
+                        class="bg-gray-50 dark:bg-gray-800 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
+                        {% if post.intro_image %}
+                        <img src="{{ post.intro_image.url }}" alt="{{ post.title }}" class="w-full h-32 object-cover">
+                        {% else %}
+                        <div
+                            class="w-full h-32 bg-gradient-to-br from-imara-deep to-imara-deep/70 flex items-center justify-center">
+                            <i class="bi bi-file-text text-4xl text-white/50"></i>
+                        </div>
+                        {% endif %}
+                        <div class="p-4">
+                            <h4
+                                class="font-semibold text-gray-900 dark:text-white group-hover:text-imara-gold transition-colors line-clamp-2">
+                                {{ post.title }}</h4>
+                            <p class="text-xs text-gray-500 mt-2">{{ post.published_at|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <hr class="my-12 border-gray-200 dark:border-gray-800">
+
+        <!-- Share Section -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+            <a href="{% url 'publications:article_list' %}"
+                class="inline-flex items-center text-imara-deep dark:text-imara-gold font-semibold group">
+                <i class="bi bi-arrow-left me-2 transition-transform group-hover:-translate-x-1"></i> Back to Insights
+            </a>
+
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-500 dark:text-gray-400">Share:</span>
+                <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ article.title|urlencode }}"
+                    target="_blank" rel="noopener"
+                    class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-imara-gold hover:text-imara-deep transition-colors"
+                    aria-label="Share on Twitter">
+                    <i class="bi bi-twitter-x"></i>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank"
+                    rel="noopener"
+                    class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-imara-gold hover:text-imara-deep transition-colors"
+                    aria-label="Share on Facebook">
+                    <i class="bi bi-facebook"></i>
+                </a>
+                <a href="https://wa.me/?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri }}"
+                    target="_blank" rel="noopener"
+                    class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-imara-gold hover:text-imara-deep transition-colors"
+                    aria-label="Share on WhatsApp">
+                    <i class="bi bi-whatsapp"></i>
+                </a>
+                <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.build_absolute_uri }}&title={{ article.title|urlencode }}"
+                    target="_blank" rel="noopener"
+                    class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-imara-gold hover:text-imara-deep transition-colors"
+                    aria-label="Share on LinkedIn">
+                    <i class="bi bi-linkedin"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Previous/Next Navigation -->
+        <div class="flex justify-between items-stretch gap-4 mt-12">
+            {% if previous_article %}
+            <a href="{% url 'publications:article_detail' previous_article.slug %}"
+                class="flex-1 group p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-imara-gold/10 transition-colors">
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    <i class="bi bi-arrow-left group-hover:-translate-x-1 transition-transform"></i> Previous
+                </div>
+                <p class="font-semibold text-gray-900 dark:text-white line-clamp-2">{{ previous_article.title }}</p>
+            </a>
+            {% else %}
+            <div class="flex-1"></div>
+            {% endif %}
+
+            {% if next_article %}
+            <a href="{% url 'publications:article_detail' next_article.slug %}"
+                class="flex-1 group p-4 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-imara-gold/10 transition-colors text-right">
+                <div class="flex items-center justify-end gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    Next <i class="bi bi-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </div>
+                <p class="font-semibold text-gray-900 dark:text-white line-clamp-2">{{ next_article.title }}</p>
+            </a>
+            {% else %}
+            <div class="flex-1"></div>
+            {% endif %}
+        </div>
+
+        <!-- Comments Section -->
+        <div class="mt-16" id="comments">
+            <h3 class="text-xl font-bold text-imara-deep dark:text-imara-cream mb-6">
+                <i class="bi bi-chat-dots mr-2"></i> Discussion ({{ comments|length }})
+            </h3>
+
+            <!-- Existing Comments -->
+            {% if comments %}
+            <div class="space-y-6 mb-8">
+                {% for comment in comments %}
+                <div class="p-5 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="font-semibold text-gray-900 dark:text-white">{{ comment.name }}</span>
+                        <span class="text-xs text-gray-400">{{ comment.created_at|timesince }} ago</span>
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300 whitespace-pre-line">{{ comment.content }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Comment Form -->
+            <div
+                class="p-6 bg-gradient-to-br from-imara-gold/5 to-imara-deep/5 dark:from-imara-gold/10 dark:to-imara-deep/10 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <h4 class="font-semibold text-gray-900 dark:text-white mb-4">Leave a Comment</h4>
+
+                {% if messages %}
+                <div class="mb-4 space-y-2">
+                    {% for message in messages %}
+                    <div
+                        class="p-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'publications:submit_comment' article.slug %}" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name *</label>
+                            <input type="text" id="name" name="name" required
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="email"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email
+                                (optional)</label>
+                            <input type="email" id="email" name="email"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="content"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Comment *</label>
+                        <textarea id="content" name="content" rows="4" required maxlength="1000"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold focus:border-transparent resize-none"
+                            placeholder="Share your thoughts..."></textarea>
+                        <p class="text-xs text-gray-400 mt-1">Max 1000 characters</p>
+                    </div>
+
+                    <!-- Turnstile Widget -->
+                    <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-theme="auto"></div>
+
+                    <button type="submit"
+                        class="bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold py-3 px-6 rounded-xl transition-all">
+                        <i class="bi bi-send mr-2"></i> Submit Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- Turnstile Script -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+{% endblock %}

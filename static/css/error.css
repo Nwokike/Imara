@@ -1,0 +1,92 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.error-card {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.error-logo {
+    height: 48px;
+    margin-bottom: 1.5rem;
+}
+
+.error-code {
+    font-size: 5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.error-code-purple {
+    color: #6B4C9A;
+}
+
+.error-code-red {
+    color: #d63031;
+}
+
+.error-code-yellow {
+    color: #fdcb6e;
+}
+
+.error-code-gray {
+    color: #636e72;
+}
+
+.error-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3436;
+    margin-bottom: 0.75rem;
+}
+
+.error-text {
+    color: #636e72;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.btn-error {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #6B4C9A;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-error:hover {
+    background-color: #4A3570;
+    color: white;
+}
+
+.offline-icon {
+    font-size: 4rem;
+    color: #6B4C9A;
+    margin-bottom: 1rem;
+}

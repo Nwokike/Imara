@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Team Management - {{ organization.name }} | Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-6">
+        <ol class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <li><a href="{% url 'partners:dashboard' %}" class="hover:text-imara-gold">Dashboard</a></li>
+            <li><i class="bi bi-chevron-right text-xs"></i></li>
+            <li class="text-imara-deep dark:text-imara-cream font-medium">Team</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-cream">Team Management</h1>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">{{ organization.name }}</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm font-medium">
+                <i class="bi bi-people mr-2"></i>{{ organization.seats_used }} / {{ organization.max_seats }} seats
+            </span>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="mb-6 space-y-2">
+        {% for message in messages %}
+        <div
+            class="p-4 rounded-xl text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Team Members -->
+        <div class="lg:col-span-2">
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4">
+                    <i class="bi bi-people-fill mr-2 text-imara-gold"></i> Team Members
+                </h2>
+
+                <div class="space-y-4">
+                    {% for member in team_members %}
+                    <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full bg-imara-gold/20 flex items-center justify-center">
+                                <span class="text-lg font-bold text-imara-gold">
+                                    {{ member.user.first_name|slice:":1"|default:member.user.username|slice:":1"|upper
+                                    }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-900 dark:text-white">
+                                    {{ member.user.get_full_name|default:member.user.username }}
+                                    {% if member.user == request.user %}<span
+                                        class="text-xs text-imara-gold">(You)</span>{% endif %}
+                                </p>
+                                <p class="text-sm text-gray-500">{{ member.user.email }}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            {% if is_admin and member.user != request.user %}
+                            <form method="post" action="{% url 'partners:update_role' member.id %}"
+                                class="flex items-center gap-2">
+                                {% csrf_token %}
+                                <select name="role" onchange="this.form.submit()"
+                                    class="text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+                                    {% for value, label in roles %}
+                                    <option value="{{ value }}" {% if member.role==value %}selected{% endif %}>{{ label
+                                        }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                            <form method="post" action="{% url 'partners:remove_member' member.id %}"
+                                onsubmit="return confirm('Remove {{ member.user.get_full_name|default:member.user.username }} from the team?');">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="p-2 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                    title="Remove">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="px-3 py-1 rounded-full text-xs font-medium
+                                {% if member.role == 'ADMIN' %}bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400
+                                {% elif member.role == 'RESPONDER' %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400
+                                {% else %}bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400{% endif %}">
+                                {{ member.get_role_display }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center text-gray-400 py-8">No team members yet.</p>
+                    {% endfor %}
+                </div>
+
+                <!-- Pending Invites -->
+                {% if pending_invites %}
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+                        Pending Invites</h3>
+                    <div class="space-y-3">
+                        {% for invite in pending_invites %}
+                        <div
+                            class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ invite.email }}</p>
+                                <p class="text-xs text-gray-500">{{ invite.get_role_display }} • Expires {{
+                                    invite.expires_at|date:"M d" }}</p>
+                            </div>
+                            {% if is_admin %}
+                            <form method="post" action="{% url 'partners:cancel_invite' invite.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="text-xs text-red-600 hover:underline">Cancel</button>
+                            </form>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Invite Form (Admin Only) -->
+        <div>
+            {% if is_admin %}
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4">
+                    <i class="bi bi-person-plus mr-2 text-imara-gold"></i> Invite Member
+                </h2>
+
+                {% if organization.is_at_capacity %}
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl text-sm text-red-800 dark:text-red-400 mb-4">
+                    <i class="bi bi-exclamation-triangle mr-2"></i>
+                    Seat limit reached. Remove a member first.
+                </div>
+                {% else %}
+                <form method="post" action="{% url 'partners:invite_member' %}" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <label for="email"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                        <input type="email" id="email" name="email" required
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold"
+                            placeholder="colleague@example.com">
+                    </div>
+                    <div>
+                        <label for="role"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
+                        <select id="role" name="role"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold">
+                            {% for value, label in roles %}
+                            <option value="{{ value }}" {% if value=='RESPONDER' %}selected{% endif %}>{{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit"
+                        class="w-full bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold py-3 px-6 rounded-xl transition-all">
+                        <i class="bi bi-send mr-2"></i> Send Invite
+                    </button>
+                </form>
+                {% endif %}
+
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-xs text-gray-400">
+                        <strong>Roles:</strong><br>
+                        • Admin: Manage team & all cases<br>
+                        • Responder: Work on cases<br>
+                        • Viewer: Read-only access
+                    </p>
+                </div>
+            </div>
+            {% else %}
+            <div class="glass-panel p-6">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    <i class="bi bi-info-circle mr-2"></i>
+                    Only organization admins can invite new members.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Case #{{ case.case_id|truncatechars:12 }} | {{ organization.name }} | Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="mb-6">
+        <ol class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <li><a href="{% url 'partners:dashboard' %}" class="hover:text-imara-gold">Dashboard</a></li>
+            <li><i class="bi bi-chevron-right text-xs"></i></li>
+            <li class="text-imara-deep dark:text-imara-cream font-medium">Case Details</li>
+        </ol>
+    </nav>
+
+    <!-- Case Header -->
+    <div class="glass-panel p-6 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <span class="text-xs font-mono text-gray-400 uppercase tracking-wide">Case ID</span>
+                <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-cream mt-1">
+                    #{{ case.case_id|truncatechars:12 }}
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- Status Badge -->
+                <span class="px-4 py-2 rounded-full text-sm font-semibold
+                    {% if case.status == 'RESOLVED' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400
+                    {% elif case.status == 'IN_PROGRESS' %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400
+                    {% elif case.status == 'CLAIMED' %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                    {% else %}bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400{% endif %}">
+                    {{ case.get_status_display }}
+                </span>
+                <!-- Risk Score -->
+                <span class="px-4 py-2 rounded-full text-sm font-bold
+                    {% if case.risk_score >= 8 %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400
+                    {% elif case.risk_score >= 5 %}bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400
+                    {% else %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+                    Risk: {{ case.risk_score }}/10
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Evidence -->
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
+                    <i class="bi bi-file-text mr-2 text-imara-gold"></i> Evidence Content
+                </h2>
+                <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+                    <pre
+                        class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono leading-relaxed">{{ case.original_text|default:"No text content available" }}</pre>
+                </div>
+
+                {% if case.transcribed_text %}
+                <div class="mt-4">
+                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Transcribed Audio</h3>
+                    <div
+                        class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                        <p class="text-sm text-blue-800 dark:text-blue-300">{{ case.transcribed_text }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- AI Analysis -->
+            {% if case.ai_analysis %}
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
+                    <i class="bi bi-robot mr-2 text-imara-gold"></i> AI Analysis
+                </h2>
+                {% if case.ai_analysis.summary %}
+                <p class="text-gray-700 dark:text-gray-300 mb-4">{{ case.ai_analysis.summary }}</p>
+                {% endif %}
+                {% if case.ai_analysis.threat_type %}
+                <div
+                    class="inline-flex items-center px-3 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-sm font-medium">
+                    <i class="bi bi-exclamation-triangle mr-2"></i>{{ case.ai_analysis.threat_type }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Partner Notes -->
+            {% if case.ai_analysis.partner_notes %}
+            <div class="glass-panel p-6">
+                <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
+                    <i class="bi bi-journal-text mr-2 text-imara-gold"></i> Investigation Notes
+                </h2>
+                <div class="space-y-4">
+                    {% for note in case.ai_analysis.partner_notes %}
+                    <div class="border-l-4 border-imara-gold pl-4 py-2">
+                        <p class="text-gray-700 dark:text-gray-300">{{ note.note }}</p>
+                        <p class="text-xs text-gray-400 mt-2">
+                            {{ note.user }} @ {{ note.org }} • {{ note.timestamp }}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Case Info -->
+            <div class="glass-panel p-6">
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Case
+                    Information</h3>
+                <dl class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Source</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.get_source_display }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Location</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{
+                            case.detected_location|default:"Unknown" }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Submitted</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.created_at|date:"M j, Y" }}</dd>
+                    </div>
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Last Updated</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.updated_at|timesince }} ago</dd>
+                    </div>
+                    {% if case.reporter_email %}
+                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <dt class="text-gray-500 dark:text-gray-400 mb-1">Reporter Contact</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.reporter_email }}</dd>
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+
+            <!-- Actions -->
+            {% if can_edit %}
+            <div class="glass-panel p-6">
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Update
+                    Case</h3>
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+
+                    <div>
+                        <label for="status"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                        <select id="status" name="status"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold">
+                            <option value="CLAIMED" {% if case.status=='CLAIMED' %}selected{% endif %}>Claimed</option>
+                            <option value="IN_PROGRESS" {% if case.status=='IN_PROGRESS' %}selected{% endif %}>In
+                                Progress</option>
+                            <option value="RESOLVED" {% if case.status=='RESOLVED' %}selected{% endif %}>Resolved
+                            </option>
+                            <option value="CLOSED" {% if case.status=='CLOSED' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add
+                            Note</label>
+                        <textarea id="notes" name="notes" rows="3"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold resize-none"
+                            placeholder="Add investigation notes..."></textarea>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold py-3 px-6 rounded-xl transition-all">
+                        <i class="bi bi-save mr-2"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+
+            <!-- Chain of Custody -->
+            {% if case.chain_hash %}
+            <div class="glass-panel p-6">
+                <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Chain of
+                    Custody</h3>
+                <p class="text-xs text-gray-500 mb-2">SHA-256 Evidence Hash</p>
+                <code
+                    class="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded-lg block break-all text-gray-600 dark:text-gray-400">
+                    {{ case.chain_hash }}
+                </code>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

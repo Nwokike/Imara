@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Latest Insights - Imara{% endblock %}
+{% block meta_description %}Stay updated with the latest news, safety tips, and reports from Imara.{% endblock
+%}
+
+{% block content %}
+<section class="py-20 bg-gray-50 dark:bg-imara-dark-surface min-h-screen">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-bold text-imara-deep dark:text-imara-gold mb-4">Latest Insights</h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                News, updates, and safety guides to help you stay safe online.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for article in articles %}
+            <article
+                class="bg-white dark:bg-imara-dark-bg rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 border border-gray-100 dark:border-gray-800 flex flex-col">
+                {% if article.intro_image %}
+                <div class="h-48 overflow-hidden relative group">
+                    <img src="{{ article.intro_image.url }}" alt="{{ article.title }}"
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                </div>
+                {% else %}
+                <div class="h-48 bg-imara-cream dark:bg-gray-800 flex items-center justify-center">
+                    <i class="bi bi-newspaper text-4xl text-imara-neutral opacity-50"></i>
+                </div>
+                {% endif %}
+
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        <span>{{ article.published_at|date:"M d, Y" }}</span>
+                        {% if article.category %}
+                        <span
+                            class="px-2 py-1 bg-imara-cream dark:bg-gray-700 rounded-full text-imara-deep dark:text-gray-200 font-medium">{{
+                            article.category.name }}</span>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                        <a href="{% url 'publications:article_detail' article.slug %}"
+                            class="hover:text-imara-deep dark:hover:text-imara-gold transition-colors">
+                            {{ article.title }}
+                        </a>
+                    </h2>
+
+                    <p class="text-gray-600 dark:text-gray-400 mb-6 text-sm line-clamp-3">
+                        {{ article.meta_description|default:article.content|striptags|truncatewords:20 }}
+                    </p>
+
+                    <div class="mt-auto">
+                        <a href="{% url 'publications:article_detail' article.slug %}"
+                            class="inline-flex items-center text-imara-deep dark:text-imara-gold font-semibold text-sm group">
+                            Read Article
+                            <i class="bi bi-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+            <div class="col-span-full text-center py-20">
+                <i class="bi bi-journal-x text-6xl text-gray-300 dark:text-gray-700 mb-6 block"></i>
+                <h3 class="text-2xl font-semibold text-gray-500 dark:text-gray-400">No articles published yet.</h3>
+                <p class="text-gray-400 dark:text-gray-500 mt-2">Check back soon for updates.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if is_paginated %}
+        <div class="mt-16 flex justify-center">
+            <!-- Pagination logic here if needed -->
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

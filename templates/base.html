@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description"
+        content="{% block meta_description %}Project Imara - Your Digital Bodyguard Against Online Violence{% endblock %}">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <meta name="theme-color" content="#2D1B36">
+
+    <!-- PWA -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="apple-touch-icon" href="{% static 'images/icon-192x192.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+
+    <title>{% block title %}Project Imara{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
+
+    <!-- Tailwind (Local Build) -->
+    <link href="{% static 'css/styles.css' %}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+
+    <!-- Cloudflare Turnstile -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body
+    class="bg-imara-cream dark:bg-imara-dark-bg text-imara-text dark:text-gray-100 font-sans antialiased transition-colors duration-300">
+
+    <!-- Desktop Header (Always Visible for Public) -->
+    <header
+        class="hidden lg:block sticky top-0 z-50 bg-white/90 dark:bg-imara-dark-surface/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="{% url 'home' %}" class="flex items-center gap-3" aria-label="Imara Home">
+                <img src="{% static 'images/logo.png' %}" alt="Imara" class="h-9 w-auto dark:brightness-0 dark:invert"
+                    width="120" height="36">
+            </a>
+
+            <nav class="flex items-center gap-6">
+                <a href="{% url 'home' %}"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">Home</a>
+                <a href="{% url 'home' %}#safety-tips"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">Safety
+                    Tips</a>
+                <a href="{% url 'home' %}#support"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">Helplines</a>
+                <a href="{% url 'partner' %}"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">Partners</a>
+                <a href="{% url 'publications:article_list' %}"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">News</a>
+                <a href="{% url 'contact' %}"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-deep dark:hover:text-imara-gold transition-colors">Contact</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <button id="themeToggleDesktop"
+                    class="p-2 rounded-xl text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    aria-label="Toggle Dark Mode">
+                    <i class="bi bi-moon-stars"></i>
+                </button>
+                <a href="{% url 'partners:login' %}"
+                    class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-imara-gold transition-colors">
+                    Partner Login
+                </a>
+                <a href="{% url 'report_form' %}" class="btn-primary text-sm px-4 py-2">
+                    <i class="bi bi-shield-check mr-1"></i> Report Abuse
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Header -->
+    <header
+        class="lg:hidden flex items-center justify-between px-4 py-3 bg-white/90 dark:bg-imara-dark-surface/90 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-100 dark:border-gray-800">
+        <a href="{% url 'home' %}" class="flex items-center gap-2" aria-label="Imara Home">
+            <img src="{% static 'images/logo.png' %}" alt="Imara" class="h-8 w-auto dark:brightness-0 dark:invert"
+                width="107" height="32">
+        </a>
+        <div class="flex items-center gap-2">
+            <button id="themeToggleMobile" class="p-2 rounded-full text-gray-600 dark:text-gray-300"
+                aria-label="Toggle Dark Mode">
+                <i class="bi bi-moon-stars"></i>
+            </button>
+            <a href="{% url 'report_form' %}"
+                class="bg-imara-deep dark:bg-imara-gold text-white dark:text-black text-xs font-bold px-3 py-2 rounded-lg">
+                Report
+            </a>
+        </div>
+    </header>
+
+    <!-- Mobile Bottom Nav -->
+    <nav
+        class="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-imara-dark-surface border-t border-gray-200 dark:border-gray-800 pb-safe z-50 shadow-lg">
+        <div class="flex justify-around items-center h-14">
+            <a href="{% url 'home' %}"
+                class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'home' %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                <i class="bi bi-house text-xl"></i>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'report_form' %}"
+                class="relative flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'report_form' %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                <div
+                    class="absolute -top-5 bg-imara-deep dark:bg-imara-gold text-white dark:text-black rounded-full w-12 h-12 flex items-center justify-center shadow-lg border-4 border-imara-cream dark:border-imara-dark-bg">
+                    <i class="bi bi-shield-exclamation text-xl"></i>
+                </div>
+                <span class="mt-5">Report</span>
+            </a>
+            <a href="{% url 'partner' %}"
+                class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.url_name == 'partner' %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                <i class="bi bi-people text-xl"></i>
+                <span>Partners</span>
+            </a>
+            <a href="{% url 'publications:article_list' %}"
+                class="flex flex-col items-center justify-center text-xs {% if 'publications' in request.resolver_match.namespace %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                <i class="bi bi-newspaper text-xl"></i>
+                <span>News</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content (Single Block) -->
+    <main class="min-h-screen pb-20 lg:pb-0">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Professional Footer -->
+    <footer class="bg-imara-deep text-white">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <!-- Brand -->
+                <div class="col-span-2 md:col-span-1">
+                    <img src="{% static 'images/logo.png' %}" alt="Imara" class="h-10 w-auto brightness-0 invert mb-4">
+                    <p class="text-sm text-gray-300 mb-4">Your digital bodyguard against online violence. Protecting
+                        women and girls across Africa.</p>
+                    <div class="flex gap-3">
+                        <a href="#"
+                            class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-imara-gold hover:text-imara-deep transition-colors">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                        <a href="#"
+                            class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-imara-gold hover:text-imara-deep transition-colors">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                        <a href="#"
+                            class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-imara-gold hover:text-imara-deep transition-colors">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                        <a href="#"
+                            class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-imara-gold hover:text-imara-deep transition-colors">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div>
+                    <h4 class="font-semibold text-imara-gold mb-4">Navigation</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="{% url 'home' %}" class="hover:text-white transition-colors">Home</a></li>
+                        <li><a href="{% url 'report_form' %}" class="hover:text-white transition-colors">Report
+                                Abuse</a></li>
+                        <li><a href="{% url 'publications:article_list' %}"
+                                class="hover:text-white transition-colors">News</a></li>
+                        <li><a href="{% url 'home' %}#safety-tips" class="hover:text-white transition-colors">Safety
+                                Tips</a></li>
+                        <li><a href="{% url 'contact' %}" class="hover:text-white transition-colors">Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <!-- Partners -->
+                <div>
+                    <h4 class="font-semibold text-imara-gold mb-4">Partners</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="{% url 'partner' %}" class="hover:text-white transition-colors">Become a
+                                Partner</a></li>
+                        <li><a href="{% url 'partners:login' %}" class="hover:text-white transition-colors">Partner
+                                Login</a></li>
+                        <li><a href="{% url 'partner' %}#inquiry" class="hover:text-white transition-colors">Apply
+                                Now</a></li>
+                    </ul>
+                </div>
+
+                <!-- Legal -->
+                <div>
+                    <h4 class="font-semibold text-imara-gold mb-4">Legal</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li><a href="{% url 'consent' %}" class="hover:text-white transition-colors">Privacy Policy</a>
+                        </li>
+                        <li><a href="{% url 'policies' %}" class="hover:text-white transition-colors">Terms of
+                                Service</a></li>
+
+                    </ul>
+                </div>
+            </div>
+
+            <div
+                class="border-t border-white/10 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-400">
+                <p>&copy; {% now "Y" %} <a href="https://kiri.ng/about" target="_blank" rel="noopener noreferrer"
+                        class="hover:text-white transition-colors">Kiri Research Labs</a>. All rights reserved.</p>
+                <p class="mt-2 md:mt-0">Built with <i class="bi bi-heart-fill text-red-400"></i> for women & girls.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/main.js' %}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

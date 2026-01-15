@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Report Abuse - Project Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-panel p-6 lg:p-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 mb-4">
+                <i class="bi bi-shield-exclamation text-3xl text-red-600 dark:text-red-400"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-gold mb-2">Report Online Abuse</h1>
+            <p class="text-gray-500 dark:text-gray-400">Your report is confidential and secure</p>
+        </div>
+
+        <!-- Error Messages -->
+        {% if error %}
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+            <i class="bi bi-exclamation-circle text-xl"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        {% if form.errors %}
+        <div
+            class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-6">
+            <div class="flex items-start gap-3">
+                <i class="bi bi-exclamation-circle text-xl"></i>
+                <div>
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" id="reportForm" data-loading class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Message Text -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-chat-text mr-2"></i>{{ form.message_text.label }}
+                </label>
+                <textarea name="message_text" rows="4"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent resize-none"
+                    placeholder="Describe the incident or paste the abusive message...">{{ form.message_text.value|default:'' }}</textarea>
+                <p class="mt-1 text-sm text-gray-500">Paste the abusive message or describe the incident</p>
+            </div>
+
+            <!-- File Uploads Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="bi bi-image mr-2"></i>{{ form.screenshot.label }}
+                    </label>
+                    <input type="file" name="screenshot" accept="image/*"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-imara-gold file:text-imara-deep file:font-semibold">
+                    <p class="mt-1 text-sm text-gray-500">Upload a screenshot</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="bi bi-mic mr-2"></i>{{ form.voice_note.label }}
+                    </label>
+                    <input type="file" name="voice_note" accept="audio/*"
+                        class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-imara-gold file:text-imara-deep file:font-semibold">
+                    <p class="mt-1 text-sm text-gray-500">Upload a voice recording</p>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-envelope mr-2"></i>{{ form.email.label }}
+                </label>
+                <input type="email" name="email" value="{{ form.email.value|default:'' }}"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent"
+                    placeholder="your@email.com">
+                <p class="mt-1 text-sm text-gray-500">{{ form.email.help_text }}</p>
+            </div>
+
+            <!-- Consent Checkbox -->
+            <div class="flex items-start gap-3">
+                <input type="checkbox" name="consent" id="id_consent" required
+                    class="mt-1 w-5 h-5 text-imara-gold border-gray-300 rounded focus:ring-imara-gold">
+                <label for="id_consent" class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ form.consent.label }}
+                </label>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-lg p-4">
+                <div class="glass-panel p-6 dark:bg-gray-800/50">
+                    <h5 class="text-imara-deep dark:text-imara-gold mb-4 font-bold">What happens next?</h5>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-imara-gold/20 text-imara-gold flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                1</div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Our hybrid AI analyzes the threat level
+                                of the reported content.</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-imara-gold/20 text-imara-gold flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                2</div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">You'll receive a detailed result with
+                                safety advice tailored to your situation.</p>
+                        </li>
+                        <li class="flex gap-3">
+                            <div
+                                class="w-8 h-8 rounded-full bg-imara-gold/20 text-imara-gold flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                                3</div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">High-risk cases are flagged for
+                                coordination with local authorities.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Turnstile CAPTCHA -->
+            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn"
+                class="w-full py-4 bg-imara-deep hover:bg-imara-deep/90 text-white font-bold rounded-xl shadow-lg transition-all text-lg flex items-center justify-center gap-2">
+                <i class="bi bi-send-fill"></i>
+                Submit Report
+            </button>
+        </form>
+    </div>
+
+    <!-- Footer Note -->
+    <div class="text-center mt-6">
+        <p class="text-sm text-gray-500 flex items-center justify-center gap-2">
+            <i class="bi bi-lock-fill"></i>
+            Your information is encrypted and secure. We never share your data without consent.
+        </p>
+    </div>
+</div>
+{% endblock %}

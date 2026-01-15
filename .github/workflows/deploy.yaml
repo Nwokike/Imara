@@ -1,0 +1,53 @@
+name: Deploy to Google Cloud
+
+on:
+  push:
+    branches:
+      - main  
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.GCP_HOST }}
+        username: ${{ secrets.GCP_USERNAME }}
+        key: ${{ secrets.GCP_SSH_KEY }}
+        port: 22
+        script: |
+          # Stop script execution if any command fails
+          set -e
+
+          # 1. We must add the path to 'uv' because GitHub logs in as a non-interactive user
+          export PATH=$PATH:$HOME/.local/bin
+
+          # 2. Go to your project folder
+          cd /home/projectimarahq/imara
+
+          # 3. Pull the latest code from GitHub
+          git pull origin main
+
+          # 4. Sync Dependencies
+          uv sync
+
+          # 5. Update Static Files
+          uv run python manage.py collectstatic --noinput
+
+          # 6. Run Database Migrations 
+          uv run python manage.py migrate
+
+          # 7. Run Django deployment checks
+          uv run python manage.py check --deploy
+
+          # 8. Restart the Web Server
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart imara
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
+
+          echo "Deployment Complete! 🚀"

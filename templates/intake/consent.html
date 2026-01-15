@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy - Imara{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3 class="mb-1">User Consent &amp; Data Protection</h3>
+                        <p class="mb-0 opacity-75">Your data rights and our privacy practices</p>
+                    </div>
+                    <div class="form-card-body">
+                        <h5><i class="bi bi-shield-check text-purple me-2"></i>Your Privacy Matters</h5>
+                        <p class="section-text">Imara is designed with survivor safety as the top priority. We
+                            understand that reporting abuse can put you at risk, which is why we've built our platform
+                            with privacy-first principles.</p>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-collection text-purple me-2"></i>What Data We Collect</h5>
+                        <ul class="section-text">
+                            <li><strong>Report Content:</strong> Text, images, voice notes, and documents you submit
+                            </li>
+                            <li><strong>Optional Email:</strong> Only if you want to receive confirmation and updates
+                            </li>
+                            <li><strong>Location Information:</strong> Only if you provide it, to connect you with local
+                                authorities</li>
+                            <li><strong>Platform Identifier:</strong> Your Telegram ID or web session (not tied to real
+                                identity)</li>
+                        </ul>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-cpu text-purple me-2"></i>How We Use Your Data</h5>
+                        <ul class="section-text">
+                            <li><strong>AI Analysis:</strong> To assess threat levels and provide appropriate advice
+                            </li>
+                            <li><strong>Case Documentation:</strong> Create forensic-grade evidence with SHA-256 hashing
+                            </li>
+                            <li><strong>Authority Notifications:</strong> Only for high-risk cases, and only with your
+                                consent</li>
+                            <li><strong>Service Improvement:</strong> Anonymized, aggregated data to improve our AI
+                                models</li>
+                        </ul>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-lock text-purple me-2"></i>Data Protection Measures</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <h6><i class="bi bi-shield-lock me-2"></i>Encryption</h6>
+                                    <p class="small mb-0">All data is encrypted in transit (TLS) and at rest (AES-256)
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <h6><i class="bi bi-fingerprint me-2"></i>Hash Verification</h6>
+                                    <p class="small mb-0">SHA-256 hashes ensure evidence integrity for legal proceedings
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <h6><i class="bi bi-eye-slash me-2"></i>Zero-UI Design</h6>
+                                    <p class="small mb-0">No app installation required - leaves no trace on your device
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box mb-3">
+                                    <h6><i class="bi bi-database-lock me-2"></i>Secure Storage</h6>
+                                    <p class="small mb-0">Data stored on secure cloud infrastructure with access
+                                        controls</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-share text-purple me-2"></i>When We Share Data</h5>
+                        <p class="section-text">We <strong>only</strong> share your data in these circumstances:</p>
+                        <ul class="section-text">
+                            <li><strong>High-Risk Cases:</strong> When AI detects imminent danger (score 7+), we notify
+                                relevant authorities</li>
+                            <li><strong>Your Request:</strong> If you explicitly request escalation to authorities</li>
+                            <li><strong>Legal Requirement:</strong> Where required by law for criminal proceedings</li>
+                        </ul>
+                        <div class="alert alert-info-custom">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Note:</strong> You can always say "IMARA STOP" to cancel a report before it's
+                            submitted.
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-person-check text-purple me-2"></i>Your Rights</h5>
+                        <ul class="section-text">
+                            <li><strong>Access:</strong> Request a copy of data we hold about you</li>
+                            <li><strong>Correction:</strong> Update incorrect information</li>
+                            <li><strong>Deletion:</strong> Request deletion (subject to legal requirements)</li>
+                            <li><strong>Portability:</strong> Receive your data in a standard format</li>
+                        </ul>
+
+                        <hr class="my-4">
+
+                        <h5><i class="bi bi-envelope text-purple me-2"></i>Contact Us</h5>
+                        <p class="section-text">For privacy-related inquiries, please <a href="{% url 'contact' %}"
+                                class="text-imara-gold hover:underline">contact us</a>.<br>
+                            <strong>Response Time:</strong> Within 30 days
+                        </p>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="{% url 'report_form' %}" class="btn btn-primary btn-lg">
+                                <i class="bi bi-shield-check me-2"></i>I Understand - Report Abuse
+                            </a>
+                            <a href="{% url 'policies' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-2"></i>View Terms of Service
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                                <i class="bi bi-house me-2"></i>Return Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+

@@ -1,0 +1,277 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Partner With Us - Imara{% endblock %}
+
+{% block content %}
+<section class="hero-section" style="padding: 3rem 0;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 text-center text-lg-start">
+                <span class="hero-badge">Join Our Mission</span>
+                <h1 class="hero-title">Partner With Imara</h1>
+                <p class="hero-subtitle">Together, we can create a safer digital world for women and girls across
+                    Africa. Join our network of NGOs, government agencies, and organizations committed to ending online
+                    violence.</p>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block text-center flex justify-center">
+                <div class="hero-visual">
+                    <img src="{% static 'images/icon-512x512.png' %}" alt="Project Imara Partnership"
+                        class="hero-main-img dark:brightness-0 dark:invert animate-float" style="max-width: 250px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="benefits">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">Why Partner</span>
+            <h2 class="section-title-lg">Benefits for NGO Partners</h2>
+            <p class="section-subtitle">Amplify your impact with AI-powered tools and real-time case management</p>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <h5>Real-Time Case Alerts</h5>
+                    <p class="section-text">Receive instant notifications when high-risk cases are reported in your
+                        jurisdiction. Never miss a critical moment.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-file-earmark-lock"></i></div>
+                    <h5>Forensic-Grade Evidence</h5>
+                    <p class="section-text">All reports come with SHA-256 hashed evidence, timestamps, and chain of
+                        custody documentation for legal proceedings.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-cpu"></i></div>
+                    <h5>AI-Powered Triage</h5>
+                    <p class="section-text">Our AI automatically analyzes and prioritizes cases by risk level, helping
+                        you allocate resources effectively.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-bar-chart-line"></i></div>
+                    <h5>Impact Analytics</h5>
+                    <p class="section-text">Access dashboards showing case trends, response times, and impact metrics
+                        for your organization and funders.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-shield-lock"></i></div>
+                    <h5>Survivor Privacy</h5>
+                    <p class="section-text">Zero-UI architecture means no app traces on survivor devices. Complete
+                        discretion for those in danger.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="tip-card">
+                    <div class="tip-icon"><i class="bi bi-translate"></i></div>
+                    <h5>Multi-Language Support</h5>
+                    <p class="section-text">AI understands English, Swahili, Pidgin, and more. Serve your community in
+                        their preferred language.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section-alt" id="models">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="section-badge">Flexible Options</span>
+            <h2 class="section-title-lg">Partnership Models</h2>
+            <p class="section-subtitle">Choose the partnership level that works for your organization</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="platform-card-main h-100">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <h3>Referral Partner</h3>
+                    <p class="mb-4">Receive case referrals for your jurisdiction</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Email alerts for new cases</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Basic case information</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Monthly reports</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Listed in our directory</li>
+                    </ul>
+                    <a href="#inquiry" class="btn btn-outline-primary w-100 mt-auto">Become a Partner</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="platform-card-main h-100 ring-2 ring-imara-gold">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                    <h3>Integration Partner</h3>
+                    <p class="mb-4">Deep integration with your systems</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> All Referral benefits</li>
+                        <li><i class="bi bi-check-circle-fill"></i> API access</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Custom workflows</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Dedicated support</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Training sessions</li>
+                    </ul>
+                    <a href="#inquiry" class="btn btn-primary w-100 mt-auto">Become a Partner</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="platform-card-main h-100">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <h3>Strategic Partner</h3>
+                    <p class="mb-4">Shape the future of digital safety</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> All Integration benefits</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Advisory board seat</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Co-branding opportunities</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Research collaboration</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Priority feature requests</li>
+                    </ul>
+                    <a href="#inquiry" class="btn btn-outline-primary w-100 mt-auto">Become a Partner</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="inquiry">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3 class="mb-1"><i class="bi bi-envelope-paper me-2"></i>Partnership Inquiry</h3>
+                        <p class="mb-0 opacity-75">Tell us about your organization and how you'd like to partner</p>
+                    </div>
+                    <div class="form-card-body">
+                        {% if success %}
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Thank you for your inquiry! We'll review your application and get back to you within 3-5
+                            business days.
+                        </div>
+                        {% endif %}
+
+                        {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+                        </div>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'partner' %}">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label"><i class="bi bi-building me-2"></i>Organization Name *</label>
+                                <input type="text" class="form-control" name="organization_name" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-person me-2"></i>Contact Name *</label>
+                                    <input type="text" class="form-control" name="contact_name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-briefcase me-2"></i>Your Role</label>
+                                    <input type="text" class="form-control" name="role"
+                                        placeholder="e.g., Program Director">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-envelope me-2"></i>Email Address *</label>
+                                    <input type="email" class="form-control" name="email" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-telephone me-2"></i>Phone Number</label>
+                                    <input type="tel" class="form-control" name="phone">
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-geo-alt me-2"></i>Country/Region *</label>
+                                    <select class="form-select" name="country" required>
+                                        <option value="">Select your country</option>
+                                        <option value="Kenya">Kenya</option>
+                                        <option value="Nigeria">Nigeria</option>
+                                        <option value="South Africa">South Africa</option>
+                                        <option value="Ghana">Ghana</option>
+                                        <option value="Uganda">Uganda</option>
+                                        <option value="Tanzania">Tanzania</option>
+                                        <option value="Rwanda">Rwanda</option>
+                                        <option value="Other">Other African Country</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label"><i class="bi bi-diagram-3 me-2"></i>Partnership Type
+                                        *</label>
+                                    <select class="form-select" name="partnership_type" required>
+                                        <option value="">Select partnership type</option>
+                                        <option value="referral">Referral Partner</option>
+                                        <option value="integration">Integration Partner</option>
+                                        <option value="strategic">Strategic Partner</option>
+                                        <option value="unsure">Not Sure Yet</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><i class="bi bi-card-text me-2"></i>Organization Type
+                                    *</label>
+                                <select class="form-select" name="org_type" required>
+                                    <option value="">Select organization type</option>
+                                    <option value="ngo">NGO / Non-Profit</option>
+                                    <option value="government">Government Agency</option>
+                                    <option value="healthcare">Healthcare Provider</option>
+                                    <option value="legal">Legal Aid Organization</option>
+                                    <option value="education">Educational Institution</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label"><i class="bi bi-chat-text me-2"></i>Tell Us More</label>
+                                <textarea class="form-control" name="message" rows="4"
+                                    placeholder="Describe your organization's work and how you'd like to collaborate with Project Imara..."></textarea>
+                            </div>
+
+                            <!-- Turnstile CAPTCHA -->
+                            <div class="mb-4">
+                                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-send-fill me-2"></i>Submit Inquiry
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Questions About Partnership?</h2>
+            <p>Reach out to our partnerships team and we'll help you find the right fit.</p>
+            <div class="cta-buttons">
+                <a href="mailto:partners@imara.africa" class="btn btn-light btn-lg">
+                    <i class="bi bi-envelope me-2"></i>partners@imara.africa
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

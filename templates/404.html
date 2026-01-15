@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - Project Imara</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/error.css' %}" rel="stylesheet">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="error-card">
+        <img src="{% static 'images/logo.png' %}" alt="Imara" class="error-logo">
+        <div class="error-code error-code-purple">404</div>
+        <h1 class="error-title">Page Not Found</h1>
+        <p class="error-text">The page you're looking for doesn't exist or has been moved. Don't worry, you can find
+            your way back.</p>
+        <a href="/" class="btn-error">
+            <i class="bi bi-house"></i> Go Home
+        </a>
+    </div>
+</body>
+
+</html>

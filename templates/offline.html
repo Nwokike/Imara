@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Project Imara</title>
+    <link href="{% static 'css/fonts.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/error.css' %}" rel="stylesheet">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="error-card">
+        <i class="bi bi-wifi-off offline-icon"></i>
+        <h1 class="error-title">You're Offline</h1>
+        <p class="error-text">It looks like you've lost your internet connection. Please check your connection and try
+            again.</p>
+        <button onclick="window.location.reload()" class="btn-error">
+            <i class="bi bi-arrow-clockwise"></i> Try Again
+        </button>
+    </div>
+</body>
+
+</html>

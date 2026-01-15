@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Partner Dashboard - {{ organization.name }} | Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-imara-deep dark:text-imara-gold">{{ organization.name }}</h1>
+                <p class="text-gray-500 dark:text-gray-400 mt-1">
+                    <i class="bi bi-geo-alt-fill mr-1"></i> {{ jurisdiction }} Jurisdiction
+                </p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'partners:team' %}"
+                    class="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-5 py-3 rounded-xl font-semibold transition-all">
+                    <i class="bi bi-people mr-2"></i> Team
+                </a>
+                <a href="{% url 'partners:pool' %}"
+                    class="bg-imara-gold hover:bg-imara-gold/90 text-imara-deep px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
+                    <i class="bi bi-collection mr-2"></i> View Case Pool
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="glass-panel p-5 text-center">
+            <div class="text-3xl font-bold text-red-600 dark:text-red-400">{{ stats.critical }}</div>
+            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">Critical</div>
+        </div>
+        <div class="glass-panel p-5 text-center">
+            <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ stats.total_pool }}</div>
+            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">In Pool</div>
+        </div>
+        <div class="glass-panel p-5 text-center">
+            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ stats.my_active }}</div>
+            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">My Active</div>
+        </div>
+        <div class="glass-panel p-5 text-center">
+            <div class="text-3xl font-bold text-green-600 dark:text-green-400">{{ stats.my_resolved }}</div>
+            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">Resolved</div>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- My Cases -->
+        <div class="glass-panel p-6">
+            <h2 class="text-xl font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
+                <i class="bi bi-person-check-fill mr-2 text-imara-gold"></i> My Cases
+            </h2>
+
+            {% if my_cases %}
+            <div class="space-y-3">
+                {% for case in my_cases %}
+                <a href="{% url 'partners:case_detail' case.id %}" class="block">
+                    <div
+                        class="bg-white dark:bg-gray-800 rounded-lg p-4 border-l-4 {% if case.risk_score >= 8 %}border-red-500{% elif case.risk_score >= 5 %}border-yellow-500{% else %}border-green-500{% endif %} shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-mono text-gray-400">#{{ case.case_id|truncatechars:12
+                                    }}</span>
+                                <p class="text-sm font-medium mt-1">{{ case.original_text|truncatechars:80 }}</p>
+                            </div>
+                            <span
+                                class="px-2 py-1 text-xs font-bold rounded-full {% if case.risk_score >= 8 %}bg-red-100 text-red-800{% elif case.risk_score >= 5 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                                {{ case.risk_score }}/10
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center mt-3 text-xs text-gray-500">
+                            <span><i class="bi bi-clock mr-1"></i> {{ case.created_at|timesince }} ago</span>
+                            <span class="uppercase">{{ case.status }}</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-400">
+                <i class="bi bi-inbox text-4xl mb-2"></i>
+                <p>No cases assigned yet.</p>
+                <a href="{% url 'partners:pool' %}" class="text-imara-gold hover:underline mt-2 inline-block">Claim from
+                    Pool →</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Jurisdiction Pool Preview -->
+        <div class="glass-panel p-6">
+            <h2 class="text-xl font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
+                <i class="bi bi-people-fill mr-2 text-imara-gold"></i> {{ jurisdiction }} Pool
+                {% if stats.stale_cases > 0 %}
+                <span class="ml-2 px-2 py-0.5 text-xs bg-orange-100 text-orange-800 rounded-full">{{ stats.stale_cases
+                    }} stale</span>
+                {% endif %}
+            </h2>
+
+            {% if pool_cases %}
+            <div class="space-y-3">
+                {% for case in pool_cases %}
+                <div
+                    class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-imara-gold transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <span class="text-xs font-mono text-gray-400">#{{ case.case_id|truncatechars:12 }}</span>
+                            <p class="text-sm mt-1">{{ case.original_text|truncatechars:60 }}</p>
+                        </div>
+                        <form action="{% url 'partners:claim_case' case.id %}" method="post" class="ml-3">
+                            {% csrf_token %}
+                            <button type="submit"
+                                class="px-3 py-1.5 bg-imara-deep text-white text-xs font-semibold rounded-lg hover:bg-imara-deep/90 transition-colors">
+                                Claim
+                            </button>
+                        </form>
+                    </div>
+                    <div class="flex items-center mt-2 text-xs text-gray-500 gap-3">
+                        <span class="{% if case.risk_score >= 8 %}text-red-600 font-bold{% endif %}">
+                            Risk: {{ case.risk_score }}/10
+                        </span>
+                        <span>{{ case.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'partners:pool' %}" class="block text-center mt-4 text-imara-gold hover:underline">
+                View All in Pool →
+            </a>
+            {% else %}
+            <div class="text-center py-8 text-gray-400">
+                <i class="bi bi-check-circle text-4xl mb-2 text-green-500"></i>
+                <p>No unassigned cases in {{ jurisdiction }}!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - Imara{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3 class="mb-1"><i class="bi bi-envelope me-2"></i>Contact Us</h3>
+                        <p class="mb-0 opacity-75">Have questions? We're here to help.</p>
+                    </div>
+                    <div class="form-card-body">
+                        {% if success %}
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            Your message has been sent successfully! We'll get back to you shortly.
+                        </div>
+                        {% endif %}
+
+                        <div class="row mb-5">
+                            <div class="col-12 mb-3">
+                                <h6 class="text-uppercase text-muted fw-bold small text-center tracking-wide mb-4">Our
+                                    Presence</h6>
+                            </div>
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <div
+                                    class="p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800/50 text-center h-100 position-relative overflow-hidden">
+                                    <div class="position-absolute top-0 start-0 w-100 bg-imara-gold"
+                                        style="height: 4px;"></div>
+                                    <h6 class="fw-bold text-imara-deep dark:text-imara-gold mb-1">West Africa Regional
+                                        Hub</h6>
+                                    <p class="mb-0 text-gray-600 dark:text-gray-400">Enugu, Nigeria</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div
+                                    class="p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-800/50 text-center h-100 position-relative overflow-hidden">
+                                    <div class="position-absolute top-0 start-0 w-100 bg-imara-gold"
+                                        style="height: 4px;"></div>
+                                    <h6 class="fw-bold text-imara-deep dark:text-imara-gold mb-1">East Africa Regional
+                                        Hub</h6>
+                                    <p class="mb-0 text-gray-600 dark:text-gray-400">Nairobi, Kenya</p>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4 text-center">
+                                <a href="mailto:hello@imara.africa"
+                                    class="inline-flex items-center justify-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-full bg-white dark:bg-gray-800/50 shadow-sm hover:shadow-md transition-shadow">
+                                    <i class="bi bi-envelope-at text-imara-gold text-xl"></i>
+                                    <div class="text-start">
+                                        <div class="text-sm font-bold text-imara-deep dark:text-white">General Inquiries
+                                        </div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">hello@imara.africa</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Your Name</label>
+                                    {{ form.name }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address</label>
+                                    {{ form.email }}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                {{ form.subject }}
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label">Message</label>
+                                {{ form.message }}
+                            </div>
+
+                            <!-- Turnstile CAPTCHA -->
+                            <div class="mb-4">
+                                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}"></div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-send me-2"></i>Send Message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

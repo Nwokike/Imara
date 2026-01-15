@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Case Pool - {{ jurisdiction }} | Project Imara{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-gold">
+                <i class="bi bi-collection mr-2"></i> {{ jurisdiction }} Case Pool
+            </h1>
+            <p class="text-gray-500 mt-1">{{ cases.count }} unassigned cases in your jurisdiction</p>
+        </div>
+        <a href="{% url 'partners:dashboard' %}" class="text-imara-gold hover:underline">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Case List -->
+    {% if cases %}
+    <div class="space-y-4">
+        {% for case in cases %}
+        <div
+            class="glass-panel p-5 border-l-4 {% if case.risk_score >= 8 %}border-red-500{% elif case.risk_score >= 5 %}border-yellow-500{% else %}border-green-500{% endif %}">
+            <div class="flex justify-between items-start gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="font-mono text-sm text-gray-500">#{{ case.case_id|truncatechars:12 }}</span>
+                        <span
+                            class="px-2 py-0.5 text-xs font-bold rounded-full {% if case.risk_score >= 8 %}bg-red-100 text-red-800{% elif case.risk_score >= 5 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
+                            Risk: {{ case.risk_score }}/10
+                        </span>
+                        {% if case.detected_location %}
+                        <span class="text-xs text-gray-500">
+                            <i class="bi bi-geo-alt"></i> {{ case.detected_location }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-gray-700 dark:text-gray-300 mb-3">
+                        {{
+                        case.original_text|default:case.transcribed_text|default:case.extracted_text|truncatechars:200
+                        }}
+                    </p>
+
+                    <div class="flex items-center gap-4 text-xs text-gray-500">
+                        <span><i class="bi bi-clock"></i> {{ case.created_at|timesince }} ago</span>
+                        <span><i class="bi bi-{{ case.source }}"></i> {{ case.get_source_display }}</span>
+                        {% if case.chain_hash %}
+                        <span class="font-mono" title="SHA-256: {{ case.chain_hash }}">
+                            <i class="bi bi-shield-lock"></i> {{ case.chain_hash|truncatechars:12 }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form action="{% url 'partners:claim_case' case.id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit"
+                        class="px-5 py-2.5 bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold rounded-xl shadow-lg transition-all flex items-center gap-2">
+                        <i class="bi bi-hand-index-thumb"></i> Claim Case
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass-panel p-12 text-center">
+        <div class="text-6xl mb-4">🎉</div>
+        <h2 class="text-2xl font-bold text-imara-deep dark:text-imara-cream mb-2">All Clear!</h2>
+        <p class="text-gray-500">No unassigned cases in {{ jurisdiction }} right now.</p>
+        <a href="{% url 'partners:dashboard' %}" class="inline-block mt-4 text-imara-gold hover:underline">
+            ← Back to Dashboard
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
