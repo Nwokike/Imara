@@ -4,66 +4,70 @@
 {% block title %}Partner Login | Imara{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center py-12 px-4">
-    <div class="w-full max-w-md">
-        <!-- Logo & Header -->
-        <div class="text-center mb-8">
-            <div
-                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-imara-deep/10 dark:bg-imara-gold/10 mb-4">
-                <i class="bi bi-shield-lock text-3xl text-imara-deep dark:text-imara-gold"></i>
+<div class="container py-12">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="form-card">
+                <div class="form-card-header">
+                    <div class="flex justify-center mb-3">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/10">
+                            <i class="bi bi-shield-lock text-2xl text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="font-bold text-white mb-1">Partner Portal</h3>
+                    <p class="text-white/80 text-sm">Sign in to access your dashboard</p>
+                </div>
+
+                <div class="form-card-body">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'success' %}alert-success{% else %}alert-info-custom{% endif %} mb-4"
+                        role="alert">
+                        <i
+                            class="bi {% if message.tags == 'error' %}bi-exclamation-circle{% elif message.tags == 'success' %}bi-check-circle{% else %}bi-info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post" class="space-y-4">
+                        {% csrf_token %}
+
+                        <div>
+                            <label for="username" class="form-label">
+                                Username or Email
+                            </label>
+                            <input type="text" id="username" name="username" required autocomplete="username"
+                                class="form-control" placeholder="Enter your username">
+                        </div>
+
+                        <div>
+                            <label for="password" class="form-label">
+                                Password
+                            </label>
+                            <input type="password" id="password" name="password" required
+                                autocomplete="current-password" class="form-control" placeholder="Enter your password">
+                        </div>
+
+                        <!-- Turnstile Widget -->
+                        <div class="mb-4">
+                            <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="auto"></div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Sign In
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-imara-deep dark:text-imara-cream">Partner Portal</h1>
-            <p class="text-gray-500 dark:text-gray-400 mt-2">Sign in to access your dashboard</p>
-        </div>
 
-        <!-- Login Card -->
-        <div class="glass-panel p-8">
-            {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                <div
-                    class="p-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% elif message.tags == 'success' %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% else %}bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
+            <!-- Footer Links -->
+            <div class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
+                <p>Not a partner yet? <a href="{% url 'partner' %}"
+                        class="text-imara-gold hover:underline font-medium">Apply to join</a></p>
             </div>
-            {% endif %}
-
-            <form method="post" class="space-y-5">
-                {% csrf_token %}
-
-                <div>
-                    <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Username or Email
-                    </label>
-                    <input type="text" id="username" name="username" required autocomplete="username"
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold focus:border-transparent transition-all"
-                        placeholder="Enter your username">
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Password
-                    </label>
-                    <input type="password" id="password" name="password" required autocomplete="current-password"
-                        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold focus:border-transparent transition-all"
-                        placeholder="Enter your password">
-                </div>
-
-                <!-- Turnstile Widget -->
-                <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-theme="auto"></div>
-
-                <button type="submit"
-                    class="w-full bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl">
-                    <i class="bi bi-box-arrow-in-right mr-2"></i> Sign In
-                </button>
-            </form>
-        </div>
-
-        <!-- Footer Links -->
-        <div class="text-center mt-6 text-sm text-gray-500 dark:text-gray-400">
-            <p>Not a partner yet? <a href="{% url 'partner' %}" class="text-imara-gold hover:underline">Apply to
-                    join</a></p>
         </div>
     </div>
 </div>
