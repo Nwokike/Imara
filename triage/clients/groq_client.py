@@ -160,7 +160,7 @@ Respond with this exact JSON structure:
             result = self._make_request_with_retry(
                 GROQ_API_URL,
                 {
-                    "model": "llama-3.3-70b-versatile",
+                    "model": GROQ_MODEL,
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
@@ -273,7 +273,7 @@ Respond with this exact JSON structure:
                 last_error = e
                 try:
                     error_msg = response.json().get('error', {}).get('message', response.text)
-                except:
+                except (json.JSONDecodeError, KeyError, AttributeError):
                     error_msg = response.text
                 logger.error(f"Groq API HTTP error: {error_msg}")
                 if response.status_code != 429: # Don't retry non-429 HTTP errors unless it's a timeout

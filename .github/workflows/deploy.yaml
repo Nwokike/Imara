@@ -11,10 +11,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Deploy via SSH
-      uses: appleboy/ssh-action@v0.1.10
+      uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.GCP_HOST }}
         username: ${{ secrets.GCP_USERNAME }}
@@ -49,5 +49,9 @@ jobs:
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart imara
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
+
+          # 9. Health Check
+          sleep 5
+          curl -sf http://localhost:8000/health/ || echo "Warning: Health check failed"
 
           echo "Deployment Complete! 🚀"

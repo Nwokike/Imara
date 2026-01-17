@@ -2,9 +2,11 @@ import os
 import logging
 import requests
 import threading
+import time
 from datetime import datetime
 from typing import Optional, Callable
 from django.utils import timezone
+from django.conf import settings
 from dispatch.tasks import send_email_task
 
 logger = logging.getLogger(__name__)
@@ -93,7 +95,7 @@ class BrevoDispatcher:
                 "email": self.sender_email
             },
             "to": [{"email": recipient_email}],
-            "bcc": [{"email": "projectimarahq@gmail.com"}],
+            "bcc": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
             "subject": subject,
             "htmlContent": html_content
         }

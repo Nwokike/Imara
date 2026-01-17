@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.core.files import File
 from django.db import close_old_connections
+from django.utils.html import escape
 
 from triage.models import ChatSession, ChatMessage, UserFeedback
 from triage.decision_engine import DecisionEngine
@@ -758,6 +759,14 @@ class PartnerView(View):
         org_type = request.POST.get('org_type', '').strip()
         message = request.POST.get('message', '').strip()
         
+        # Validate Turnstile
+        from utils.captcha import validate_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
+        
+        if not is_valid:
+            return render(request, 'intake/partner.html', {'error': error_msg})
+        
         # Basic validation
         if not all([org_name, contact_name, email, country, partnership_type, org_type]):
             return render(request, 'intake/partner.html', {
@@ -767,23 +776,23 @@ class PartnerView(View):
         # Log the inquiry
         logger.info(f"Partnership inquiry from {org_name} ({email}) - {partnership_type}")
         
-        # Send email to Admin
-        subject = f"New Partner Inquiry: {org_name}"
+        # Send email to Admin (escape HTML to prevent XSS)
+        subject = f"New Partner Inquiry: {escape(org_name)}"
         html_content = f"""
         <h3>New Partnership Inquiry</h3>
-        <p><strong>Organization:</strong> {org_name}</p>
-        <p><strong>Type:</strong> {org_type}</p>
-        <p><strong>Contact:</strong> {contact_name}</p>
-        <p><strong>Email:</strong> {email}</p>
-        <p><strong>Country:</strong> {country}</p>
-        <p><strong>Partnership Interest:</strong> {partnership_type}</p>
+        <p><strong>Organization:</strong> {escape(org_name)}</p>
+        <p><strong>Type:</strong> {escape(org_type)}</p>
+        <p><strong>Contact:</strong> {escape(contact_name)}</p>
+        <p><strong>Email:</strong> {escape(email)}</p>
+        <p><strong>Country:</strong> {escape(country)}</p>
+        <p><strong>Partnership Interest:</strong> {escape(partnership_type)}</p>
         <p><strong>Message:</strong></p>
-        <p>{message}</p>
+        <p>{escape(message)}</p>
         """
         
         payload = {
-            "sender": {"name": "Imara Web System", "email": "noreply@imara.africa"},
-            "to": [{"email": "projectimarahq@gmail.com"}],
+            "sender": {"name": "Imara Web System", "email": settings.BREVO_SENDER_EMAIL},
+            "to": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
             "replyTo": {"email": email, "name": contact_name},
             "subject": subject,
             "htmlContent": html_content
@@ -811,6 +820,15 @@ class ContactView(View):
         return render(request, 'intake/contact.html', {'form': form})
     
     def post(self, request):
+        # Validate Turnstile first
+        from utils.captcha import validate_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
+        
+        if not is_valid:
+            form = ContactForm(request.POST)
+            return render(request, 'intake/contact.html', {'form': form, 'error': error_msg})
+        
         form = ContactForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
@@ -818,20 +836,20 @@ class ContactView(View):
             subject = form.cleaned_data['subject']
             message = form.cleaned_data['message']
             
-            # Send email to Admin
-            email_subject = f"Contact Form: {subject}"
+            # Send email to Admin (escape HTML to prevent XSS)
+            email_subject = f"Contact Form: {escape(subject)}"
             html_content = f"""
             <h3>New Contact Form Message</h3>
-            <p><strong>Name:</strong> {name}</p>
-            <p><strong>Email:</strong> {email}</p>
-            <p><strong>Subject:</strong> {subject}</p>
+            <p><strong>Name:</strong> {escape(name)}</p>
+            <p><strong>Email:</strong> {escape(email)}</p>
+            <p><strong>Subject:</strong> {escape(subject)}</p>
             <p><strong>Message:</strong></p>
-            <p>{message}</p>
+            <p>{escape(message)}</p>
             """
             
             payload = {
-                "sender": {"name": "Imara Web System", "email": "noreply@imara.africa"},
-                "to": [{"email": "projectimarahq@gmail.com"}],
+                "sender": {"name": "Imara Web System", "email": settings.BREVO_SENDER_EMAIL},
+                "to": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
                 "replyTo": {"email": email, "name": name},
                 "subject": email_subject,
                 "htmlContent": html_content

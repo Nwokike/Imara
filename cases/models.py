@@ -61,7 +61,7 @@ class IncidentReport(models.Model):
         db_index=True
     )
     
-    chain_hash = models.CharField(max_length=64, blank=True, null=True)
+    chain_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     
     dispatched_at = models.DateTimeField(blank=True, null=True)
     dispatched_to = models.EmailField(blank=True, null=True)

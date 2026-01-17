@@ -1,7 +1,7 @@
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
+name = "project-imara"
+version = "1.0.0"
+description = "Zero-UI Digital Bodyguard for African women facing online violence"
 requires-python = ">=3.11"
 dependencies = [
     "dj-database-url>=3.0.1",
@@ -18,4 +18,5 @@ dependencies = [
     "requests>=2.32.5",
     "whitenoise>=6.11.0",
     "pillow>=10.2.0",
+    "django-ratelimit>=4.1.0",
 ]

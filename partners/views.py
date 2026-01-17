@@ -122,14 +122,21 @@ class ClaimCaseView(PartnerRequiredMixin, View):
             messages.error(request, "This case is not in your jurisdiction.")
             return redirect('partners:pool')
         
-        # Check if already assigned
-        if case.assigned_partner and case.assigned_partner.is_active:
-            messages.warning(request, "This case is already assigned to another partner.")
-            return redirect('partners:pool')
+        # Use atomic transaction to prevent race condition
+        from django.db import transaction
         
-        # Claim the case
-        case.assigned_partner = org
-        case.save(update_fields=['assigned_partner'])
+        with transaction.atomic():
+            # Lock the row for update
+            case = IncidentReport.objects.select_for_update().get(id=case_id)
+            
+            # Check if already assigned
+            if case.assigned_partner_id and case.assigned_partner.is_active:
+                messages.warning(request, "This case is already assigned to another partner.")
+                return redirect('partners:pool')
+            
+            # Claim the case
+            case.assigned_partner = org
+            case.save(update_fields=['assigned_partner'])
         
         messages.success(request, f"Case #{case.case_id} has been claimed by {org.name}.")
         return redirect('partners:dashboard')
@@ -474,12 +481,43 @@ class InviteTeamMemberView(AdminRequiredMixin, View):
             return redirect('partners:team')
         
         # Create invite
-        PartnerInvite.objects.create(
+        invite = PartnerInvite.objects.create(
             email=email,
             organization=org,
             role=role,
             invited_by=request.user
         )
+        
+        # Send invite email
+        from django.urls import reverse
+        from django.conf import settings
+        from dispatch.tasks import send_email_task
+        
+        invite_url = request.build_absolute_uri(
+            reverse('partners:accept_invite', args=[invite.token])
+        )
+        
+        html_content = f"""
+        <h2>You're invited to join {org.name} on Project Imara</h2>
+        <p>Hello,</p>
+        <p>You have been invited to join <strong>{org.name}</strong> as a <strong>{invite.get_role_display()}</strong> on the Project Imara Partner Portal.</p>
+        <p>Project Imara is a digital platform protecting women and girls from online violence across Africa.</p>
+        <p style="margin: 30px 0;">
+            <a href="{invite_url}" style="background-color: #2D1B36; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Accept Invitation</a>
+        </p>
+        <p>Or copy this link: {invite_url}</p>
+        <p>This invitation expires in 7 days.</p>
+        <hr>
+        <p style="color: #666; font-size: 12px;">If you did not expect this invitation, you can safely ignore this email.</p>
+        """
+        
+        email_payload = {
+            "sender": {"name": "Project Imara", "email": settings.BREVO_SENDER_EMAIL},
+            "to": [{"email": email}],
+            "subject": f"You're invited to join {org.name} on Project Imara",
+            "htmlContent": html_content
+        }
+        send_email_task(email_payload)
         
         messages.success(request, f"Invite sent to {email}!")
         return redirect('partners:team')

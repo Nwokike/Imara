@@ -179,7 +179,7 @@ Respond with this exact JSON structure:
         for attempt in range(MAX_RETRIES):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model=GEMINI_MODEL,
                     contents=[
                         types.Content(
                             role="user",

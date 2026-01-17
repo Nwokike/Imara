@@ -11,12 +11,17 @@ def validate_turnstile(token: str, ip_address: str = None) -> Tuple[bool, str]:
     """
     Validates a Cloudflare Turnstile token.
     Returns (is_valid, error_message).
+    Fails closed in production if key not configured.
     """
     secret_key = getattr(settings, 'TURNSTILE_SECRET_KEY', None)
     
     if not secret_key:
-        logger.warning("TURNSTILE_SECRET_KEY not set. Skipping validation (OPEN MODE).")
-        return True, ""
+        if settings.DEBUG:
+            logger.warning("TURNSTILE_SECRET_KEY not set - allowing in DEBUG mode")
+            return True, ""
+        else:
+            logger.error("TURNSTILE_SECRET_KEY not set in production!")
+            return False, "Security configuration error. Please contact support."
 
     if not token:
         return False, "CAPTCHA verification failed. Please refresh and try again."
@@ -41,7 +46,4 @@ def validate_turnstile(token: str, ip_address: str = None) -> Tuple[bool, str]:
             
     except requests.RequestException as e:
         logger.error(f"Turnstile API connection error: {e}")
-        # Fail open or closed depending on security posture? 
-        # For a safety app, we often fail open if the security service is down, but log heavily.
-        # User said "maximizing free options", suggesting robust handling is needed.
         return False, "Security service unreachable. Please try again later."

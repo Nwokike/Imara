@@ -1,0 +1,12 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /partners/
+Disallow: /webhook/
+
+# Sitemap
+Sitemap: https://imara.africa/sitemap.xml
+
+# Crawl-delay (optional, be nice to servers)
+Crawl-delay: 1

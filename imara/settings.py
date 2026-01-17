@@ -177,10 +177,15 @@ GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_SECRET_TOKEN = os.environ.get('TELEGRAM_SECRET_TOKEN')
 
-# Cloudflare Turnstile (CAPTCHA)
-TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '0x4AAAAAACLro269PpnXFjvn')
-TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '0x4AAAAAACLro_e5H4S0hE74xyZK-9NVTEQ')
+# Email Configuration
+BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', 'imara-alerts@projectimara.org')
+ADMIN_NOTIFICATION_EMAIL = os.environ.get('ADMIN_NOTIFICATION_EMAIL', 'projectimarahq@gmail.com')
+
+# Cloudflare Turnstile (CAPTCHA) - No hardcoded keys in production
+TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '' if not DEBUG else '1x00000000000000000000AA')
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '' if not DEBUG else '1x0000000000000000000000000000000AA')
 
 # Security Settings for Production
 if not DEBUG:
@@ -193,6 +198,24 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+    
+    # Validate R2 credentials in production
+    required_r2_vars = ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME']
+    missing_r2 = [v for v in required_r2_vars if not os.environ.get(v)]
+    if missing_r2:
+        import logging
+        logging.warning(f"Missing R2 storage vars: {missing_r2} - File uploads may fail")
+    
+    # Content Security Policy
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", "https://challenges.cloudflare.com")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+    CSP_IMG_SRC = ("'self'", "data:", "https:")
+    CSP_FONT_SRC = ("'self'",)
+    CSP_FRAME_SRC = ("https://challenges.cloudflare.com",)
+    CSP_CONNECT_SRC = ("'self'", "https://challenges.cloudflare.com")
 
 LOGGING = {
     'version': 1,

@@ -16,10 +16,10 @@ class DispatchLog(models.Model):
     subject = models.CharField(max_length=500)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    brevo_message_id = models.CharField(max_length=255, blank=True, null=True)
-    error_message = models.TextField(blank=True, null=True)
+    brevo_message_id = models.CharField(max_length=255, blank=True, default='')
+    error_message = models.TextField(blank=True, default='')
     
-    sent_at = models.DateTimeField(blank=True, null=True)
+    sent_at = models.DateTimeField(blank=True, null=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:

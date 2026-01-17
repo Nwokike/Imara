@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /partners/
+Disallow: /webhook/
+
+Sitemap: https://imara.africa/sitemap.xml

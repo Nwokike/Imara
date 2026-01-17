@@ -49,16 +49,24 @@ class AuthorityContact(models.Model):
     
     @classmethod
     def find_by_location(cls, location):
-        """Find authority contact by location - optimized single query"""
+        """Find authority contact by location - cached for 5 minutes"""
+        from django.core.cache import cache
+        
+        cache_key = f'authority_contact_{(location or "default").lower().replace(" ", "_")}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+        
         if not location:
-            return cls.objects.filter(is_active=True).order_by('-priority').first()
+            contact = cls.objects.filter(is_active=True).order_by('-priority').first()
+        else:
+            contact = cls.objects.filter(
+                is_active=True,
+                jurisdiction_name__icontains=location.lower()
+            ).order_by('-priority').first()
+            
+            if not contact:
+                contact = cls.objects.filter(is_active=True).order_by('-priority').first()
         
-        # Single optimized query - no redundant exists() check
-        contact = cls.objects.filter(
-            is_active=True,
-            jurisdiction_name__icontains=location.lower()
-        ).order_by('-priority').first()
-        
-        # Fallback to highest priority active contact
-        return contact or cls.objects.filter(is_active=True).order_by('-priority').first()
-
+        cache.set(cache_key, contact, 300)  # Cache for 5 minutes
+        return contact

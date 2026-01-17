@@ -4,6 +4,7 @@ import hashlib
 from typing import Optional, Dict, Any
 from io import BytesIO
 from django.utils import timezone
+from django.conf import settings
 from django.core.files.base import ContentFile
 
 from cases.models import IncidentReport, EvidenceAsset
@@ -420,8 +421,8 @@ class ReportProcessor:
         """
         
         admin_payload = {
-            "sender": {"name": "Imara System", "email": "noreply@imara.africa"},
-            "to": [{"email": "projectimarahq@gmail.com"}],
+            "sender": {"name": "Imara System", "email": settings.BREVO_SENDER_EMAIL},
+            "to": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
             "subject": admin_subject,
             "htmlContent": admin_html
         }
