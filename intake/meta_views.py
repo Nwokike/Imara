@@ -53,16 +53,12 @@ class MetaWebhookView(View):
         token = request.GET.get('hub.verify_token')
         challenge = request.GET.get('hub.challenge')
         
-        # Debug logging
-        print(f"Meta Verification Hit: Mode={mode}, Token={token}, Challenge={challenge}")
-        logger.info(f"Meta Verification Hit: Mode={mode}, Token={token}, Challenge={challenge}")
-        
         if mode and token:
             if mode == 'subscribe' and token == settings.META_VERIFY_TOKEN:
                 logger.info("Meta Webhook Verified Successfully!")
                 return HttpResponse(challenge, status=200)
             else:
-                logger.warning(f"Meta Webhook Verification Failed: Token mismatch. Got '{token}', expected '{settings.META_VERIFY_TOKEN}'")
+                logger.warning("Meta Webhook Verification Failed: Invalid Token")
                 return HttpResponse('Forbidden', status=403)
         
         return HttpResponse('Bad Request', status=400)
