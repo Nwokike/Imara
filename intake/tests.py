@@ -1,6 +1,7 @@
 from django.urls import reverse
 from directory.models import AuthorityContact
 from django.test import TestCase, Client, override_settings
+from unittest import mock
 from .forms import ReportForm
 
 class ReportFormTest(TestCase):
@@ -56,7 +57,8 @@ class IntakeViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'intake/policies.html')
 
-    def test_partner_inquiry_submission(self):
+    @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
+    def test_partner_inquiry_submission(self, mock_turnstile):
         """Test POST request to partner form"""
         data = {
             'organization_name': 'Test NGO',

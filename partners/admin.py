@@ -54,37 +54,56 @@ class PartnerInviteAdmin(admin.ModelAdmin):
     list_display = ['email', 'organization', 'role', 'invite_status', 'created_at', 'expires_at']
     list_filter = ['organization', 'role', 'is_accepted']
     search_fields = ['email', 'organization__name']
-    readonly_fields = ['token', 'created_at', 'accepted_at', 'invite_link']
+    readonly_fields = ['token', 'created_at', 'accepted_at']
     raw_id_fields = ['invited_by']
     
-    fieldsets = (
-        ('Invite Details', {
-            'fields': ('email', 'organization', 'role')
-        }),
-        ('Status', {
-            'fields': ('is_accepted', 'accepted_at', 'invite_link')
-        }),
-        ('Metadata', {
-            'fields': ('token', 'invited_by', 'created_at', 'expires_at'),
-            'classes': ('collapse',)
-        }),
-    )
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:  # Add view
+            return (
+                ('Invite Details', {
+                    'fields': ('email', 'organization', 'role')
+                }),
+                ('Metadata', {
+                    'fields': ('expires_at',),
+                    'classes': ('collapse',)
+                }),
+            )
+        # Change view
+        return (
+            ('Invite Details', {
+                'fields': ('email', 'organization', 'role')
+            }),
+            ('Status', {
+                'fields': ('is_accepted', 'accepted_at', 'invite_link')
+            }),
+            ('Metadata', {
+                'fields': ('token', 'invited_by', 'created_at', 'expires_at'),
+                'classes': ('collapse',)
+            }),
+        )
     
     def invite_status(self, obj):
         if obj.is_accepted:
             return '✅ Accepted'
-        elif obj.is_expired:
+        elif obj.expires_at and obj.is_expired:
             return '⏰ Expired'
         return '⏳ Pending'
     invite_status.short_description = 'Status'
     
     def invite_link(self, obj):
         from django.utils.html import format_html
+        if not obj.pk:
+            return 'Will be generated after save'
         if obj.is_valid:
             url = f"/partners/invite/{obj.token}/"
             return format_html('<a href="{}" target="_blank">{}</a>', url, url)
         return 'N/A'
     invite_link.short_description = 'Invite Link'
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj is None:
+            return ['token', 'created_at', 'accepted_at']
+        return ['token', 'created_at', 'accepted_at', 'invite_link']
     
     def save_model(self, request, obj, form, change):
         if not change:  # New invite

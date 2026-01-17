@@ -225,6 +225,8 @@ class PartnerInvite(models.Model):
     @property
     def is_expired(self):
         from django.utils import timezone
+        if not self.expires_at:
+            return False
         return timezone.now() > self.expires_at
     
     @property

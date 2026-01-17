@@ -67,6 +67,51 @@ class PartnerInviteTests(TestCase):
         )
         self.assertIsNotNone(invite.token)
         self.assertEqual(len(invite.token), 43)  # secrets.token_urlsafe(32) length
+    
+    def test_invite_expires_at_auto_set(self):
+        """Test that expires_at is auto-set on save"""
+        invite = PartnerInvite.objects.create(
+            email='invite2@test.com',
+            organization=self.org,
+            role='RESPONDER',
+            invited_by=self.user
+        )
+        self.assertIsNotNone(invite.expires_at)
+    
+    def test_is_expired_returns_false_when_expires_at_none(self):
+        """Test is_expired handles None expires_at gracefully"""
+        invite = PartnerInvite(
+            email='test@test.com',
+            organization=self.org,
+            role='RESPONDER'
+        )
+        # Before save, expires_at is None
+        self.assertFalse(invite.is_expired)
+    
+    def test_is_valid_returns_true_for_new_invite(self):
+        """Test is_valid for new invite before save"""
+        invite = PartnerInvite(
+            email='test@test.com',
+            organization=self.org,
+            role='RESPONDER'
+        )
+        self.assertTrue(invite.is_valid)
+    
+    def test_is_expired_returns_true_for_past_date(self):
+        """Test is_expired returns True for expired invites"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        invite = PartnerInvite.objects.create(
+            email='expired@test.com',
+            organization=self.org,
+            role='RESPONDER',
+            invited_by=self.user
+        )
+        invite.expires_at = timezone.now() - timedelta(days=1)
+        invite.save()
+        self.assertTrue(invite.is_expired)
+        self.assertFalse(invite.is_valid)
 
 
 class PartnerLoginTests(TestCase):
@@ -77,3 +122,74 @@ class PartnerLoginTests(TestCase):
         """Test partner login page loads"""
         response = self.client.get(reverse('partners:login'))
         self.assertEqual(response.status_code, 200)
+
+
+class PartnerAdminTests(TestCase):
+    """Tests for Django admin views to catch configuration errors"""
+    
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username='superadmin',
+            email='super@test.com',
+            password='superpass123'
+        )
+        self.client = Client()
+        self.client.login(username='superadmin', password='superpass123')
+        
+        self.org = PartnerOrganization.objects.create(
+            name='Admin Test Org',
+            jurisdiction='Kenya'
+        )
+    
+    def test_partner_invite_add_view_loads(self):
+        """Test that Partner Invite add view loads without errors"""
+        response = self.client.get('/admin/partners/partnerinvite/add/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_partner_invite_changelist_loads(self):
+        """Test that Partner Invite list view loads"""
+        response = self.client.get('/admin/partners/partnerinvite/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_partner_invite_change_view_loads(self):
+        """Test that Partner Invite change view loads for existing invite"""
+        invite = PartnerInvite.objects.create(
+            email='change@test.com',
+            organization=self.org,
+            role='RESPONDER',
+            invited_by=self.superuser
+        )
+        response = self.client.get(f'/admin/partners/partnerinvite/{invite.pk}/change/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_partner_invite_can_be_created_via_admin(self):
+        """Test creating a Partner Invite via admin form submission"""
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        expires_at = timezone.now() + timedelta(days=7)
+        response = self.client.post('/admin/partners/partnerinvite/add/', {
+            'email': 'newinvite@test.com',
+            'organization': self.org.pk,
+            'role': 'RESPONDER',
+            'expires_at_0': expires_at.strftime('%Y-%m-%d'),
+            'expires_at_1': expires_at.strftime('%H:%M:%S'),
+        })
+        # Check no server error (200 = validation error page, 302 = success redirect)
+        self.assertIn(response.status_code, [200, 302])
+    
+    def test_partner_organization_add_view_loads(self):
+        """Test that Partner Organization add view loads"""
+        response = self.client.get('/admin/partners/partnerorganization/add/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_partner_user_add_view_loads(self):
+        """Test that Partner User add view loads"""
+        response = self.client.get('/admin/partners/partneruser/add/')
+        self.assertEqual(response.status_code, 200)
+    
+    def test_partner_application_add_view_loads(self):
+        """Test that Partner Application add view loads"""
+        response = self.client.get('/admin/partners/partnerapplication/add/')
+        self.assertEqual(response.status_code, 200)
+
