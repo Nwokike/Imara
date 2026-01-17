@@ -205,6 +205,7 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
     SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+    SECURE_REDIRECT_EXEMPT = [r'^webhook/']
     
     # Validate R2 credentials in production
     required_r2_vars = ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME']
