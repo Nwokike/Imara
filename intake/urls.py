@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .meta_views import MetaWebhookView
 
 urlpatterns = [
     path('', views.HomeView.as_view(), name='home'),
@@ -8,6 +9,7 @@ urlpatterns = [
     path('offline/', views.offline_view, name='offline'),
     path('serviceworker.js', views.serviceworker_view, name='serviceworker'),
     path('webhook/telegram/', views.TelegramWebhookView.as_view(), name='telegram_webhook'),
+    path('webhook/meta/', MetaWebhookView.as_view(), name='meta_webhook'),
     path('health/', views.health_check, name='health_check'),
     path('ping/', views.keep_alive, name='keep_alive'),
     # Partner pages

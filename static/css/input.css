@@ -39,6 +39,10 @@
         @apply bg-sky-500 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2;
     }
 
+    .btn-messenger {
+        @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-300 inline-flex items-center justify-center gap-2;
+    }
+
     .btn-light {
         @apply bg-white text-imara-deep px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg inline-flex items-center justify-center gap-2;
     }
@@ -355,6 +359,11 @@
 
     .platform-card-telegram .platform-card-icon-lg {
         @apply bg-sky-500/10 text-sky-500;
+    }
+
+    .platform-card-messenger .platform-card-icon-lg {
+        @apply bg-gradient-to-br from-blue-500/20 to-purple-600/20;
+        color: #0084ff;
     }
 
     .platform-features {

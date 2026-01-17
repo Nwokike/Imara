@@ -62,7 +62,8 @@
                         <div class="about-feature-icon"><i class="bi bi-eye-slash"></i></div>
                         <div>
                             <h5>Invisible Protection</h5>
-                            <p>No app download needed. Works through Telegram and Web - leaving no trace on your device.
+                            <p>No app download needed. Works through Telegram, Messenger, and Web - leaving no trace on
+                                your device.
                             </p>
                         </div>
                     </div>
@@ -113,7 +114,7 @@
         </div>
 
         <div class="row justify-content-center mb-5">
-            <div class="col-md-5 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4">
                 <a href="{% url 'report_form' %}" class="platform-card-main text-decoration-none">
                     <div class="platform-card-icon-lg">
                         <i class="bi bi-globe"></i>
@@ -124,14 +125,13 @@
                         <li><i class="bi bi-check-circle-fill"></i> Upload images & screenshots</li>
                         <li><i class="bi bi-check-circle-fill"></i> Submit voice recordings</li>
                         <li><i class="bi bi-check-circle-fill"></i> Receive email confirmation</li>
-                        <li><i class="bi bi-check-circle-fill"></i> AI-powered threat analysis</li>
                     </ul>
                     <span class="btn btn-primary w-100">
                         <i class="bi bi-arrow-right-circle me-2"></i>Report via Web
                     </span>
                 </a>
             </div>
-            <div class="col-md-5 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4">
                 <a href="https://t.me/project_imara_bot" target="_blank"
                     class="platform-card-main platform-card-telegram text-decoration-none">
                     <div class="platform-card-icon-lg">
@@ -143,30 +143,39 @@
                         <li><i class="bi bi-check-circle-fill"></i> Forward any message instantly</li>
                         <li><i class="bi bi-check-circle-fill"></i> Send voice notes & images</li>
                         <li><i class="bi bi-check-circle-fill"></i> Get instant AI analysis</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Auto-report high threats</li>
                     </ul>
                     <span class="btn btn-telegram w-100">
                         <i class="bi bi-telegram me-2"></i>Open @project_imara_bot
                     </span>
                 </a>
             </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <a href="https://m.me/ProjectImaraPage" target="_blank"
+                    class="platform-card-main platform-card-messenger text-decoration-none">
+                    <div class="platform-card-icon-lg">
+                        <i class="bi bi-messenger"></i>
+                    </div>
+                    <h3>Messenger & Instagram</h3>
+                    <p>Message us on Facebook or Instagram for help with online abuse.</p>
+                    <ul class="platform-features">
+                        <li><i class="bi bi-check-circle-fill"></i> Available on Facebook & Instagram</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Send screenshots & voice notes</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Get instant AI analysis</li>
+                    </ul>
+                    <span class="btn btn-messenger w-100">
+                        <i class="bi bi-messenger me-2"></i>Message Us
+                    </span>
+                </a>
+            </div>
         </div>
 
         <div class="text-center mb-4">
-            <p class="text-muted"><i class="bi bi-clock me-1"></i> More platforms coming soon</p>
+            <p class="text-muted"><i class="bi bi-clock me-1"></i>More platforms coming soon</p>
         </div>
         <div class="coming-soon-grid">
             <div class="coming-soon-item">
                 <i class="bi bi-whatsapp"></i>
                 <span>WhatsApp</span>
-            </div>
-            <div class="coming-soon-item">
-                <i class="bi bi-instagram"></i>
-                <span>Instagram</span>
-            </div>
-            <div class="coming-soon-item">
-                <i class="bi bi-facebook"></i>
-                <span>Facebook</span>
             </div>
             <div class="coming-soon-item">
                 <i class="bi bi-twitter-x"></i>
@@ -368,9 +377,10 @@
                                             class="bi bi-telephone me-2"></i>{{ contact.phone }}</p>
                                     {% endif %}
                                     {% if contact.email %}
-                                    <p class="text-sm text-muted mt-1"><i class="bi bi-envelope me-2"></i>{{ contact.email }}</p>
+                                    <p class="text-sm text-muted mt-1"><i class="bi bi-envelope me-2"></i>{{
+                                        contact.email }}</p>
                                     {% endif %}
-                                    
+
                                     {% if contact.tags %}
                                     <div class="flex flex-wrap gap-2 mt-2">
                                         {% for tag in contact.tags %}

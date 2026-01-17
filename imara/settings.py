@@ -179,6 +179,11 @@ BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
 TELEGRAM_SECRET_TOKEN = os.environ.get('TELEGRAM_SECRET_TOKEN')
 
+# Meta Platform (Facebook Messenger / Instagram)
+META_APP_SECRET = os.environ.get('META_APP_SECRET')
+META_PAGE_ACCESS_TOKEN = os.environ.get('META_PAGE_ACCESS_TOKEN')
+META_VERIFY_TOKEN = os.environ.get('META_VERIFY_TOKEN')
+
 # Email Configuration
 BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', 'imara-alerts@projectimara.org')
 ADMIN_NOTIFICATION_EMAIL = os.environ.get('ADMIN_NOTIFICATION_EMAIL', 'projectimarahq@gmail.com')
