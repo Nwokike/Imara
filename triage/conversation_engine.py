@@ -326,7 +326,7 @@ class ConversationEngine:
             return self._get_fallback_response()
     
     def _parse_llm_response(self, content: str) -> ConversationResponse:
-        """Parse the LLM's JSON response."""
+        """Parse the LLM's JSON response with enforcement logic."""
         try:
             data = json.loads(content)
             
@@ -337,9 +337,32 @@ class ConversationEngine:
                 state = ConversationState.GATHERING
             
             gathered_info = data.get('gathered_info', {})
+            risk_score = gathered_info.get('risk_score', 0)
+            location = gathered_info.get('location', '')
+            user_confirmed = gathered_info.get('user_confirmed', False)
+            
+            # ENFORCEMENT: High-risk cases (7+) MUST have location before processing
+            if state == ConversationState.PROCESSING:
+                if risk_score >= 7 and not location:
+                    # Force back to ASKING_LOCATION
+                    state = ConversationState.ASKING_LOCATION
+                    logger.info(f"Enforcing location requirement for high-risk case (score: {risk_score})")
+                elif risk_score >= 7 and not user_confirmed:
+                    # Force to CONFIRMING if no explicit confirmation
+                    state = ConversationState.CONFIRMING
+                    logger.info(f"Enforcing confirmation requirement for high-risk case (score: {risk_score})")
+            
+            # ENFORCEMENT: Don't let AI skip directly to LOW_RISK_ADVISE for high-risk
+            if state == ConversationState.LOW_RISK_ADVISE and risk_score >= 7:
+                # This is a high-risk case being incorrectly advised - force to gathering
+                state = ConversationState.ASKING_LOCATION if not location else ConversationState.CONFIRMING
+                logger.warning(f"Prevented LOW_RISK_ADVISE for high-risk case (score: {risk_score})")
             
             # Determine if we should create a report
-            should_create_report = state == ConversationState.PROCESSING
+            should_create_report = (
+                state == ConversationState.PROCESSING and 
+                (risk_score < 7 or (location and user_confirmed))
+            )
             is_low_risk = state == ConversationState.LOW_RISK_ADVISE
             
             return ConversationResponse(
