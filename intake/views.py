@@ -226,9 +226,11 @@ class TelegramWebhookView(View):
             close_old_connections()
     
     def get_or_create_session(self, chat_id, username=None):
+        """Get or create a session for this platform + chat_id combination."""
         session, created = ChatSession.objects.get_or_create(
             chat_id=str(chat_id),
-            defaults={'username': username, 'platform': 'telegram'}
+            platform='telegram',
+            defaults={'username': username}
         )
         if username and session.username != username:
             session.username = username
@@ -310,6 +312,7 @@ class TelegramWebhookView(View):
         audio = message.get('audio')
         document = message.get('document')
         
+        # Safe word check
         if text and self.check_safe_word(text):
             session.set_cancelled(seconds=60)
             
@@ -318,24 +321,22 @@ class TelegramWebhookView(View):
             self.send_message(chat_id, safety_msg)
             return
         
-        if session.awaiting_location and text:
-            self.handle_location_response(chat_id, text, session)
-            return
-        
+        # Commands
         if text and text.startswith('/'):
             self.handle_command(chat_id, text, username)
             return
         
-        if photo:
+        # All text messages go through conversation engine (which handles state)
+        if text:
+            self.save_message(session, 'user', text, 'text')
+            self.handle_text(chat_id, text, username, session)
+        elif photo:
             self.save_message(session, 'user', '[Image]', 'image')
             self.handle_photo(chat_id, photo, username, message.get('caption'), session)
         elif voice or audio:
             voice_data = voice or audio
             self.save_message(session, 'user', '[Voice Note]', 'voice')
             self.handle_voice(chat_id, voice_data, username, session)
-        elif text:
-            self.save_message(session, 'user', text, 'text')
-            self.handle_text(chat_id, text, username, session)
         elif document:
             mime_type = document.get('mime_type', '')
             if mime_type.startswith('image/'):
@@ -428,52 +429,114 @@ Stay safe! 🛡️"""
             self.send_message(chat_id, "I don't recognize that command. Type /help to see what I can do.")
     
     def handle_text(self, chat_id, text, username, session=None):
-        analyzing_msg = "🔍 Analyzing your message..."
-        if session:
-            self.save_message(session, 'assistant', analyzing_msg, 'text')
-        self.send_message(chat_id, analyzing_msg)
+        """
+        Handle text messages using the conversational AI engine.
         
-        context = session.get_conversation_context(limit=10) if session else None
+        This method now supports multi-turn conversations with:
+        - State machine for conversation flow
+        - Empathetic dialogue with follow-up questions
+        - Location collection before high-risk reports
+        - User confirmation before filing reports
+        - Historical context from past messages
+        """
+        if not session:
+            session = self.get_or_create_session(chat_id, username)
         
-        from triage.decision_engine import DecisionEngine
-        from triage.models import ChatSession
-        engine = DecisionEngine()
-        triage_result = engine.analyze_text(text, context)
+        # Import conversation engine
+        from triage.conversation_engine import conversation_engine, ConversationState
         
-        if session and hasattr(triage_result, 'detected_language') and triage_result.detected_language:
-            session.language_preference = triage_result.detected_language
-            session.save()
+        # Show typing indicator / acknowledgment
+        typing_msg = "💭 ..."
+        self.send_message(chat_id, typing_msg)
         
-        if session:
-            session.refresh_from_db()
-            if session.is_cancelled():
-                return
-        
-        if triage_result.needs_location:
-            if session:
-                session.awaiting_location = True
-                session.pending_report_data = {'text': text, 'type': 'text'}
-                session.save()
-            
-            location_request_msg = self.get_localized_message(
-                session,
-                "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)"
-            )
-            if session:
-                self.save_message(session, 'assistant', location_request_msg, 'text')
-            self.send_message(chat_id, location_request_msg)
-            return
-        
-        location_hint = session.last_detected_location if session else None
-        
-        result = report_processor.process_text_report(
-            text=text,
-            source="telegram",
-            reporter_handle=f"@{username}",
-            location_hint=location_hint
+        # Process through conversation engine
+        response = conversation_engine.process_message(
+            session=session,
+            user_message=text,
+            message_type='text'
         )
         
+        # Update session state based on AI response
+        session.conversation_state = response.state.value
+        if response.gathered_info:
+            session.gathered_evidence = {**session.gathered_evidence, **response.gathered_info}
+        if response.detected_language:
+            session.language_preference = response.detected_language
+        session.save()
+        
+        # Save AI response to message history
+        self.save_message(session, 'assistant', response.message, 'text')
+        
+        # Check if cancelled during processing
+        session.refresh_from_db()
+        if session.is_cancelled():
+            return
+        
+        # Send the conversational response to user
+        self.send_message(chat_id, response.message)
+        
+        # Handle report creation if AI says we're ready
+        if response.should_create_report:
+            self._create_and_send_report(chat_id, session, username, response.gathered_info)
+        elif response.is_low_risk:
+            # For low risk, we've already given advice - just log it
+            logger.info(f"Low-risk advice given to {chat_id}")
+            # Reset conversation state after advice
+            session.conversation_state = 'IDLE'
+            session.gathered_evidence = {}
+            session.save()
+    
+    def _create_and_send_report(self, chat_id, session, username, gathered_info):
+        """Create formal report after user confirmation and send result."""
+        # Extract info from gathered evidence
+        evidence_summary = gathered_info.get('evidence_summary', '')
+        location = gathered_info.get('location') or session.last_detected_location or 'Unknown'
+        threat_type = gathered_info.get('threat_type', 'threat')
+        risk_score = gathered_info.get('risk_score', 7)
+        
+        # Store location for future use
+        if location and location != 'Unknown':
+            session.last_detected_location = location
+            session.save()
+        
+        # Build the report text from conversation history
+        report_text = self._build_report_text(session, gathered_info)
+        
+        # Process the complete report
+        result = report_processor.process_text_report(
+            text=report_text,
+            source="telegram",
+            reporter_handle=f"@{username}",
+            location_hint=location
+        )
+        
+        # Reset conversation state
+        session.conversation_state = 'IDLE'
+        session.gathered_evidence = {}
+        session.save()
+        
+        # Send result to user
         self.send_result(chat_id, result, session)
+    
+    def _build_report_text(self, session, gathered_info):
+        """Build complete report text from conversation history and gathered info."""
+        parts = []
+        
+        # Add gathered info summary
+        if gathered_info.get('evidence_summary'):
+            parts.append(f"Summary: {gathered_info['evidence_summary']}")
+        if gathered_info.get('threat_type'):
+            parts.append(f"Threat Type: {gathered_info['threat_type']}")
+        if gathered_info.get('perpetrator_info'):
+            parts.append(f"Perpetrator: {gathered_info['perpetrator_info']}")
+        
+        # Add user messages from conversation
+        user_messages = session.messages.filter(role='user').order_by('-created_at')[:5]
+        for msg in reversed(list(user_messages)):
+            if msg.content not in ['[Image]', '[Voice Note]', '[Document Image]', '[Document Audio]']:
+                parts.append(f"User reported: {msg.content}")
+        
+        return "\n".join(parts) if parts else "User reported threat via Telegram conversation"
     
     def get_localized_message(self, session, default_message):
         if not session or not session.language_preference:
