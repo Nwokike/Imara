@@ -100,3 +100,103 @@ class IntakeViewsTest(TestCase):
         self.assertIn('Nigeria', resources)
         self.assertEqual(resources['Kenya'][0].agency_name, "Test Kenya Agency")
 
+
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    META_VERIFY_TOKEN='test_verify_token_123',
+    META_APP_SECRET='test_app_secret_456',
+    META_PAGE_ACCESS_TOKEN='test_access_token_789',
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
+class MetaWebhookTests(TestCase):
+    """Tests for the Meta (Facebook/Instagram) Webhook integration."""
+    
+    def setUp(self):
+        self.client = Client()
+        self.webhook_url = reverse('meta_webhook')
+    
+    def test_meta_webhook_verification_success(self):
+        """Test that webhook verification returns challenge on valid token."""
+        response = self.client.get(self.webhook_url, {
+            'hub.mode': 'subscribe',
+            'hub.verify_token': 'test_verify_token_123',
+            'hub.challenge': 'CHALLENGE_ACCEPTED'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), 'CHALLENGE_ACCEPTED')
+    
+    def test_meta_webhook_verification_invalid_token(self):
+        """Test that webhook verification fails with wrong token."""
+        response = self.client.get(self.webhook_url, {
+            'hub.mode': 'subscribe',
+            'hub.verify_token': 'wrong_token',
+            'hub.challenge': 'CHALLENGE'
+        })
+        self.assertEqual(response.status_code, 403)
+    
+    def test_meta_webhook_verification_missing_params(self):
+        """Test that webhook verification fails without required params."""
+        response = self.client.get(self.webhook_url)
+        self.assertEqual(response.status_code, 400)
+    
+    def _create_signature(self, payload: bytes) -> str:
+        """Helper to create valid X-Hub-Signature-256."""
+        import hmac
+        import hashlib
+        signature = hmac.new(
+            b'test_app_secret_456',
+            payload,
+            hashlib.sha256
+        ).hexdigest()
+        return f'sha256={signature}'
+    
+    def test_meta_webhook_post_invalid_signature(self):
+        """Test that POST with invalid signature is rejected."""
+        payload = b'{"object": "page", "entry": []}'
+        response = self.client.post(
+            self.webhook_url,
+            data=payload,
+            content_type='application/json',
+            HTTP_X_HUB_SIGNATURE_256='sha256=invalid_signature'
+        )
+        self.assertEqual(response.status_code, 403)
+    
+    def test_meta_webhook_post_valid_signature(self):
+        """Test that POST with valid signature is accepted."""
+        payload = b'{"object": "page", "entry": []}'
+        signature = self._create_signature(payload)
+        response = self.client.post(
+            self.webhook_url,
+            data=payload,
+            content_type='application/json',
+            HTTP_X_HUB_SIGNATURE_256=signature
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode(), 'EVENT_RECEIVED')
+    
+    def test_meta_webhook_instagram_object(self):
+        """Test that Instagram object type is handled."""
+        payload = b'{"object": "instagram", "entry": []}'
+        signature = self._create_signature(payload)
+        response = self.client.post(
+            self.webhook_url,
+            data=payload,
+            content_type='application/json',
+            HTTP_X_HUB_SIGNATURE_256=signature
+        )
+        self.assertEqual(response.status_code, 200)
+    
+    def test_meta_webhook_unknown_object(self):
+        """Test that unknown object type returns 404."""
+        payload = b'{"object": "unknown", "entry": []}'
+        signature = self._create_signature(payload)
+        response = self.client.post(
+            self.webhook_url,
+            data=payload,
+            content_type='application/json',
+            HTTP_X_HUB_SIGNATURE_256=signature
+        )
+        self.assertEqual(response.status_code, 404)

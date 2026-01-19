@@ -152,6 +152,74 @@ class MetaMessagingService:
         except requests.RequestException as e:
             logger.error(f"Meta Send API request failed: {e}")
             return False
+    
+    def send_generic_template(
+        self,
+        recipient_id: str,
+        title: str,
+        subtitle: str,
+        buttons: list = None,
+        image_url: str = None
+    ) -> bool:
+        """
+        Send a rich card template with title, subtitle, optional image and buttons.
+        
+        Args:
+            recipient_id: The PSID of the recipient
+            title: Card title (max 80 chars)
+            subtitle: Card subtitle (max 80 chars)
+            buttons: Optional list of button dicts with 'type', 'title', 'url'/'payload'
+            image_url: Optional image URL for the card
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        if not self.access_token:
+            logger.error("META_PAGE_ACCESS_TOKEN not configured")
+            return False
+        
+        element = {
+            "title": title[:80],
+            "subtitle": subtitle[:80] if subtitle else "",
+        }
+        
+        if image_url:
+            element["image_url"] = image_url
+        
+        if buttons:
+            element["buttons"] = buttons[:3]  # Meta limits to 3 buttons per card
+        
+        payload = {
+            "recipient": {"id": recipient_id},
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "generic",
+                        "elements": [element]
+                    }
+                }
+            }
+        }
+        
+        try:
+            response = requests.post(
+                self.MESSENGER_API_URL,
+                params={"access_token": self.access_token},
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"Template sent to {recipient_id}")
+                return True
+            else:
+                logger.error(f"Meta Template API error: {response.status_code} - {response.text}")
+                return False
+                
+        except requests.RequestException as e:
+            logger.error(f"Meta Template API request failed: {e}")
+            return False
 
 
 # Singleton instance for use across the application
