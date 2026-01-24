@@ -54,10 +54,12 @@ jobs:
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
-          # 9. Health Check (fails deployment if non-2xx)
+          # 9. Health Check via nginx (fails deployment if non-2xx)
           sleep 10
-          if ! curl -sf http://localhost:8000/health/; then
+          if ! curl -sf http://127.0.0.1/health/; then
             echo "ERROR: Health check failed - deployment may be broken"
+            # Show service status for debugging
+            sudo systemctl status imara --no-pager || true
             exit 1
           fi
 
