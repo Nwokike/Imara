@@ -64,6 +64,17 @@ class ReportProcessor:
             if result.should_report:
                 dispatch_result = self._dispatch_to_partner(incident, result, text)
                 
+                # FALLBACK: If dispatch failed (e.g. invalid location), ASK USER.
+                if not dispatch_result.get("success") and dispatch_result.get("error") == "No partner organization found":
+                     return {
+                        "success": True,
+                        "action": "ask_location",
+                        "case_id": str(incident.case_id),
+                        "risk_score": result.risk_score,
+                        "summary": result.summary,
+                        "message": "I detected a location but couldn't connect you to a partner there. Please tell me your **City and Country** explicitly."
+                    }
+                
                 if reporter_email and dispatch_result.get("success"):
                     self._send_user_confirmation(
                         reporter_email=reporter_email,
@@ -208,6 +219,18 @@ class ReportProcessor:
             if result.should_report:
                 dispatch_result = self._dispatch_to_partner(incident, result, evidence_text)
                 
+                # FALLBACK: If dispatch failed (e.g. invalid location), ASK USER.
+                if not dispatch_result.get("success") and dispatch_result.get("error") == "No partner organization found":
+                     return {
+                        "success": True,
+                        "action": "ask_location",
+                        "case_id": str(incident.case_id),
+                        "risk_score": result.risk_score,
+                        "summary": result.summary,
+                        "extracted_text": result.extracted_text,
+                        "message": "I detected a location but couldn't connect you to a partner there. Please tell me your **City and Country** explicitly."
+                    }
+                
                 if reporter_email and dispatch_result.get("success"):
                     self._send_user_confirmation(
                         reporter_email=reporter_email,
@@ -226,6 +249,7 @@ class ReportProcessor:
                     "risk_score": result.risk_score,
                     "summary": result.summary,
                     "extracted_text": result.extracted_text,
+                    # ... extracted_text ...
                     "message": "Your screenshot has been analyzed and escalated to the appropriate support partner. Stay safe.",
                     "dispatched": dispatch_result.get("success", False),
                     "partner_name": dispatch_result.get("partner_name"),
@@ -332,6 +356,19 @@ class ReportProcessor:
             
             if result.should_report:
                 dispatch_result = self._dispatch_to_partner(incident, result, result.extracted_text or "Voice note evidence")
+                
+                # FALLBACK: If dispatch failed (e.g. invalid location), ASK USER.
+                if not dispatch_result.get("success") and dispatch_result.get("error") == "No partner organization found":
+                     return {
+                        "success": True,
+                        "action": "ask_location",
+                        "case_id": str(incident.case_id),
+                        "risk_score": result.risk_score,
+                        "summary": result.summary,
+                        "transcribed_text": result.extracted_text,
+                        "extracted_text": result.extracted_text,
+                        "message": "I detected a location but couldn't connect you to a partner there. Please tell me your **City and Country** explicitly."
+                    }
                 
                 if reporter_email and dispatch_result.get("success"):
                     self._send_user_confirmation(
@@ -554,6 +591,13 @@ class ReportProcessor:
                 evidence_text = incident.original_text or "Report evidence"
             
             dispatch_result = self._dispatch_to_partner(incident, result, evidence_text)
+            
+            if not dispatch_result.get("success"):
+                return {
+                    "success": False, 
+                    "error": dispatch_result.get("error", "Dispatch failed"),
+                    "partner_name": None
+                }
             
             if incident.reporter_email and dispatch_result.get("success"):
                 self._send_user_confirmation(
