@@ -215,6 +215,14 @@ class DecisionEngine:
             if not val:
                 missing.append(f)
 
+        # START NEW: Email validation
+        contact_pref = (info.get('contact_preference') or "").lower()
+        if "email" in contact_pref:
+            email = (info.get('reporter_email') or "").strip()
+            if not email:
+                missing.append("reporter_email")
+        # END NEW
+
         risk_score = info.get("risk_score") or 0
         if risk_score >= 7:
             for f in self.HIGH_RISK_REQUIRED_FIELDS:

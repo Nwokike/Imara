@@ -160,6 +160,7 @@ class ReportFormView(View):
             audio = form.cleaned_data.get('voice_note')
             name = (form.cleaned_data.get('name') or '').strip() or None
             email = form.cleaned_data.get('email')
+            location = (form.cleaned_data.get('location') or '').strip() or None
             
             if image:
                 result = report_processor.process_image_report(
@@ -167,21 +168,24 @@ class ReportFormView(View):
                     source="web",
                     reporter_email=email,
                     reporter_name=name or None,
-                    additional_text=text
+                    additional_text=text,
+                    location_hint=location
                 )
             elif audio:
                 result = report_processor.process_audio_report(
                     audio_file=audio,
                     source="web",
                     reporter_email=email,
-                    reporter_name=name or None
+                    reporter_name=name or None,
+                    location_hint=location
                 )
             elif text:
                 result = report_processor.process_text_report(
                     text=text,
                     source="web",
                     reporter_email=email,
-                    reporter_name=name or None
+                    reporter_name=name or None,
+                    location_hint=location
                 )
             else:
                 return render(request, 'intake/report_form.html', {
@@ -587,6 +591,7 @@ Stay safe! 🛡️"""
             reporter_handle=f"@{username}",
             location_hint=location,
             reporter_name=reporter_name or None,
+            reporter_email=gathered_info.get('reporter_email'),
             contact_preference=contact_preference or None,
             perpetrator_info=gathered_info.get('perpetrator_info') or None,
         )

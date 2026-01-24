@@ -90,6 +90,17 @@
                 <p class="mt-1 text-sm text-gray-500">{{ form.name.help_text }}</p>
             </div>
 
+            <!-- Location (Optional) -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-geo-alt mr-2"></i>{{ form.location.label }}
+                </label>
+                <input type="text" name="location" value="{{ form.location.value|default:'' }}"
+                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-imara-gold focus:border-transparent"
+                    placeholder="City, Country (e.g. Lagos, Nigeria)">
+                <p class="mt-1 text-sm text-gray-500">{{ form.location.help_text }}</p>
+            </div>
+
             <!-- Email -->
             <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

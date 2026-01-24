@@ -112,6 +112,17 @@ class ReportForm(forms.Form):
         label='Your Name (Optional)',
         help_text='Optional. You can use a nickname.'
     )
+
+    location = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'City, Country (e.g. Lagos, Nigeria)'
+        }),
+        label='Location',
+        help_text='Required for high-risk reports (threats, violence) to connect you with help.'
+    )
     
     def clean(self):
         cleaned_data = super().clean()

@@ -77,6 +77,7 @@ CRITICAL RULES:
 
 REQUIRED FIELDS BEFORE ESCALATION (must collect before PROCESSING):
 - reporter_name: their name or a safe nickname (can be "Anonymous")
+- reporter_email: REQUIRED if contact_preference is "email" (get actual address)
 - location: city + country (required for high risk)
 - incident_description: what happened (can be a short summary)
 - contact_preference: best way to follow up (email/phone/telegram/meta/none)
@@ -100,6 +101,7 @@ RESPONSE FORMAT (JSON only):
   "state": "IDLE|GATHERING|ASKING_LOCATION|CONFIRMING|PROCESSING|LOW_RISK_ADVISE",
   "gathered_info": {
     "reporter_name": "<name or safe nickname or 'Anonymous'>",
+    "reporter_email": "<email address if provided>",
     "threat_type": "<harassment|threat|doxing|blackmail|stalking|sextortion|insult|other>",
     "location": "<city, country if provided>",
     "incident_description": "<brief description of what happened>",
@@ -352,12 +354,15 @@ class ConversationEngine:
             location = gathered_info.get('location', '')
             user_confirmed = gathered_info.get('user_confirmed', False)
             reporter_name = (gathered_info.get('reporter_name') or '').strip()
+            reporter_email = (gathered_info.get('reporter_email') or '').strip()
             incident_description = (gathered_info.get('incident_description') or gathered_info.get('evidence_summary') or '').strip()
             contact_preference = (gathered_info.get('contact_preference') or '').strip()
 
             # Normalize reporter_name
             if reporter_name:
                 gathered_info['reporter_name'] = reporter_name
+            if reporter_email:
+                gathered_info['reporter_email'] = reporter_email
             if incident_description and not gathered_info.get('incident_description'):
                 gathered_info['incident_description'] = incident_description
             if contact_preference:
