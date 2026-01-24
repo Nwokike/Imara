@@ -67,6 +67,10 @@ class DecisionEngine:
         try:
             analysis = self.groq_client.analyze_text(text, conversation_context)
             
+            # SAFETY OVERRIDE: High Risk + Unknown Location = ASK_LOCATION
+            if analysis.risk_score >= 7 and (not analysis.location or analysis.location.lower() in ['unknown', 'none', 'null', '']):
+                analysis.action = 'ASK_LOCATION'
+            
             return TriageResult(
                 risk_score=analysis.risk_score,
                 action=analysis.action,
@@ -108,6 +112,11 @@ class DecisionEngine:
     def analyze_image_bytes(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> TriageResult:
         try:
             analysis = self.gemini_client.analyze_image_bytes(image_bytes, mime_type)
+            
+            # SAFETY OVERRIDE: High Risk + Unknown Location = ASK_LOCATION
+            # This prevents dangerous "Reporting to Default" or "Just Advising" on severe threats
+            if analysis.risk_score >= 7 and (not analysis.location or analysis.location.lower() in ['unknown', 'none', 'null', '']):
+                analysis.action = 'ASK_LOCATION'
             
             return TriageResult(
                 risk_score=analysis.risk_score,

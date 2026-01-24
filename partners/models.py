@@ -122,7 +122,8 @@ class PartnerOrganization(models.Model):
             return cached
         
         if not normalized:
-            partner = cls.objects.filter(is_active=True, is_verified=True).order_by('jurisdiction', 'name').first()
+            # Do NOT default to random partner. Unknown location should fail lookup.
+            return None
         else:
             if country:
                 partner = cls.objects.filter(
@@ -138,8 +139,8 @@ class PartnerOrganization(models.Model):
                     jurisdiction__icontains=normalized
                 ).order_by('name').first()
             
-            if not partner:
-                partner = cls.objects.filter(is_active=True, is_verified=True).order_by('jurisdiction', 'name').first()
+            # If still no partner, return None. Do not default to first available.
+            return partner
         
         cache.set(cache_key, partner, 300)
         return partner
