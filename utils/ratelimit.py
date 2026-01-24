@@ -24,22 +24,22 @@ def ratelimit_key(group, request):
 # Pre-configured rate limit decorators for common use cases
 def login_ratelimit(view_func):
     """Rate limit login attempts: 5 per minute per IP."""
-    return ratelimit(key='ip', rate='5/m', method='POST', block=True)(view_func)
+    return ratelimit(key=ratelimit_key, rate='5/m', method='POST', block=True)(view_func)
 
 
 def form_ratelimit(view_func):
     """Rate limit form submissions: 10 per minute per IP."""
-    return ratelimit(key='ip', rate='10/m', method='POST', block=True)(view_func)
+    return ratelimit(key=ratelimit_key, rate='10/m', method='POST', block=True)(view_func)
 
 
 def api_ratelimit(view_func):
     """Rate limit API calls: 30 per minute per IP."""
-    return ratelimit(key='ip', rate='30/m', block=True)(view_func)
+    return ratelimit(key=ratelimit_key, rate='30/m', block=True)(view_func)
 
 
 def telegram_webhook_ratelimit(view_func):
     """Rate limit Telegram webhooks: 60 per minute (Telegram sends frequent updates)."""
-    return ratelimit(key='ip', rate='60/m', method='POST', block=True)(view_func)
+    return ratelimit(key=ratelimit_key, rate='60/m', method='POST', block=True)(view_func)
 
 
 def handle_ratelimit_error(request, exception):

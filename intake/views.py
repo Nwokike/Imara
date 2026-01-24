@@ -202,6 +202,7 @@ class ResultView(View):
 SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 @method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(telegram_webhook_ratelimit, name='post')
 class TelegramWebhookView(View):
     # Reduced to 2 workers for 1GB RAM constraint
     _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="telegram_worker")
