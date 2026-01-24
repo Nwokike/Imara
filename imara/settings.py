@@ -107,17 +107,27 @@ DATABASES = {
     )
 }
 
-# SQLite Optimization: Enable WAL Mode (Only if using SQLite)
+# SQLite Optimization: Production-ready settings (2025/2026 best practices)
 from django.db.backends.signals import connection_created
 from django.dispatch import receiver
 
 @receiver(connection_created)
 def configure_sqlite_pragmas(sender, connection, **kwargs):
-    """Enable WAL mode for better concurrency on SQLite"""
+    """Configure SQLite for production performance and safety"""
     if connection.vendor == 'sqlite':
         cursor = connection.cursor()
+        # WAL mode for better concurrency (writers don't block readers)
         cursor.execute('PRAGMA journal_mode=WAL;')
+        # NORMAL sync is safe with WAL and much faster than FULL
         cursor.execute('PRAGMA synchronous=NORMAL;')
+        # Wait up to 5 seconds when database is locked (prevents SQLITE_BUSY errors)
+        cursor.execute('PRAGMA busy_timeout=5000;')
+        # 64MB cache for better read performance (negative value = KB)
+        cursor.execute('PRAGMA cache_size=-64000;')
+        # Enforce foreign key constraints for data integrity
+        cursor.execute('PRAGMA foreign_keys=ON;')
+        # Memory-map 128MB for faster reads (safe for 1GB VM)
+        cursor.execute('PRAGMA mmap_size=134217728;')
 
 
 AUTH_PASSWORD_VALIDATORS = [
