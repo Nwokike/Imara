@@ -95,3 +95,36 @@ COUNTRY_SYNONYMS: dict[str, str] = {
     "sao tome & principe": "São Tomé and Príncipe",
 }
 
+# Mapping common cities to countries
+CITY_TO_COUNTRY: dict[str, str] = {
+    # Nigeria
+    "lagos": "Nigeria",
+    "abuja": "Nigeria",
+    "port harcourt": "Nigeria",
+    "ibadan": "Nigeria",
+    "kano": "Nigeria",
+    "enugu": "Nigeria",
+    "benin city": "Nigeria",
+    "kaduna": "Nigeria",
+    "jos": "Nigeria",
+    "ilaro": "Nigeria",
+    
+    # Ghana
+    "accra": "Ghana",
+    "kumasi": "Ghana",
+    "tamale": "Ghana",
+    "takoradi": "Ghana",
+    
+    # Kenya
+    "nairobi": "Kenya",
+    "mombasa": "Kenya",
+    "kisumu": "Kenya",
+    "nakuru": "Kenya",
+    
+    # South Africa
+    "johannesburg": "South Africa",
+    "cape town": "South Africa",
+    "durban": "South Africa",
+    "pretoria": "South Africa",
+}
+

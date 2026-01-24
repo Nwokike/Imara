@@ -87,7 +87,7 @@ class PartnerOrganization(models.Model):
     def find_by_location(cls, location):
         """Find partner organization by jurisdiction/location - cached for 5 minutes"""
         from django.core.cache import cache
-        from partners.constants import AFRICAN_COUNTRIES, COUNTRY_SYNONYMS
+        from partners.constants import AFRICAN_COUNTRIES, COUNTRY_SYNONYMS, CITY_TO_COUNTRY
         
         raw = (location or "").strip()
         normalized = raw.lower().replace("  ", " ").strip()
@@ -109,6 +109,14 @@ class PartnerOrganization(models.Model):
                     if c.lower() == candidate:
                         country = c
                         break
+            
+            # Check City Mapping (e.g. "I am in Enugu" -> "Nigeria")
+            if not country:
+                for city, mapped_country in CITY_TO_COUNTRY.items():
+                    if city in normalized:
+                        country = mapped_country
+                        break
+            
             if not country:
                 # Substring detection: if country name appears anywhere in the location text
                 for c in AFRICAN_COUNTRIES:
