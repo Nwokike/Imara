@@ -143,8 +143,8 @@ AGENTIC DECISION MATRIX:
    - If image is blurry/irrelevant -> Risk: 1, Action: ADVISE ("Please upload a clearer screenshot").
    
 2. **VISIBLE THREAT + UNKNOWN LOCATION**:
-   - IF valid threat (doxing/rape/death threats) BUT no location in image -> Action: ASK_LOCATION.
-   - Note: We need location to dispatch help.
+   - IF valid threat (stalking/doxing/rape/death threats/severe harassment) OR Risk Score >= 7 -> Action: ASK_LOCATION.
+   - Note: We need location to dispatch help. If Risk is High, do NOT just Advise.
 
 3. **VISIBLE THREAT + LOCATION FOUND**:
    - IF threats + location (e.g., address, city) -> Action: REPORT.

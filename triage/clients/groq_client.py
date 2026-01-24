@@ -130,7 +130,7 @@ AGENTIC STATES:
    - Insults, rude behavior, general inquiries.
 
 CLASSIFICATION RULES:
-- risk_score: 1-3 (Low/Insult), 4-6 (Moderate/Harassment), 7-10 (Severe/Death Threats/Doxing)
+- risk_score: 1-3 (Low/Insult), 4-6 (Moderate/Harassment), 7-10 (Severe/Death Threats/Doxing/Stalking)
 - action: "ADVISE", "REPORT", "ASK_LOCATION", "ASK_CONTEXT"
 
 LANGUAGE & TONE:
