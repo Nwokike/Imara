@@ -38,28 +38,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='PartnerApplication',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('org_name', models.CharField(max_length=255)),
-                ('org_type', models.CharField(choices=[('NGO', 'Non-Governmental Organization'), ('LEA', 'Law Enforcement Agency'), ('GOV', 'Government Body'), ('LEGAL', 'Legal Aid Provider'), ('HEALTH', 'Healthcare Provider'), ('OTHER', 'Other')], max_length=20)),
-                ('jurisdiction', models.CharField(max_length=100)),
-                ('contact_name', models.CharField(max_length=255)),
-                ('contact_email', models.EmailField(max_length=254)),
-                ('contact_phone', models.CharField(blank=True, max_length=50)),
-                ('website', models.URLField(blank=True)),
-                ('description', models.TextField(help_text='Describe your organization and interest in partnering')),
-                ('status', models.CharField(choices=[('PENDING', 'Pending Review'), ('APPROVED', 'Approved'), ('REJECTED', 'Rejected')], default='PENDING', max_length=20)),
-                ('admin_notes', models.TextField(blank=True, help_text='Internal notes from review')),
-                ('submitted_at', models.DateTimeField(auto_now_add=True)),
-                ('reviewed_at', models.DateTimeField(blank=True, null=True)),
-                ('reviewed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_applications', to=settings.AUTH_USER_MODEL)),
-            ],
-            options={
-                'ordering': ['-submitted_at'],
-            },
-        ),
-        migrations.CreateModel(
             name='PartnerUser',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),

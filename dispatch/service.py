@@ -1,10 +1,9 @@
-import os
 import logging
 import requests
 import threading
 import time
 from datetime import datetime
-from typing import Optional, Callable
+from typing import Optional
 from django.utils import timezone
 from django.conf import settings
 from dispatch.tasks import send_email_task
@@ -35,7 +34,7 @@ class BrevoDispatcher:
         if BrevoDispatcher._initialized:
             return
         
-        self.api_key = os.environ.get('BREVO_API_KEY')
+        self.api_key = getattr(settings, 'BREVO_API_KEY', None)
         self._available = bool(self.api_key)
         
         if self._available:
@@ -45,9 +44,9 @@ class BrevoDispatcher:
             }
         else:
             self.headers = {}
-            logger.warning("BREVO_API_KEY not found - Email dispatch will be disabled")
+            logger.warning("BREVO_API_KEY not found in settings - Email dispatch will be disabled")
         
-        self.sender_email = os.environ.get('BREVO_SENDER_EMAIL', 'imara-alerts@projectimara.org')
+        self.sender_email = getattr(settings, 'BREVO_SENDER_EMAIL', 'imara-alerts@projectimara.org')
         self.sender_name = "Project Imara Alert System"
         
         BrevoDispatcher._initialized = True
@@ -306,11 +305,11 @@ class BrevoDispatcher:
         chain_hash: str,
         summary: str,
         source: str = "Web Form",
-        callback: Optional[Callable] = None
+        dispatch_log_id: Optional[int] = None,
+        incident_id: Optional[int] = None,
     ) -> None:
         """
         Enqueues the email sending task to Huey.
-        Note: Callback is ignored in the Huey implementation as tasks are fire-and-forget.
         """
         if not self._available:
             logger.warning("Brevo API not configured - skipping async dispatch")
@@ -335,13 +334,13 @@ class BrevoDispatcher:
                 "email": self.sender_email
             },
             "to": [{"email": recipient_email}],
-            "bcc": [{"email": "projectimarahq@gmail.com"}],
+            "bcc": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
             "subject": subject,
             "htmlContent": html_content
         }
         
         # Dispatch to Huey
-        send_email_task(payload)
+        send_email_task(payload, dispatch_log_id=dispatch_log_id, incident_id=incident_id)
         logger.info(f"Huey task queued for case {case_id[:8]} to {recipient_email}")
 
 
@@ -349,8 +348,8 @@ class BrevoDispatcher:
         self,
         user_email: str,
         case_id: str,
-        authority_name: str,
-        authority_email: str,
+        partner_name: str,
+        partner_email: str,
         risk_score: int,
         summary: str,
         location: str
@@ -363,8 +362,8 @@ class BrevoDispatcher:
         
         html_content = self._generate_user_confirmation_html(
             case_id=case_id,
-            authority_name=authority_name,
-            authority_email=authority_email,
+            partner_name=partner_name,
+            partner_email=partner_email,
             risk_score=risk_score,
             summary=summary,
             location=location
@@ -398,8 +397,8 @@ class BrevoDispatcher:
     def _generate_user_confirmation_html(
         self,
         case_id: str,
-        authority_name: str,
-        authority_email: str,
+        partner_name: str,
+        partner_email: str,
         risk_score: int,
         summary: str,
         location: str
@@ -433,7 +432,7 @@ class BrevoDispatcher:
                 </div>
                 
                 <p style="color: #333; font-size: 14px; line-height: 1.6;">
-                    We want to confirm that your report has been received and escalated to the appropriate authorities. Here are the details:
+                    We want to confirm that your report has been received and shared with the appropriate support partner. Here are the details:
                 </p>
                 
                 <table width="100%" style="border-collapse: collapse; margin: 20px 0;">
@@ -460,17 +459,17 @@ class BrevoDispatcher:
                 </table>
                 
                 <div style="background-color: #e7f3ff; border: 1px solid #0066cc; border-radius: 8px; padding: 15px; margin: 20px 0;">
-                    <h3 style="color: #004085; margin: 0 0 10px 0; font-size: 14px;">REPORT SENT TO:</h3>
+                    <h3 style="color: #004085; margin: 0 0 10px 0; font-size: 14px;">REPORT SHARED WITH:</h3>
                     <p style="color: #004085; margin: 0; font-size: 14px;">
-                        <strong>{authority_name}</strong><br>
-                        <span style="font-size: 13px;">{authority_email}</span>
+                        <strong>{partner_name}</strong><br>
+                        <span style="font-size: 13px;">{partner_email}</span>
                     </p>
                 </div>
                 
                 <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px;">
                     <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 14px;">WHAT HAPPENS NEXT?</h3>
                     <ul style="color: #856404; margin: 0; padding-left: 20px; font-size: 13px;">
-                        <li>The authority will review your case</li>
+                        <li>The partner will review your case</li>
                         <li>They may contact you for additional information</li>
                         <li>Keep this email for your records</li>
                         <li>If in immediate danger, contact emergency services</li>
@@ -502,8 +501,8 @@ class BrevoDispatcher:
         self,
         user_email: str,
         case_id: str,
-        authority_name: str,
-        authority_email: str,
+        partner_name: str,
+        partner_email: str,
         risk_score: int,
         summary: str,
         location: str
@@ -515,8 +514,8 @@ class BrevoDispatcher:
         
         html_content = self._generate_user_confirmation_html(
             case_id=case_id,
-            authority_name=authority_name,
-            authority_email=authority_email,
+            partner_name=partner_name,
+            partner_email=partner_email,
             risk_score=risk_score,
             summary=summary,
             location=location

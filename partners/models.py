@@ -82,6 +82,67 @@ class PartnerOrganization(models.Model):
                 counter += 1
             self.slug = slug
         super().save(*args, **kwargs)
+    
+    @classmethod
+    def find_by_location(cls, location):
+        """Find partner organization by jurisdiction/location - cached for 5 minutes"""
+        from django.core.cache import cache
+        from partners.constants import AFRICAN_COUNTRIES, COUNTRY_SYNONYMS
+        
+        raw = (location or "").strip()
+        normalized = raw.lower().replace("  ", " ").strip()
+        
+        # Try to extract country from "City, Country" style inputs
+        country = None
+        if normalized:
+            if "," in normalized:
+                candidate = normalized.split(",")[-1].strip()
+                candidate = COUNTRY_SYNONYMS.get(candidate, candidate)
+                for c in AFRICAN_COUNTRIES:
+                    if c.lower() == candidate:
+                        country = c
+                        break
+            if not country:
+                # Try synonym direct match
+                candidate = COUNTRY_SYNONYMS.get(normalized, normalized)
+                for c in AFRICAN_COUNTRIES:
+                    if c.lower() == candidate:
+                        country = c
+                        break
+            if not country:
+                # Substring detection: if country name appears anywhere in the location text
+                for c in AFRICAN_COUNTRIES:
+                    if c.lower() in normalized:
+                        country = c
+                        break
+        
+        cache_key = f'partner_org_{(country or normalized or "default").lower().replace(" ", "_")}'
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return cached
+        
+        if not normalized:
+            partner = cls.objects.filter(is_active=True, is_verified=True).order_by('jurisdiction', 'name').first()
+        else:
+            if country:
+                partner = cls.objects.filter(
+                    is_active=True,
+                    is_verified=True,
+                    jurisdiction__iexact=country
+                ).order_by('name').first()
+            else:
+                # Fallback: loose match
+                partner = cls.objects.filter(
+                    is_active=True,
+                    is_verified=True,
+                    jurisdiction__icontains=normalized
+                ).order_by('name').first()
+            
+            if not partner:
+                partner = cls.objects.filter(is_active=True, is_verified=True).order_by('jurisdiction', 'name').first()
+        
+        cache.set(cache_key, partner, 300)
+        return partner
 
 
 class PartnerUser(models.Model):
@@ -125,50 +186,6 @@ class PartnerUser(models.Model):
     def jurisdiction(self):
         """Shortcut to access user's jurisdiction via their org."""
         return self.organization.jurisdiction
-
-
-class PartnerApplication(models.Model):
-    """
-    Tracks applications from organizations wanting to become partners.
-    Admin reviews and approves -> creates PartnerOrganization.
-    """
-    
-    class Status(models.TextChoices):
-        PENDING = 'PENDING', 'Pending Review'
-        APPROVED = 'APPROVED', 'Approved'
-        REJECTED = 'REJECTED', 'Rejected'
-    
-    org_name = models.CharField(max_length=255)
-    org_type = models.CharField(max_length=20, choices=PartnerOrganization.OrgType.choices)
-    jurisdiction = models.CharField(max_length=100)
-    contact_name = models.CharField(max_length=255)
-    contact_email = models.EmailField()
-    contact_phone = models.CharField(max_length=50, blank=True)
-    website = models.URLField(blank=True)
-    description = models.TextField(help_text="Describe your organization and interest in partnering")
-    
-    status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
-    )
-    admin_notes = models.TextField(blank=True, help_text="Internal notes from review")
-    
-    submitted_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    reviewed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='reviewed_applications'
-    )
-    
-    class Meta:
-        ordering = ['-submitted_at']
-    
-    def __str__(self):
-        return f"{self.org_name} - {self.get_status_display()}"
 
 
 class PartnerInvite(models.Model):

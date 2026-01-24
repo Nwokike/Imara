@@ -15,13 +15,16 @@ class IncidentReport(models.Model):
     ACTION_CHOICES = [
         ('pending', 'Pending Analysis'),
         ('advise', 'Advice Given'),
-        ('report', 'Reported to Authority'),
+        ('report', 'Reported to Partner'),
     ]
     
     case_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True, db_index=True)
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, db_index=True)
     reporter_handle = models.CharField(max_length=255, blank=True, null=True)
     reporter_email = models.EmailField(blank=True, null=True)
+    reporter_name = models.CharField(max_length=255, blank=True, null=True)
+    contact_preference = models.CharField(max_length=255, blank=True, null=True)
+    perpetrator_info = models.TextField(blank=True, null=True)
     
     original_text = models.TextField(blank=True, null=True)
     transcribed_text = models.TextField(blank=True, null=True)
@@ -85,12 +88,7 @@ class IncidentReport(models.Model):
         return self.chain_hash
     
     def save(self, *args, **kwargs):
-        is_new = self.pk is None
         super().save(*args, **kwargs)
-        # Generate chain hash after first save (when pk exists and created_at is set)
-        if is_new and not self.chain_hash:
-            self.generate_chain_hash()
-            super().save(update_fields=['chain_hash'])
 
 
 class EvidenceAsset(models.Model):

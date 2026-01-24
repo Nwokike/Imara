@@ -231,7 +231,7 @@ Respond with this exact JSON structure:
             action='ADVISE',
             location='Unknown',
             summary='Image analyzed using fallback system - AI service unavailable',
-            advice='Please review the content manually. If you feel threatened, contact local authorities.',
+            advice='Please review the content manually. If you feel threatened, contact local emergency services.',
             threat_type='unknown',
             extracted_text='[Text extraction unavailable - AI service not configured]'
         )

@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('cases', '0001_initial'),
-        ('directory', '0001_initial'),
     ]
 
     operations = [
@@ -25,7 +24,6 @@ class Migration(migrations.Migration):
                 ('error_message', models.TextField(blank=True, null=True)),
                 ('sent_at', models.DateTimeField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('authority', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='dispatch_logs', to='directory.authoritycontact')),
                 ('incident', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='dispatch_logs', to='cases.incidentreport')),
             ],
             options={

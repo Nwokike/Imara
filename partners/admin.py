@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils import timezone
 from django.contrib import messages
-from .models import PartnerOrganization, PartnerUser, PartnerApplication, PartnerInvite
+from .models import PartnerOrganization, PartnerUser, PartnerInvite
 
 
 @admin.register(PartnerOrganization)
@@ -23,30 +23,6 @@ class PartnerUserAdmin(admin.ModelAdmin):
     list_filter = ['role', 'is_active', 'organization']
     search_fields = ['user__username', 'organization__name']
     raw_id_fields = ['user']
-
-
-@admin.register(PartnerApplication)
-class PartnerApplicationAdmin(admin.ModelAdmin):
-    list_display = ['org_name', 'org_type', 'jurisdiction', 'status', 'submitted_at']
-    list_filter = ['status', 'org_type', 'jurisdiction']
-    search_fields = ['org_name', 'contact_name', 'contact_email']
-    readonly_fields = ['submitted_at']
-    
-    fieldsets = (
-        ('Organization Details', {
-            'fields': ('org_name', 'org_type', 'jurisdiction', 'website', 'description')
-        }),
-        ('Contact Information', {
-            'fields': ('contact_name', 'contact_email', 'contact_phone')
-        }),
-        ('Review', {
-            'fields': ('status', 'admin_notes', 'reviewed_at', 'reviewed_by')
-        }),
-        ('Metadata', {
-            'fields': ('submitted_at',),
-            'classes': ('collapse',)
-        }),
-    )
 
 
 @admin.register(PartnerInvite)

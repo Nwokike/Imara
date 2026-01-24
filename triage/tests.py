@@ -61,3 +61,27 @@ class DecisionEngineTest(TestCase):
         result = self.engine.analyze_text("Hello world")
         self.assertEqual(result.risk_score, 2)
         self.assertEqual(result.action, "advise")
+
+
+class ConversationEngineEnforcementTests(TestCase):
+    def test_processing_requires_required_fields(self):
+        from triage.conversation_engine import ConversationEngine, ConversationState
+        engine = ConversationEngine()
+
+        payload = {
+            "response": "Ok, filing now.",
+            "state": "PROCESSING",
+            "gathered_info": {
+                "risk_score": 8,
+                "location": "Nairobi, Kenya",
+                "user_confirmed": True,
+                # Missing reporter_name / incident_description / contact_preference
+                "evidence_summary": "Threats to share intimate images",
+            },
+            "detected_language": "english"
+        }
+
+        resp = engine._parse_llm_response(__import__("json").dumps(payload))
+        self.assertEqual(resp.state, ConversationState.GATHERING)
+        self.assertFalse(resp.should_create_report)
+        self.assertIn("missing_fields", resp.gathered_info)

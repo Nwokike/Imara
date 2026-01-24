@@ -124,7 +124,7 @@
                 <span>Partners</span>
             </a>
             <a href="{% url 'publications:article_list' %}"
-                class="flex flex-col items-center justify-center text-xs {% if 'publications' in request.resolver_match.namespace %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
+                class="flex flex-col items-center justify-center text-xs {% if request.resolver_match.namespace == 'publications' %}text-imara-deep dark:text-imara-gold font-bold{% else %}text-gray-500 dark:text-gray-400{% endif %}">
                 <i class="bi bi-newspaper text-xl"></i>
                 <span>News</span>
             </a>

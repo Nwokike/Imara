@@ -123,7 +123,8 @@ class Article(models.Model):
 class Comment(models.Model):
     """
     Minimal, privacy-focused comment system.
-    Pre-moderation enabled by default.
+    Comments are pre-moderated by default (Turnstile reduces spam, staff approves).
+    Staff can mark comments as spam or approve/unapprove them via admin.
     """
     
     article = models.ForeignKey(

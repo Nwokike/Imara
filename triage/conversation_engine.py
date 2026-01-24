@@ -75,6 +75,13 @@ CRITICAL RULES:
 4. If user seems scared/in danger, prioritize safety with immediate resources
 5. Match the user's language (English, Pidgin, Swahili, French, etc.)
 
+REQUIRED FIELDS BEFORE ESCALATION (must collect before PROCESSING):
+- reporter_name: their name or a safe nickname (can be "Anonymous")
+- location: city + country (required for high risk)
+- incident_description: what happened (can be a short summary)
+- contact_preference: best way to follow up (email/phone/telegram/meta/none)
+- perpetrator_info: optional (who is abusing them, handles/links)
+
 CONVERSATION FLOW:
 1. GREET & LISTEN - Acknowledge their message, show empathy
 2. GATHER INFO - If unclear, ask:
@@ -82,7 +89,7 @@ CONVERSATION FLOW:
    - "When did this occur?"
    - "Do you know who sent this?"
 3. GET LOCATION - For high-risk cases, ALWAYS ask:
-   - "To connect you with the right authorities, which city/country are you in?"
+- "To connect you with the right support partners, which city/country are you in?"
 4. CONFIRM - Before filing report, summarize and confirm:
    - "Here's what I understood: [summary]. Should I file a report? (Yes/No)"
 5. PROCESS - Only after "Yes" confirmation
@@ -92,12 +99,16 @@ RESPONSE FORMAT (JSON only):
   "response": "<your empathetic message to the user>",
   "state": "IDLE|GATHERING|ASKING_LOCATION|CONFIRMING|PROCESSING|LOW_RISK_ADVISE",
   "gathered_info": {
+    "reporter_name": "<name or safe nickname or 'Anonymous'>",
     "threat_type": "<harassment|threat|doxing|blackmail|stalking|sextortion|insult|other>",
     "location": "<city, country if provided>",
+    "incident_description": "<brief description of what happened>",
     "risk_level": "<low|medium|high>",
     "risk_score": <1-10>,
     "evidence_summary": "<brief summary of what they shared>",
-    "perpetrator_info": "<any info about the abuser if provided>"
+    "perpetrator_info": "<any info about the abuser if provided>",
+    "contact_preference": "<email|phone|telegram|meta|none>",
+    "user_confirmed": <true|false>
   },
   "detected_language": "<english|pidgin|swahili|french|hausa|yoruba|igbo|other>"
 }
@@ -116,7 +127,7 @@ Response: {
 ---
 User: "Someone is threatening to share my nude pictures"
 Response: {
-  "response": "I'm so sorry you're going through this 💜 What you're describing is sextortion - this is a serious crime and NOT your fault.\\n\\nTo help connect you with the right authorities, please tell me: Which city and country are you in?",
+  "response": "I'm so sorry you're going through this 💜 What you're describing is sextortion - this is a serious crime and NOT your fault.\\n\\nTo help connect you with the right support partners, please tell me: Which city and country are you in?",
   "state": "ASKING_LOCATION",
   "gathered_info": {
     "threat_type": "sextortion",
@@ -130,7 +141,7 @@ Response: {
 ---
 User: "Lagos"
 Response: {
-  "response": "Thank you. I've noted you're in Lagos, Nigeria.\\n\\n📋 *Here's what I understood:*\\n• Threat type: Sextortion (threats to share intimate images)\\n• Location: Lagos, Nigeria\\n• This is a HIGH RISK situation (8/10)\\n\\nI can file a report with Nigerian cybercrime authorities who handle these cases.\\n\\n*Would you like me to proceed?* Reply YES to file the report, or tell me if anything needs to change.",
+  "response": "Thank you. I've noted you're in Lagos, Nigeria.\\n\\n📋 *Here's what I understood:*\\n• Threat type: Sextortion (threats to share intimate images)\\n• Location: Lagos, Nigeria\\n• This is a HIGH RISK situation (8/10)\\n\\nI can escalate your report to a verified support partner in Nigeria who handles these cases.\\n\\n*Would you like me to proceed?* Reply YES to escalate the report, or tell me if anything needs to change.",
   "state": "CONFIRMING",
   "gathered_info": {
     "threat_type": "sextortion",
@@ -145,7 +156,7 @@ Response: {
 ---
 User: "Yes"
 Response: {
-  "response": "✅ Filing your report now with Nigerian cybercrime authorities...",
+  "response": "✅ Escalating your report now to a verified support partner...",
   "state": "PROCESSING",
   "gathered_info": {
     "threat_type": "sextortion",
@@ -340,6 +351,17 @@ class ConversationEngine:
             risk_score = gathered_info.get('risk_score', 0)
             location = gathered_info.get('location', '')
             user_confirmed = gathered_info.get('user_confirmed', False)
+            reporter_name = (gathered_info.get('reporter_name') or '').strip()
+            incident_description = (gathered_info.get('incident_description') or gathered_info.get('evidence_summary') or '').strip()
+            contact_preference = (gathered_info.get('contact_preference') or '').strip()
+
+            # Normalize reporter_name
+            if reporter_name:
+                gathered_info['reporter_name'] = reporter_name
+            if incident_description and not gathered_info.get('incident_description'):
+                gathered_info['incident_description'] = incident_description
+            if contact_preference:
+                gathered_info['contact_preference'] = contact_preference
             
             # ENFORCEMENT: High-risk cases (7+) MUST have location before processing
             if state == ConversationState.PROCESSING:
@@ -351,6 +373,20 @@ class ConversationEngine:
                     # Force to CONFIRMING if no explicit confirmation
                     state = ConversationState.CONFIRMING
                     logger.info(f"Enforcing confirmation requirement for high-risk case (score: {risk_score})")
+                else:
+                    # Required fields enforcement (all escalations)
+                    missing = []
+                    if not reporter_name:
+                        missing.append("reporter_name")
+                    if not incident_description:
+                        missing.append("incident_description")
+                    if not contact_preference:
+                        missing.append("contact_preference")
+                    if missing:
+                        # Push back to gathering; do not allow report creation yet
+                        state = ConversationState.GATHERING
+                        logger.info(f"Enforcing required fields before processing: {missing}")
+                        gathered_info['missing_fields'] = missing
             
             # ENFORCEMENT: Don't let AI skip directly to LOW_RISK_ADVISE for high-risk
             if state == ConversationState.LOW_RISK_ADVISE and risk_score >= 7:

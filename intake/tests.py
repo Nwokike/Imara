@@ -1,8 +1,8 @@
 from django.urls import reverse
-from directory.models import AuthorityContact
 from django.test import TestCase, Client, override_settings
 from unittest import mock
 from .forms import ReportForm
+from partners.models import PartnerOrganization
 
 class ReportFormTest(TestCase):
     def test_valid_form_text_only(self):
@@ -58,7 +58,8 @@ class IntakeViewsTest(TestCase):
         self.assertTemplateUsed(response, 'intake/policies.html')
 
     @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
-    def test_partner_inquiry_submission(self, mock_turnstile):
+    @mock.patch('intake.views.send_email_task')
+    def test_partner_inquiry_submission(self, mock_send_email, mock_turnstile):
         """Test POST request to partner form"""
         data = {
             'organization_name': 'Test NGO',
@@ -72,23 +73,25 @@ class IntakeViewsTest(TestCase):
         response = self.client.post(reverse('partner'), data)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.context['success'])
+        self.assertTrue(mock_send_email.called)
 
     def test_home_page_context(self):
         """Test that homepage context contains support resources"""
-        # Create test contacts
-        AuthorityContact.objects.create(
-            agency_name="Test Kenya Agency",
-            jurisdiction_name="Kenya",
-            email="test@kenya.com",
+        PartnerOrganization.objects.create(
+            name="Test Kenya Partner",
+            jurisdiction="Kenya",
+            contact_email="test@kenya.com",
             phone="123",
-            priority=10
+            is_active=True,
+            is_verified=True,
         )
-        AuthorityContact.objects.create(
-            agency_name="Test Nigeria Agency",
-            jurisdiction_name="Nigeria",
-            email="test@nigeria.com",
+        PartnerOrganization.objects.create(
+            name="Test Nigeria Partner",
+            jurisdiction="Nigeria",
+            contact_email="test@nigeria.com",
             phone="456",
-            priority=10
+            is_active=True,
+            is_verified=True,
         )
         
         response = self.client.get(reverse('home'))  # Assuming 'home' is the URL name for index
@@ -98,7 +101,58 @@ class IntakeViewsTest(TestCase):
         resources = response.context['support_resources']
         self.assertIn('Kenya', resources)
         self.assertIn('Nigeria', resources)
-        self.assertEqual(resources['Kenya'][0].agency_name, "Test Kenya Agency")
+        self.assertEqual(resources['Kenya'][0]['name'], "Test Kenya Partner")
+
+    @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
+    @mock.patch('intake.views.report_processor.process_text_report')
+    def test_report_form_text_submission_calls_processor(self, mock_process_text, mock_turnstile):
+        mock_process_text.return_value = {"success": True, "action": "advise", "case_id": "x", "risk_score": 1}
+        response = self.client.post(reverse('report_form'), {
+            'message_text': 'Someone is sending threatening messages.',
+            'email': 'user@example.com',
+            'consent': 'on',
+            'cf-turnstile-response': 'test',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/result.html')
+        self.assertTrue(mock_process_text.called)
+
+    @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
+    @mock.patch('intake.views.report_processor.process_image_report')
+    def test_report_form_image_submission_calls_processor(self, mock_process_image, mock_turnstile):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from io import BytesIO
+        from PIL import Image
+        mock_process_image.return_value = {"success": True, "action": "advise", "case_id": "x", "risk_score": 1}
+        buf = BytesIO()
+        Image.new("RGB", (1, 1), color=(0, 0, 0)).save(buf, format="PNG")
+        image = SimpleUploadedFile("shot.png", buf.getvalue(), content_type="image/png")
+        response = self.client.post(reverse('report_form'), {
+            'message_text': 'Screenshot attached.',
+            'email': 'user@example.com',
+            'consent': 'on',
+            'cf-turnstile-response': 'test',
+            'screenshot': image,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/result.html')
+        self.assertTrue(mock_process_image.called)
+
+    @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
+    @mock.patch('intake.views.report_processor.process_audio_report')
+    def test_report_form_audio_submission_calls_processor(self, mock_process_audio, mock_turnstile):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        mock_process_audio.return_value = {"success": True, "action": "advise", "case_id": "x", "risk_score": 1}
+        audio = SimpleUploadedFile("voice.ogg", b"OggS" + b"0" * 200, content_type="audio/ogg")
+        response = self.client.post(reverse('report_form'), {
+            'email': 'user@example.com',
+            'consent': 'on',
+            'cf-turnstile-response': 'test',
+            'voice_note': audio,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'intake/result.html')
+        self.assertTrue(mock_process_audio.called)
 
 
 @override_settings(

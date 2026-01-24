@@ -4,10 +4,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from datetime import timedelta
 
-from .models import PartnerOrganization, PartnerUser, PartnerApplication
+from .models import PartnerOrganization, PartnerUser
 from cases.models import IncidentReport
+from utils.ratelimit import login_ratelimit, form_ratelimit
 
 
 class PartnerRequiredMixin(LoginRequiredMixin):
@@ -142,44 +144,6 @@ class ClaimCaseView(PartnerRequiredMixin, View):
         return redirect('partners:dashboard')
 
 
-class PartnerApplicationView(View):
-    """
-    Public form for organizations to apply to become partners.
-    """
-    
-    def get(self, request):
-        return render(request, 'partners/apply.html')
-    
-    def post(self, request):
-        # Validate Turnstile
-        from utils.captcha import validate_turnstile
-        token = request.POST.get('cf-turnstile-response')
-        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
-        
-        if not is_valid:
-            messages.error(request, error_msg)
-            return render(request, 'partners/apply.html', {'error': error_msg})
-        
-        # Create application
-        application = PartnerApplication.objects.create(
-            org_name=request.POST.get('org_name'),
-            org_type=request.POST.get('org_type', 'NGO'),
-            jurisdiction=request.POST.get('jurisdiction'),
-            contact_name=request.POST.get('contact_name'),
-            contact_email=request.POST.get('contact_email'),
-            contact_phone=request.POST.get('contact_phone', ''),
-            website=request.POST.get('website', ''),
-            description=request.POST.get('description', ''),
-        )
-        
-        messages.success(
-            request, 
-            f"Thank you! Your application for {application.org_name} has been submitted. "
-            "We will review it and contact you soon."
-        )
-        return redirect('home')
-
-
 class PartnerLoginView(View):
     """
     Custom branded login for partners (NOT Django admin).
@@ -195,6 +159,7 @@ class PartnerLoginView(View):
                 pass
         return render(request, 'partners/login.html')
     
+    @method_decorator(login_ratelimit)
     def post(self, request):
         from django.contrib.auth import authenticate, login
         from utils.captcha import validate_turnstile
@@ -294,8 +259,14 @@ class AcceptInviteView(View):
                 'organization': invite.organization
             })
         
-        if len(password) < 8:
-            messages.error(request, "Password must be at least 8 characters.")
+        # Use Django's password validators
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
             return render(request, 'partners/accept_invite.html', {
                 'invite': invite,
                 'organization': invite.organization
@@ -441,6 +412,65 @@ class TeamListView(PartnerRequiredMixin, View):
         }
         
         return render(request, 'partners/team.html', context)
+
+
+class MyCasesView(PartnerRequiredMixin, View):
+    """List all cases assigned to the partner organization."""
+
+    def get(self, request):
+        org = request.user.partner_profile.organization
+
+        my_cases = IncidentReport.objects.filter(
+            assigned_partner=org
+        ).order_by('-risk_score', '-created_at')
+
+        stats = {
+            "open": my_cases.filter(status='OPEN').count(),
+            "claimed": my_cases.filter(status='CLAIMED').count(),
+            "in_progress": my_cases.filter(status='IN_PROGRESS').count(),
+            "resolved": my_cases.filter(status='RESOLVED').count(),
+            "closed": my_cases.filter(status='CLOSED').count(),
+        }
+
+        return render(request, 'partners/my_cases.html', {
+            "organization": org,
+            "jurisdiction": org.jurisdiction,
+            "cases": my_cases,
+            "stats": stats,
+        })
+
+
+class PartnerSettingsView(PartnerRequiredMixin, View):
+    """Organization settings (admin-only edits)."""
+
+    def get(self, request):
+        org = request.user.partner_profile.organization
+        is_admin = request.user.partner_profile.role == PartnerUser.Role.ADMIN
+        return render(request, 'partners/settings.html', {
+            "organization": org,
+            "is_admin": is_admin,
+        })
+
+    def post(self, request):
+        org = request.user.partner_profile.organization
+        is_admin = request.user.partner_profile.role == PartnerUser.Role.ADMIN
+
+        if not is_admin:
+            messages.error(request, "Only organization admins can update settings.")
+            return redirect('partners:settings')
+
+        contact_email = (request.POST.get('contact_email') or '').strip()
+        phone = (request.POST.get('phone') or '').strip()
+        website = (request.POST.get('website') or '').strip()
+
+        if contact_email:
+            org.contact_email = contact_email
+        org.phone = phone
+        org.website = website
+        org.save(update_fields=['contact_email', 'phone', 'website'])
+
+        messages.success(request, "Settings updated.")
+        return redirect('partners:settings')
 
 
 class InviteTeamMemberView(AdminRequiredMixin, View):

@@ -27,6 +27,12 @@ else:
     env_hosts = os.environ.get('ALLOWED_HOSTS', '').split(',')
     ALLOWED_HOSTS = [host.strip() for host in env_hosts if host.strip()]
     if not ALLOWED_HOSTS:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            "ALLOWED_HOSTS not set in production .env - using fallback hosts. "
+            "This may be more permissive than desired. Set ALLOWED_HOSTS explicitly."
+        )
         ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'imara.africa', 'www.imara.africa', '35.209.14.56']
 
 # CSRF Protection: Allow forms to work on your domain
@@ -49,7 +55,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # Your Apps
     'cases.apps.CasesConfig',
-    'directory.apps.DirectoryConfig',
     'dispatch.apps.DispatchConfig',
     'intake.apps.IntakeConfig',
     'triage.apps.TriageConfig',
@@ -176,6 +181,12 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB max
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5MB before temp file
 
+# Data retention (1GB VM hygiene)
+# Chat + feedback tables can grow without bounds over time; keep them lean by default.
+TRIAGE_MESSAGE_RETENTION_DAYS = int(os.environ.get('TRIAGE_MESSAGE_RETENTION_DAYS', '90'))
+TRIAGE_SESSION_RETENTION_DAYS = int(os.environ.get('TRIAGE_SESSION_RETENTION_DAYS', '90'))
+TRIAGE_FEEDBACK_RETENTION_DAYS = int(os.environ.get('TRIAGE_FEEDBACK_RETENTION_DAYS', '365'))
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # API Keys
@@ -198,6 +209,9 @@ ADMIN_NOTIFICATION_EMAIL = os.environ.get('ADMIN_NOTIFICATION_EMAIL', 'projectim
 TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '' if not DEBUG else '1x00000000000000000000AA')
 TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '' if not DEBUG else '1x0000000000000000000000000000000AA')
 
+# Rate Limiting Configuration
+RATELIMIT_VIEW = 'utils.ratelimit.handle_ratelimit_error'
+
 # Security Settings for Production
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -213,21 +227,45 @@ if not DEBUG:
     SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
     SECURE_REDIRECT_EXEMPT = [r'^webhook/']
     
-    # Validate R2 credentials in production
+    # Validate critical configuration in production
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    missing_critical = []
+    
+    # R2 Storage (required for media files)
     required_r2_vars = ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME']
     missing_r2 = [v for v in required_r2_vars if not os.environ.get(v)]
     if missing_r2:
-        import logging
-        logging.warning(f"Missing R2 storage vars: {missing_r2} - File uploads may fail")
+        missing_critical.extend(missing_r2)
+        logger.error(f"Missing R2 storage vars: {missing_r2} - File uploads will fail")
     
-    # Content Security Policy
-    CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "https://challenges.cloudflare.com")
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-    CSP_IMG_SRC = ("'self'", "data:", "https:")
-    CSP_FONT_SRC = ("'self'",)
-    CSP_FRAME_SRC = ("https://challenges.cloudflare.com",)
-    CSP_CONNECT_SRC = ("'self'", "https://challenges.cloudflare.com")
+    # AI Services (required for threat analysis)
+    if not os.environ.get('GROQ_API_KEY'):
+        missing_critical.append('GROQ_API_KEY')
+        logger.error("GROQ_API_KEY not set - text analysis will fail")
+    if not os.environ.get('GEMINI_API_KEY'):
+        missing_critical.append('GEMINI_API_KEY')
+        logger.error("GEMINI_API_KEY not set - image/audio analysis will fail")
+    
+    # Email Dispatch (required for forensic alerts)
+    if not os.environ.get('BREVO_API_KEY'):
+        missing_critical.append('BREVO_API_KEY')
+        logger.error("BREVO_API_KEY not set - email dispatch will fail")
+    
+    # Turnstile (required for CAPTCHA protection)
+    if not os.environ.get('TURNSTILE_SITE_KEY') or not os.environ.get('TURNSTILE_SECRET_KEY'):
+        missing_critical.extend(['TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'])
+        logger.error("Turnstile keys not set - CAPTCHA protection disabled")
+    
+    if missing_critical:
+        logger.critical(
+            f"CRITICAL: Missing required environment variables: {missing_critical}. "
+            "Application may not function correctly in production."
+        )
+        raise ImproperlyConfigured(
+            f"Missing required environment variables for production: {', '.join(missing_critical)}"
+        )
 
 LOGGING = {
     'version': 1,

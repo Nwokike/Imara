@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('extracted_text', models.TextField(blank=True, null=True)),
                 ('ai_analysis', models.JSONField(blank=True, null=True)),
                 ('risk_score', models.IntegerField(default=0)),
-                ('action', models.CharField(choices=[('pending', 'Pending Analysis'), ('advise', 'Advice Given'), ('report', 'Reported to Authority')], default='pending', max_length=20)),
+                ('action', models.CharField(choices=[('pending', 'Pending Analysis'), ('advise', 'Advice Given'), ('report', 'Reported to Partner')], default='pending', max_length=20)),
                 ('detected_location', models.CharField(blank=True, max_length=255, null=True)),
                 ('chain_hash', models.CharField(blank=True, max_length=64, null=True)),
                 ('dispatched_at', models.DateTimeField(blank=True, null=True)),

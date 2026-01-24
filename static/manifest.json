@@ -53,5 +53,20 @@
         }
     ],
     "categories": ["safety", "social", "utilities"],
-    "screenshots": []
+    "screenshots": [
+        {
+            "src": "/static/images/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Project Imara"
+        },
+        {
+            "src": "/static/images/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Project Imara"
+        }
+    ]
 }

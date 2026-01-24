@@ -30,8 +30,12 @@
                 <p class="font-medium dark:text-white">{{ case.get_source_display }}</p>
             </div>
             <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Status</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">AI Action</p>
                 <p class="font-medium dark:text-white">{{ case.get_action_display }}</p>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Workflow Status</p>
+                <p class="font-medium dark:text-white">{{ case.get_status_display }}</p>
             </div>
             <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Location</p>
@@ -39,7 +43,7 @@
             </div>
             <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Assigned Partner</p>
-                <p class="font-medium dark:text-white">{{ case.assigned_partner.name|default:"Unassigned" }}</p>
+                <p class="font-medium dark:text-white">{{ case.assigned_partner|default:"Unassigned" }}</p>
             </div>
         </div>
 

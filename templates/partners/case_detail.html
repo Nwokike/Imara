@@ -1,9 +1,8 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'partners/_layout.html' %}
 
-{% block title %}Case #{{ case.case_id|truncatechars:12 }} | {{ organization.name }} | Imara{% endblock %}
+{% block partner_title %}Case #{{ case.case_id|truncatechars:12 }} | {{ organization.name }} | Imara{% endblock %}
 
-{% block content %}
+{% block partner_content %}
 <div class="max-w-5xl mx-auto">
     <!-- Breadcrumb -->
     <nav class="mb-6">
@@ -121,6 +120,24 @@
                         <dd class="font-medium text-gray-900 dark:text-white">{{
                             case.detected_location|default:"Unknown" }}</dd>
                     </div>
+                    {% if case.reporter_name %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Reporter Name</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.reporter_name }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if case.contact_preference %}
+                    <div class="flex justify-between">
+                        <dt class="text-gray-500 dark:text-gray-400">Contact Pref.</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white">{{ case.contact_preference }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if case.perpetrator_info %}
+                    <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <dt class="text-gray-500 dark:text-gray-400 mb-1">Perpetrator Info</dt>
+                        <dd class="font-medium text-gray-900 dark:text-white whitespace-pre-wrap">{{ case.perpetrator_info }}</dd>
+                    </div>
+                    {% endif %}
                     <div class="flex justify-between">
                         <dt class="text-gray-500 dark:text-gray-400">Submitted</dt>
                         <dd class="font-medium text-gray-900 dark:text-white">{{ case.created_at|date:"M j, Y" }}</dd>

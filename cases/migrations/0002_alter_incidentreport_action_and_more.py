@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='incidentreport',
             name='action',
-            field=models.CharField(choices=[('pending', 'Pending Analysis'), ('advise', 'Advice Given'), ('report', 'Reported to Authority')], db_index=True, default='pending', max_length=20),
+            field=models.CharField(choices=[('pending', 'Pending Analysis'), ('advise', 'Advice Given'), ('report', 'Reported to Partner')], db_index=True, default='pending', max_length=20),
         ),
         migrations.AlterField(
             model_name='incidentreport',

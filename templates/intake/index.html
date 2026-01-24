@@ -12,8 +12,8 @@
                 <h1 class="hero-title">Your Digital Bodyguard Against Online Violence</h1>
                 <p class="hero-subtitle">70% of women experience online harassment. Imara uses smart technology to
                     analyze
-                    threats, provide instant safety advice, and connect you with authorities when needed. No app
-                    download required.</p>
+                    threats, provide instant safety advice, and connect you with verified support partners when
+                    needed. No app download required.</p>
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number">24/7</span>
@@ -237,7 +237,7 @@
                 <div class="step-number">3</div>
                 <div class="step-icon"><i class="bi bi-shield-check"></i></div>
                 <h4>Action</h4>
-                <p>Low risk: Get safety advice. High risk: Auto-report to nearest authorities</p>
+                <p>Low risk: Get safety advice. High risk: Auto-escalate to verified support partners</p>
             </div>
         </div>
     </div>
@@ -390,7 +390,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 {% for contact in contacts %}
                                 <div class="support-item p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                                    <h6 class="font-bold mb-1">{{ contact.agency_name }}</h6>
+                                    <h6 class="font-bold mb-1">{{ contact.name }}</h6>
                                     {% if contact.phone %}
                                     <p class="text-imara-deep dark:text-imara-gold text-lg font-bold"><i
                                             class="bi bi-telephone me-2"></i>{{ contact.phone }}</p>
@@ -400,16 +400,24 @@
                                         contact.email }}</p>
                                     {% endif %}
 
-                                    {% if contact.tags %}
                                     <div class="flex flex-wrap gap-2 mt-2">
-                                        {% for tag in contact.tags %}
+                                        {% if contact.org_type %}
                                         <span
                                             class="support-tag text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-1 rounded">
-                                            {{ tag }}
+                                            {{ contact.org_type }}
                                         </span>
-                                        {% endfor %}
+                                        {% endif %}
+                                        {% if contact.website %}
+                                        <a
+                                            href="{{ contact.website }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="support-tag text-xs bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-100 px-2 py-1 rounded hover:underline"
+                                        >
+                                            <i class="bi bi-globe me-1"></i>Website
+                                        </a>
+                                        {% endif %}
                                     </div>
-                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>

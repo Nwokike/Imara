@@ -10,7 +10,6 @@ class DispatchLog(models.Model):
     ]
     
     incident = models.ForeignKey('cases.IncidentReport', on_delete=models.CASCADE, related_name='dispatch_logs')
-    authority = models.ForeignKey('directory.AuthorityContact', on_delete=models.SET_NULL, null=True, related_name='dispatch_logs')
     
     recipient_email = models.EmailField()
     subject = models.CharField(max_length=500)

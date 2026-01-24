@@ -31,6 +31,9 @@ jobs:
           cd /home/projectimarahq/imara
 
           # 3. Pull the latest code from GitHub
+          git fetch origin main
+          git reset --hard origin/main
+          git clean -fd
           git pull origin main
 
           # 4. Sync Dependencies
@@ -50,8 +53,11 @@ jobs:
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
-          # 9. Health Check
+          # 9. Health Check (fails deployment if non-2xx)
           sleep 5
-          curl -sf http://localhost:8000/health/ || echo "Warning: Health check failed"
+          if ! curl -sf http://localhost:8000/health/; then
+            echo "ERROR: Health check failed - deployment may be broken"
+            exit 1
+          fi
 
           echo "Deployment Complete! 🚀"

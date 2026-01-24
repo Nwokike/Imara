@@ -1,6 +1,9 @@
 from django.test import TestCase
+from django.test import override_settings
+from unittest import mock
 from cases.models import IncidentReport
 from .models import DispatchLog
+from .tasks import send_email_task
 
 class DispatchLogTest(TestCase):
     def setUp(self):
@@ -15,3 +18,36 @@ class DispatchLogTest(TestCase):
         )
         self.assertEqual(log.status, "sent")
         self.assertEqual(str(log), "Dispatch to police@gov.ng - sent")
+
+
+class BrevoTaskTests(TestCase):
+    @override_settings(BREVO_API_KEY="test_key")
+    @mock.patch("dispatch.tasks.requests.post")
+    def test_send_email_task_updates_dispatch_log_and_incident(self, mock_post):
+        incident = IncidentReport.objects.create(source='web')
+        log = DispatchLog.objects.create(
+            incident=incident,
+            recipient_email="partner@example.com",
+            subject="Test Alert",
+            status="pending"
+        )
+
+        mock_post.return_value.status_code = 201
+        mock_post.return_value.json.return_value = {"messageId": "brevo-msg-1"}
+
+        payload = {
+            "sender": {"name": "Imara", "email": "noreply@imara.africa"},
+            "to": [{"email": "partner@example.com"}],
+            "subject": "Test",
+            "htmlContent": "<p>hi</p>",
+        }
+
+        send_email_task(payload, dispatch_log_id=log.pk, incident_id=incident.pk)
+
+        log.refresh_from_db()
+        self.assertEqual(log.status, "sent")
+        self.assertEqual(log.brevo_message_id, "brevo-msg-1")
+
+        incident.refresh_from_db()
+        self.assertIsNotNone(incident.dispatched_at)
+        self.assertEqual(incident.dispatched_to, "partner@example.com")

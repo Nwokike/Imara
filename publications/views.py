@@ -3,7 +3,9 @@ from django.views import View
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from .models import Article, Comment
+from utils.ratelimit import form_ratelimit
 
 
 class ArticleListView(ListView):
@@ -39,6 +41,7 @@ class ArticleDetailView(DetailView):
 class SubmitCommentView(View):
     """Handle comment submission with Turnstile validation."""
     
+    @method_decorator(form_ratelimit)
     def post(self, request, slug):
         from utils.captcha import validate_turnstile
         
@@ -66,16 +69,16 @@ class SubmitCommentView(View):
             messages.error(request, "Comment is too long (max 1000 characters).")
             return redirect('publications:article_detail', slug=slug)
         
-        # Create comment (auto-approved - Turnstile handles spam)
+        # Create comment (pre-moderation by default)
         Comment.objects.create(
             article=article,
             name=name,
             email=email,
             content=content,
             ip_address=request.META.get('REMOTE_ADDR'),
-            is_approved=True  # Auto-approved, Turnstile handles spam
+            is_approved=False
         )
         
-        messages.success(request, "Thank you! Your comment has been posted.")
+        messages.success(request, "Thank you! Your comment has been received and is awaiting moderation.")
         return redirect('publications:article_detail', slug=slug)
 

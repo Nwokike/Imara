@@ -42,6 +42,14 @@ class ChatSession(models.Model):
     
     # Collected information during conversation (persisted across messages)
     gathered_evidence = models.JSONField(default=dict, blank=True)
+
+    # Required-field tracking for reliable case creation
+    # - required_fields: list of missing required fields (strings)
+    # - gathered_required_info: normalized values collected from the user
+    required_fields = models.JSONField(default=list, blank=True)
+    gathered_required_info = models.JSONField(default=dict, blank=True)
+    case_creation_pending = models.BooleanField(default=False)
+    last_ai_instruction = models.TextField(blank=True, default="")
     
     # User preferences
     last_detected_location = models.CharField(max_length=255, blank=True, null=True)

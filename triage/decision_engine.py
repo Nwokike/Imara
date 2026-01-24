@@ -188,6 +188,45 @@ class DecisionEngine:
                 source_type="unknown",
                 error="No evidence provided"
             )
+
+    # === Required field checks (partner action reliability) ===
+
+    REQUIRED_FIELDS = ["reporter_name", "incident_description", "contact_preference"]
+    HIGH_RISK_REQUIRED_FIELDS = ["location"]
+
+    def check_required_fields(self, session, gathered_info: Optional[Dict[str, Any]] = None) -> list[str]:
+        """
+        Returns a list of missing fields required before creating/escalating a case.
+        """
+        info = gathered_info or {}
+        missing: list[str] = []
+
+        for f in self.REQUIRED_FIELDS:
+            val = (info.get(f) or "").strip() if isinstance(info.get(f), str) else info.get(f)
+            if not val:
+                missing.append(f)
+
+        risk_score = info.get("risk_score") or 0
+        if risk_score >= 7:
+            for f in self.HIGH_RISK_REQUIRED_FIELDS:
+                val = (info.get(f) or "").strip() if isinstance(info.get(f), str) else info.get(f)
+                if not val or val == "Unknown":
+                    missing.append(f)
+
+        return missing
+
+    def is_ready_for_case_creation(self, session, triage_result: Optional["TriageResult"] = None, gathered_info: Optional[Dict[str, Any]] = None) -> bool:
+        """
+        Returns True if we have enough information to create a case reliably.
+        """
+        info = gathered_info or {}
+        missing = self.check_required_fields(session, info)
+        if missing:
+            return False
+        # If triage_result exists and asks for location, we're not ready.
+        if triage_result is not None and getattr(triage_result, "needs_location", False):
+            return False
+        return True
     
     def _get_fallback_result(self, source_type: str, error_message: str) -> TriageResult:
         return TriageResult(
@@ -195,7 +234,7 @@ class DecisionEngine:
             action="ADVISE",
             location="Unknown",
             summary="Unable to fully analyze the content due to a technical issue",
-            advice="If you feel threatened, please contact local authorities directly. You can also try submitting again.",
+            advice="If you feel threatened, please contact local emergency services directly. You can also try submitting again.",
             threat_type="unknown",
             source_type=source_type,
             error=error_message

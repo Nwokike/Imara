@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block partner_title %}Partner Portal | Imara{% endblock %}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Sidebar -->
+        <aside class="lg:col-span-3">
+            <div class="glass-panel p-5 sticky top-6">
+                <div class="flex items-center gap-3 mb-5">
+                    <div class="w-10 h-10 rounded-xl bg-imara-gold/20 flex items-center justify-center">
+                        <i class="bi bi-shield-lock text-imara-gold text-xl"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Partner Portal</p>
+                        <p class="font-bold text-imara-deep dark:text-imara-cream truncate">
+                            {{ organization.name|default:"Partner" }}
+                        </p>
+                    </div>
+                </div>
+
+                <nav class="space-y-1">
+                    <a href="{% url 'partners:dashboard' %}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-gray-100 dark:bg-gray-800 font-semibold{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{% url 'partners:pool' %}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors {% if request.resolver_match.url_name == 'pool' %}bg-gray-100 dark:bg-gray-800 font-semibold{% endif %}">
+                        <i class="bi bi-collection"></i>
+                        <span>Case Pool</span>
+                    </a>
+                    <a href="{% url 'partners:my_cases' %}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors {% if request.resolver_match.url_name == 'my_cases' %}bg-gray-100 dark:bg-gray-800 font-semibold{% endif %}">
+                        <i class="bi bi-person-check"></i>
+                        <span>My Cases</span>
+                    </a>
+                    <a href="{% url 'partners:team' %}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors {% if request.resolver_match.url_name == 'team' %}bg-gray-100 dark:bg-gray-800 font-semibold{% endif %}">
+                        <i class="bi bi-people"></i>
+                        <span>Team</span>
+                    </a>
+                    <a href="{% url 'partners:settings' %}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors {% if request.resolver_match.url_name == 'settings' %}bg-gray-100 dark:bg-gray-800 font-semibold{% endif %}">
+                        <i class="bi bi-gear"></i>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+
+                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        Signed in as <span class="font-semibold">{{ request.user.get_full_name|default:request.user.username }}</span>
+                    </div>
+                    <a href="{% url 'partners:logout' %}"
+                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-imara-deep text-white hover:bg-imara-deep/90 transition-colors font-semibold">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="lg:col-span-9">
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-4 rounded-xl text-sm {% if message.tags == 'error' %}bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400{% else %}bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% block partner_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+

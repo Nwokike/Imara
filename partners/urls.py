@@ -14,8 +14,10 @@ urlpatterns = [
     # Dashboard & Cases
     path('dashboard/', views.PartnerDashboardView.as_view(), name='dashboard'),
     path('pool/', views.CasePoolView.as_view(), name='pool'),
+    path('my-cases/', views.MyCasesView.as_view(), name='my_cases'),
     path('claim/<int:case_id>/', views.ClaimCaseView.as_view(), name='claim_case'),
     path('case/<int:case_id>/', views.PartnerCaseDetailView.as_view(), name='case_detail'),
+    path('settings/', views.PartnerSettingsView.as_view(), name='settings'),
     
     # Team Management
     path('team/', views.TeamListView.as_view(), name='team'),

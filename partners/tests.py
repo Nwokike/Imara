@@ -124,6 +124,45 @@ class PartnerLoginTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class PartnerPortalViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username='partneradmin',
+            email='partneradmin@test.com',
+            password='testpass123'
+        )
+        self.org = PartnerOrganization.objects.create(
+            name='Portal Org',
+            jurisdiction='Kenya',
+            contact_email='alerts@portal.org',
+            is_active=True,
+            is_verified=True,
+        )
+        PartnerUser.objects.create(user=self.user, organization=self.org, role='ADMIN', is_active=True)
+        self.client.login(username='partneradmin', password='testpass123')
+
+    def test_my_cases_page_loads(self):
+        response = self.client.get(reverse('partners:my_cases'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partners/my_cases.html')
+
+    def test_settings_page_loads(self):
+        response = self.client.get(reverse('partners:settings'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'partners/settings.html')
+
+    def test_settings_update_as_admin(self):
+        response = self.client.post(reverse('partners:settings'), {
+            "contact_email": "new@portal.org",
+            "phone": "12345",
+            "website": "https://portal.org",
+        })
+        self.assertIn(response.status_code, [200, 302])
+        self.org.refresh_from_db()
+        self.assertEqual(self.org.contact_email, "new@portal.org")
+
+
 class PartnerAdminTests(TestCase):
     """Tests for Django admin views to catch configuration errors"""
     
@@ -186,10 +225,5 @@ class PartnerAdminTests(TestCase):
     def test_partner_user_add_view_loads(self):
         """Test that Partner User add view loads"""
         response = self.client.get('/admin/partners/partneruser/add/')
-        self.assertEqual(response.status_code, 200)
-    
-    def test_partner_application_add_view_loads(self):
-        """Test that Partner Application add view loads"""
-        response = self.client.get('/admin/partners/partnerapplication/add/')
         self.assertEqual(response.status_code, 200)
 

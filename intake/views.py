@@ -22,24 +22,34 @@ from triage.decision_engine import DecisionEngine
 from .services import report_processor
 from .forms import ReportForm, ContactForm
 from dispatch.tasks import send_email_task
+from utils.ratelimit import form_ratelimit, telegram_webhook_ratelimit
 
 logger = logging.getLogger(__name__)
 
 
-from directory.models import AuthorityContact
+from partners.models import PartnerOrganization
 
 class HomeView(View):
     def get(self, request):
-        # Fetch active authority contacts for the support section
-        contacts = AuthorityContact.objects.filter(is_active=True).order_by('jurisdiction_name', '-priority')
+        # Fetch active, verified partner organizations for the support section
+        partners = PartnerOrganization.objects.filter(
+            is_active=True,
+            is_verified=True
+        ).order_by('jurisdiction', 'name')
         
         # Group by jurisdiction
         support_resources = {}
-        for contact in contacts:
-            country = contact.jurisdiction_name
+        for partner in partners:
+            country = partner.jurisdiction
             if country not in support_resources:
                 support_resources[country] = []
-            support_resources[country].append(contact)
+            support_resources[country].append({
+                'name': partner.name,
+                'phone': partner.phone,
+                'email': partner.contact_email,
+                'website': partner.website,
+                'org_type': partner.get_org_type_display(),
+            })
             
         return render(request, 'intake/index.html', {'support_resources': support_resources})
 
@@ -127,6 +137,7 @@ class ReportFormView(View):
         form = ReportForm()
         return render(request, 'intake/report_form.html', {'form': form})
     
+    @method_decorator(form_ratelimit)
     def post(self, request):
         # Security: Validate Cloudflare Turnstile
         from utils.captcha import validate_turnstile
@@ -147,6 +158,7 @@ class ReportFormView(View):
             text = form.cleaned_data.get('message_text')
             image = form.cleaned_data.get('screenshot')
             audio = form.cleaned_data.get('voice_note')
+            name = (form.cleaned_data.get('name') or '').strip() or None
             email = form.cleaned_data.get('email')
             
             if image:
@@ -154,19 +166,22 @@ class ReportFormView(View):
                     image_file=image,
                     source="web",
                     reporter_email=email,
+                    reporter_name=name or None,
                     additional_text=text
                 )
             elif audio:
                 result = report_processor.process_audio_report(
                     audio_file=audio,
                     source="web",
-                    reporter_email=email
+                    reporter_email=email,
+                    reporter_name=name or None
                 )
             elif text:
                 result = report_processor.process_text_report(
                     text=text,
                     source="web",
-                    reporter_email=email
+                    reporter_email=email,
+                    reporter_name=name or None
                 )
             else:
                 return render(request, 'intake/report_form.html', {
@@ -187,6 +202,7 @@ class ResultView(View):
 SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 @method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(telegram_webhook_ratelimit, name='post')
 class TelegramWebhookView(View):
     # Reduced to 2 workers for 1GB RAM constraint
     _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="telegram_worker")
@@ -393,7 +409,7 @@ I'm here to help protect you from online harassment and threats.
 
 I'll analyze the content and:
 • Give you advice for minor issues
-• Alert authorities for serious threats
+• Alert verified support partners for serious threats
 
 Your safety is my priority. Everything you share is confidential.
 
@@ -412,7 +428,7 @@ Ready when you are. 💪"""
 *What I Do:*
 1️⃣ Analyze the threat level
 2️⃣ Provide advice for minor issues
-3️⃣ Report serious threats to authorities
+3️⃣ Report serious threats to verified support partners
 
 *Commands:*
 /start - Welcome message
@@ -462,6 +478,22 @@ Stay safe! 🛡️"""
             session.gathered_evidence = {**session.gathered_evidence, **response.gathered_info}
         if response.detected_language:
             session.language_preference = response.detected_language
+
+        # Track missing required fields for reliability
+        try:
+            from triage.decision_engine import decision_engine
+            missing = decision_engine.check_required_fields(session, session.gathered_evidence)
+            session.required_fields = missing
+            session.gathered_required_info = {
+                k: session.gathered_evidence.get(k)
+                for k in ['reporter_name', 'location', 'incident_description', 'contact_preference', 'perpetrator_info']
+                if session.gathered_evidence.get(k)
+            }
+            session.case_creation_pending = bool(response.should_create_report) and not missing
+            session.last_ai_instruction = response.message[:2000]
+        except Exception:
+            # Never block user flow on bookkeeping
+            pass
         session.save()
         
         # Save AI response to message history
@@ -493,6 +525,27 @@ Stay safe! 🛡️"""
         location = gathered_info.get('location') or session.last_detected_location or 'Unknown'
         threat_type = gathered_info.get('threat_type', 'threat')
         risk_score = gathered_info.get('risk_score', 7)
+        reporter_name = (gathered_info.get('reporter_name') or '').strip()
+        contact_preference = (gathered_info.get('contact_preference') or '').strip()
+        incident_description = (gathered_info.get('incident_description') or evidence_summary or '').strip()
+        
+        missing = []
+        if not reporter_name:
+            missing.append("your name (or a safe nickname)")
+        if (risk_score or 0) >= 7 and (not location or location == "Unknown"):
+            missing.append("your city and country")
+        if not incident_description:
+            missing.append("a brief description of what happened")
+        if not contact_preference:
+            missing.append("how you want to be contacted (email/phone/none)")
+        
+        if missing:
+            session.conversation_state = 'GATHERING'
+            session.save()
+            prompt = "To escalate this safely, I need a bit more information:\n\n- " + "\n- ".join(missing) + "\n\nYou can answer in one message."
+            self.save_message(session, 'assistant', prompt, 'text')
+            self.send_message(chat_id, prompt)
+            return
         
         # Store location for future use
         if location and location != 'Unknown':
@@ -507,7 +560,10 @@ Stay safe! 🛡️"""
             text=report_text,
             source="telegram",
             reporter_handle=f"@{username}",
-            location_hint=location
+            location_hint=location,
+            reporter_name=reporter_name or None,
+            contact_preference=contact_preference or None,
+            perpetrator_info=gathered_info.get('perpetrator_info') or None,
         )
         
         # Reset conversation state
@@ -523,8 +579,14 @@ Stay safe! 🛡️"""
         parts = []
         
         # Add gathered info summary
+        if gathered_info.get('reporter_name'):
+            parts.append(f"Reporter Name: {gathered_info['reporter_name']}")
+        if gathered_info.get('contact_preference'):
+            parts.append(f"Contact Preference: {gathered_info['contact_preference']}")
         if gathered_info.get('evidence_summary'):
             parts.append(f"Summary: {gathered_info['evidence_summary']}")
+        if gathered_info.get('incident_description'):
+            parts.append(f"Incident Description: {gathered_info['incident_description']}")
         if gathered_info.get('threat_type'):
             parts.append(f"Threat Type: {gathered_info['threat_type']}")
         if gathered_info.get('perpetrator_info'):
@@ -707,14 +769,14 @@ Stay safe! 🛡️"""
             self.save_message(session, 'assistant', response_content, 'text')
         
         if result.get('action') == 'report':
-            authority_name = result.get('authority_name', 'Local Authority')
-            authority_email = result.get('authority_email', '')
+            partner_name = result.get('partner_name', 'Support Partner')
+            partner_email = result.get('partner_email', '')
             
-            authority_info = ""
-            if authority_name:
-                authority_info = f"\n\n📧 *Sent To:*\n{authority_name}"
-                if authority_email:
-                    authority_info += f"\n_{authority_email}_"
+            partner_info = ""
+            if partner_name:
+                partner_info = f"\n\n📧 *Sent To:*\n{partner_name}"
+                if partner_email:
+                    partner_info += f"\n_{partner_email}_"
             
             msg = f"""🚨 *HIGH RISK DETECTED*
 
@@ -723,7 +785,7 @@ Stay safe! 🛡️"""
 
 *Summary:* {result.get('summary', 'Threat detected')}
 
-✅ *Action Taken:* Your report has been forwarded to the appropriate authorities.{authority_info}
+✅ *Action Taken:* Your report has been forwarded to the appropriate support partner.{partner_info}
 
 ⚡ *Safety Reminder:* Consider deleting this conversation if someone might check your phone. Type STOP anytime if you feel unsafe.
 
@@ -810,10 +872,16 @@ def keep_alive(request):
 class PartnerView(View):
     """Partnership page with inquiry form"""
     def get(self, request):
-        return render(request, 'intake/partner.html')
+        from partners.constants import AFRICAN_COUNTRIES_BY_REGION
+        return render(request, 'intake/partner.html', {
+            "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+        })
     
+    @method_decorator(form_ratelimit)
     def post(self, request):
         """Handle partnership inquiry form submission"""
+        from partners.constants import AFRICAN_COUNTRIES, AFRICAN_COUNTRIES_BY_REGION
+
         org_name = request.POST.get('organization_name', '').strip()
         contact_name = request.POST.get('contact_name', '').strip()
         email = request.POST.get('email', '').strip()
@@ -828,12 +896,22 @@ class PartnerView(View):
         is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
         
         if not is_valid:
-            return render(request, 'intake/partner.html', {'error': error_msg})
+            return render(request, 'intake/partner.html', {
+                'error': error_msg,
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+            })
         
         # Basic validation
         if not all([org_name, contact_name, email, country, partnership_type, org_type]):
             return render(request, 'intake/partner.html', {
-                'error': 'Please fill in all required fields.'
+                'error': 'Please fill in all required fields.',
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+            })
+
+        if country not in AFRICAN_COUNTRIES:
+            return render(request, 'intake/partner.html', {
+                'error': 'Please select a valid African country from the list.',
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
             })
         
         # Log the inquiry
@@ -863,7 +941,10 @@ class PartnerView(View):
         
         send_email_task(payload)
         
-        return render(request, 'intake/partner.html', {'success': True})
+        return render(request, 'intake/partner.html', {
+            'success': True,
+            "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+        })
 
 
 def consent_view(request):
@@ -882,6 +963,7 @@ class ContactView(View):
         form = ContactForm()
         return render(request, 'intake/contact.html', {'form': form})
     
+    @method_decorator(form_ratelimit)
     def post(self, request):
         # Validate Turnstile first
         from utils.captcha import validate_turnstile

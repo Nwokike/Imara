@@ -202,14 +202,13 @@
                                     <label class="form-label"><i class="bi bi-geo-alt me-2"></i>Country/Region *</label>
                                     <select class="form-select" name="country" required>
                                         <option value="">Select your country</option>
-                                        <option value="Kenya">Kenya</option>
-                                        <option value="Nigeria">Nigeria</option>
-                                        <option value="South Africa">South Africa</option>
-                                        <option value="Ghana">Ghana</option>
-                                        <option value="Uganda">Uganda</option>
-                                        <option value="Tanzania">Tanzania</option>
-                                        <option value="Rwanda">Rwanda</option>
-                                        <option value="Other">Other African Country</option>
+                                        {% for region, countries in african_countries_by_region %}
+                                        <optgroup label="{{ region }}">
+                                            {% for c in countries %}
+                                            <option value="{{ c }}">{{ c }}</option>
+                                            {% endfor %}
+                                        </optgroup>
+                                        {% endfor %}
                                     </select>
                                 </div>
                                 <div class="col-md-6">

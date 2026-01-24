@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from unittest import mock
 from .models import Article, Category, Tag, Comment
 
 
@@ -102,3 +103,19 @@ class CommentTests(TestCase):
         )
         self.assertFalse(comment.is_approved)  # Default is False
         self.assertFalse(comment.is_spam)
+
+    @mock.patch('utils.captcha.validate_turnstile', return_value=(True, None))
+    def test_submit_comment_creates_unapproved(self, mock_turnstile):
+        client = Client()
+        response = client.post(
+            reverse('publications:submit_comment', args=[self.article.slug]),
+            data={
+                "name": "Tester",
+                "email": "t@example.com",
+                "content": "Nice post",
+                "cf-turnstile-response": "test",
+            }
+        )
+        self.assertIn(response.status_code, [200, 302])
+        c = Comment.objects.get(article=self.article)
+        self.assertFalse(c.is_approved)

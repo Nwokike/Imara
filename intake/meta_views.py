@@ -23,6 +23,7 @@ from django.core.files import File
 from triage.models import ChatSession, ChatMessage
 from .services import report_processor
 from .meta_service import meta_messenger
+from utils.ratelimit import telegram_webhook_ratelimit
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+@method_decorator(telegram_webhook_ratelimit, name='post')
 class MetaWebhookView(View):
     """
     Unified Webhook for Facebook Messenger and Instagram.
@@ -229,56 +231,140 @@ class MetaWebhookView(View):
             meta_messenger.send_text_message(sender_id, safety_msg, platform)
             return
         
-        # Check if awaiting location
+        # If we were waiting for location from older flows, store it and continue
         if session.awaiting_location:
-            self._handle_location_response(sender_id, text, session, platform)
-            return
+            session.last_detected_location = text
+            session.awaiting_location = False
+            session.pending_report_data = None
+            # Also persist into gathered evidence for the conversation engine
+            if isinstance(session.gathered_evidence, dict):
+                session.gathered_evidence = {**session.gathered_evidence, "location": text}
+            session.save()
         
         # Save user message
         self._save_message(session, 'user', text)
         
         # Send typing indicator
         meta_messenger.send_typing_indicator(sender_id)
-        
-        # Get conversation context
-        context = session.get_conversation_context(limit=10)
-        
-        # Analyze with AI
-        from triage.decision_engine import DecisionEngine
-        engine = DecisionEngine()
-        triage_result = engine.analyze_text(text, context)
-        
-        # Update language preference if detected
-        if hasattr(triage_result, 'detected_language') and triage_result.detected_language:
-            session.language_preference = triage_result.detected_language
-            session.save()
-        
+
+        # Conversational AI engine (shared with Telegram for consistency)
+        from triage.conversation_engine import conversation_engine
+
+        response = conversation_engine.process_message(
+            session=session,
+            user_message=text,
+            message_type='text'
+        )
+
+        # Persist state
+        session.conversation_state = response.state.value
+        if response.gathered_info:
+            session.gathered_evidence = {**session.gathered_evidence, **response.gathered_info}
+        if response.detected_language:
+            session.language_preference = response.detected_language
+
+        # Track required fields bookkeeping (non-blocking)
+        try:
+            from triage.decision_engine import decision_engine
+            missing = decision_engine.check_required_fields(session, session.gathered_evidence)
+            session.required_fields = missing
+            session.gathered_required_info = {
+                k: session.gathered_evidence.get(k)
+                for k in ['reporter_name', 'location', 'incident_description', 'contact_preference', 'perpetrator_info']
+                if session.gathered_evidence.get(k)
+            }
+            session.case_creation_pending = bool(response.should_create_report) and not missing
+            session.last_ai_instruction = response.message[:2000]
+        except Exception:
+            pass
+
+        session.save()
+
+        # Save assistant response to message history
+        self._save_message(session, 'assistant', response.message)
+
         # Check if cancelled during processing
         session.refresh_from_db()
         if session.is_cancelled():
             return
-        
-        # Check if we need location for high-risk report
-        if triage_result.needs_location:
-            session.awaiting_location = True
-            session.pending_report_data = {'text': text, 'type': 'text'}
+
+        # Send response
+        meta_messenger.send_text_message(sender_id, response.message, platform)
+
+        # Create case when ready
+        if response.should_create_report:
+            self._create_and_send_report(sender_id, session, platform, response.gathered_info)
+        elif response.is_low_risk:
+            session.conversation_state = 'IDLE'
+            session.gathered_evidence = {}
             session.save()
-            
-            location_msg = "⚠️ This appears to be a serious threat that may need to be reported to authorities.\n\n📍 To help us connect you with the right authorities, please tell me:\n*Which city and country are you in?*\n\n(Example: Lagos, Nigeria or Nairobi, Kenya)"
-            self._save_message(session, 'assistant', location_msg)
-            meta_messenger.send_text_message(sender_id, location_msg, platform)
+
+    def _create_and_send_report(self, sender_id: str, session: ChatSession, platform: str, gathered_info: dict):
+        """Create a formal report after confirmation in conversational flow."""
+        evidence_summary = gathered_info.get('evidence_summary', '')
+        location = gathered_info.get('location') or session.last_detected_location or 'Unknown'
+        risk_score = gathered_info.get('risk_score', 7)
+        reporter_name = (gathered_info.get('reporter_name') or '').strip() or None
+        contact_preference = (gathered_info.get('contact_preference') or '').strip() or None
+        incident_description = (gathered_info.get('incident_description') or evidence_summary or '').strip()
+
+        # Guardrail: if still missing critical fields, ask explicitly instead of creating a case
+        missing = []
+        if not reporter_name:
+            missing.append("your name (or a safe nickname)")
+        if (risk_score or 0) >= 7 and (not location or location == "Unknown"):
+            missing.append("your city and country")
+        if not incident_description:
+            missing.append("a brief description of what happened")
+        if not contact_preference:
+            missing.append("how you want to be contacted (email/phone/none)")
+
+        if missing:
+            session.conversation_state = 'GATHERING'
+            session.save()
+            prompt = "To escalate this safely, I need a bit more information:\n\n- " + "\n- ".join(missing) + "\n\nYou can answer in one message."
+            self._save_message(session, 'assistant', prompt)
+            meta_messenger.send_text_message(sender_id, prompt, platform)
             return
-        
-        # Process report
-        location_hint = session.last_detected_location
+
+        # Store location for future use
+        if location and location != 'Unknown':
+            session.last_detected_location = location
+            session.save()
+
+        # Build a report text payload from conversation history + gathered fields
+        parts = []
+        if reporter_name:
+            parts.append(f"Reporter Name: {reporter_name}")
+        if contact_preference:
+            parts.append(f"Contact Preference: {contact_preference}")
+        if incident_description:
+            parts.append(f"Incident Description: {incident_description}")
+        if gathered_info.get('threat_type'):
+            parts.append(f"Threat Type: {gathered_info.get('threat_type')}")
+        if gathered_info.get('perpetrator_info'):
+            parts.append(f"Perpetrator: {gathered_info.get('perpetrator_info')}")
+        # Include last few user messages
+        user_messages = session.messages.filter(role='user').order_by('-created_at')[:5]
+        for msg in reversed(list(user_messages)):
+            if msg.content not in ['[Image]', '[Voice Note]', '[Document Image]', '[Document Audio]']:
+                parts.append(f"User reported: {msg.content}")
+        report_text = "\n".join([p for p in parts if p]) or "User reported threat via Meta conversation"
+
         result = report_processor.process_text_report(
-            text=text,
+            text=report_text,
             source=platform,
             reporter_handle=f"meta:{sender_id}",
-            location_hint=location_hint
+            location_hint=location,
+            reporter_name=reporter_name,
+            contact_preference=contact_preference,
+            perpetrator_info=gathered_info.get('perpetrator_info') or None,
         )
-        
-        # Send result
+
+        session.conversation_state = 'IDLE'
+        session.gathered_evidence = {}
+        session.save()
+
         self._send_result(sender_id, result, session, platform)
     
     def _handle_location_response(self, sender_id: str, text: str, session: ChatSession, platform: str):
@@ -461,14 +547,14 @@ class MetaWebhookView(View):
         self._save_message(session, 'assistant', f"[{action.upper()}] Case {case_id}: {summary}")
         
         if result.get('action') == 'report':
-            authority_name = result.get('authority_name', 'Local Authority')
-            authority_email = result.get('authority_email', '')
+            partner_name = result.get('partner_name', 'Support Partner')
+            partner_email = result.get('partner_email', '')
             
-            authority_info = ""
-            if authority_name:
-                authority_info = f"\n\n📧 Sent To:\n{authority_name}"
-                if authority_email:
-                    authority_info += f"\n{authority_email}"
+            partner_info = ""
+            if partner_name:
+                partner_info = f"\n\n📧 Sent To:\n{partner_name}"
+                if partner_email:
+                    partner_info += f"\n{partner_email}"
             
             msg = f"""🚨 HIGH RISK DETECTED
 
@@ -477,7 +563,7 @@ class MetaWebhookView(View):
 
 Summary: {result.get('summary', 'Threat detected')}
 
-✅ Action Taken: Your report has been forwarded to the appropriate authorities.{authority_info}
+✅ Action Taken: Your report has been forwarded to the appropriate support partner.{partner_info}
 
 ⚡ Safety Reminder: Consider deleting this conversation if someone might check your phone. Type STOP anytime if you feel unsafe.
 

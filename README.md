@@ -39,7 +39,7 @@
 
 3.  **Automatic Triage & Dispatch:**
     * **Risk Scoring:** AI rates threats 1-10.
-    * **Auto-Escalation:** Risk scores >7 automatically email the nearest registered authority (e.g., FIDA Kenya, Cybercrime Unit Nigeria).
+    * **Auto-Escalation:** Risk scores >7 automatically notify the appropriate verified support partner organization for the user’s jurisdiction.
     * **Feedback Collection:** Users rate advice helpfulness (thumbs up/down) to improve the system
     
 4.  **Real-World Network:**
@@ -56,18 +56,18 @@ The survivor reports via Telegram (Voice/Text/Image) or our Camouflaged Web Port
 | *Bot receives **forwarded screenshot**, transcribes it, and detects blackmail.* | *Web AI analyzes uploaded data and warns the user.* |
 
 ### 2. The Backend Brain (Admin)
-The system automatically logs incidents, hashes evidence for legal validity, and maps them to authorities.
-| Incident Reports Log | Authority Database |
+The system automatically logs incidents, hashes evidence for legal validity, and routes them to partners.
+| Incident Reports Log | Partner Directory |
 |:---:|:---:|
 | <img src="test/Incident_reports.jpg" width="100%"> | <img src="test/Authority_Contacts.jpg" width="100%"> |
 | *Real-time tracking of cases (Voice, Image, Text from Web, Telegram) with Risk Scores.* | *19+ Pre-seeded helplines across Africa.* |
 
 ### 3. The Action (Dispatch)
-High-risk threats trigger immediate email dispatch to the relevant authority.
+High-risk threats trigger immediate email dispatch to the relevant partner organization.
 | Dispatch System | Email Confirmation |
 |:---:|:---:|
 | <img src="test/Dispatch_Log.jpg" width="100%"> | <img src="test/email_confirm.jpg" width="100%"> |
-| *System logs the sent email (to Nigerian Police).* | *Web user is alerted via provided email.* |
+| *System logs the forensic alert dispatch (to the assigned partner).* | *Web user is alerted via provided email.* |
 
 ## 🛠️ The "Zero-Cost" Tech Stack
 We built a production-grade safety ecosystem using 100% free tiers of enterprise tools.
@@ -80,7 +80,7 @@ We built a production-grade safety ecosystem using 100% free tiers of enterprise
 | **Vision** | Gemini 2.5 Flash | OCR and image threat detection. |
 | **Database** | SQLite (WAL Mode) | Optimized for low-memory 1GB environments. |
 | **Storage** | **Cloudflare R2 (S3)** | Secure, forensic-ready evidence storage. |
-| **Dispatch** | Brevo API | Transactional emails to authorities. |
+| **Dispatch** | Brevo API | Transactional emails to partner organizations. |
 
 ## 🔮 Roadmap: Coming Soon
 We are expanding the **Zero-UI** concept to the 6 most common platforms used by women in Africa:
@@ -88,8 +88,8 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 | Platform | Status | Feature |
 | :--- | :--- | :--- |
 | **WhatsApp** | 🚧 In Progress | Integration via Twilio Sandbox |
-| **Instagram** | ⏳ Planned | DM Threat Monitoring |
-| **Facebook** | ⏳ Planned | Messenger Safety Bot |
+| **Instagram** | ✅ Integrated (Webhook) | DM Threat Monitoring |
+| **Facebook** | ✅ Integrated (Webhook) | Messenger Safety Bot |
 | **X (Twitter)** | ⏳ Planned | Public Harassment Flagging |
 | **TikTok** | ⏳ Planned | Video Comment Analysis |
 | **Snapchat** | ⏳ Planned | Ephemeral Evidence Capture |
@@ -114,9 +114,8 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 ├── cases/                  # Incident reports and evidence models
 │   ├── models.py           # IncidentReport, EvidenceAsset
 │   └── admin.py
-├── directory/              # Authority contacts database
-│   ├── models.py           # AuthorityContact
-│   └── management/commands/seed_authorities.py
+├── partners/               # Partner organizations + portal
+│   ├── models.py           # PartnerOrganization, PartnerUser, PartnerInvite
 ├── dispatch/               # Email dispatch service
 │   ├── models.py           # DispatchLog
 │   └── service.py          # BrevoDispatcher
@@ -147,7 +146,9 @@ We are expanding the **Zero-UI** concept to the 6 most common platforms used by 
 | /result/ | GET | Analysis results |
 | /offline/ | GET | PWA offline page |
 | /webhook/telegram/ | POST | Telegram webhook |
+| /webhook/meta/ | POST | Meta (Messenger/Instagram) webhook |
 | /health/ | GET | Health check |
+| /ping/ | GET | Keep-alive endpoint |
 | /admin/ | GET | Django admin |
 
 ## Telegram Bot Commands
@@ -172,7 +173,7 @@ cp .env.example .env  # Add your API Keys
 
 # 4. Migrate & Seed
 python manage.py migrate
-python manage.py seed_authorities  # Loads the 19+ helplines
+python manage.py seed_partners  # Seeds initial partner organizations (helplines)
 
 # 5. Run
 python manage.py runserver

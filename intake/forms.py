@@ -1,4 +1,10 @@
 from django import forms
+from django.conf import settings
+from django.core.exceptions import ValidationError
+
+MAX_FILE_SIZE = 10 * 1024 * 1024
+ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-m4a']
 
 
 class ReportForm(forms.Form):
@@ -18,7 +24,8 @@ class ReportForm(forms.Form):
             'class': 'form-control',
             'accept': 'image/*'
         }),
-        label='Upload Screenshot'
+        label='Upload Screenshot',
+        help_text='Maximum file size: 10MB. Supported formats: JPEG, PNG, WebP, GIF'
     )
     
     voice_note = forms.FileField(
@@ -27,7 +34,8 @@ class ReportForm(forms.Form):
             'class': 'form-control',
             'accept': 'audio/*'
         }),
-        label='Upload Voice Note'
+        label='Upload Voice Note',
+        help_text='Maximum file size: 10MB. Supported formats: MP3, WAV, OGG, WebM'
     )
     
     email = forms.EmailField(
@@ -45,7 +53,64 @@ class ReportForm(forms.Form):
         widget=forms.CheckboxInput(attrs={
             'class': 'form-check-input'
         }),
-        label='I understand that high-risk threats may be reported to authorities'
+        label='I understand that high-risk threats may be shared with verified support partners'
+    )
+    
+    def clean_screenshot(self):
+        screenshot = self.cleaned_data.get('screenshot')
+        if screenshot:
+            if screenshot.size > MAX_FILE_SIZE:
+                raise ValidationError(
+                    f'File size exceeds the maximum allowed size of {MAX_FILE_SIZE // (1024*1024)}MB. '
+                    'Please upload a smaller file.'
+                )
+            
+            content_type = screenshot.content_type
+            if content_type not in ALLOWED_IMAGE_TYPES:
+                raise ValidationError(
+                    f'Invalid file type. Allowed formats: JPEG, PNG, WebP, GIF. '
+                    f'Received: {content_type}'
+                )
+        return screenshot
+    
+    def clean_voice_note(self):
+        voice_note = self.cleaned_data.get('voice_note')
+        if voice_note:
+            if voice_note.size > MAX_FILE_SIZE:
+                raise ValidationError(
+                    f'File size exceeds the maximum allowed size of {MAX_FILE_SIZE // (1024*1024)}MB. '
+                    'Please upload a smaller file.'
+                )
+            
+            content_type = getattr(voice_note, 'content_type', None)
+            if not content_type:
+                name = getattr(voice_note, 'name', '')
+                ext = name.lower().split('.')[-1] if '.' in name else ''
+                ext_to_mime = {
+                    'mp3': 'audio/mpeg',
+                    'wav': 'audio/wav',
+                    'ogg': 'audio/ogg',
+                    'webm': 'audio/webm',
+                    'm4a': 'audio/x-m4a'
+                }
+                content_type = ext_to_mime.get(ext, '')
+            
+            if content_type and content_type not in ALLOWED_AUDIO_TYPES:
+                raise ValidationError(
+                    f'Invalid file type. Allowed formats: MP3, WAV, OGG, WebM. '
+                    f'Received: {content_type or "unknown"}'
+                )
+        return voice_note
+
+    name = forms.CharField(
+        required=False,
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Your name (optional)'
+        }),
+        label='Your Name (Optional)',
+        help_text='Optional. You can use a nickname.'
     )
     
     def clean(self):
