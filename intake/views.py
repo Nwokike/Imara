@@ -373,10 +373,30 @@ class TelegramWebhookView(View):
         pending_data = session.pending_report_data or {}
         session.awaiting_location = False
         session.pending_report_data = None
+        session.conversation_state = 'IDLE'
         session.save()
         
+        case_id = pending_data.get('case_id')
         original_text = pending_data.get('text', '')
-        if original_text:
+        
+        if case_id:
+            logger.info(f"Resuming pending case {case_id} with location {text}")
+            confirmation_msg = f"📍 Got it - {text}. Updating your case..."
+            self.save_message(session, 'assistant', confirmation_msg, 'text')
+            self.send_message(chat_id, confirmation_msg)
+            
+            result = report_processor.update_location_and_dispatch(case_id, text)
+            
+            if result.get('success'):
+                partner_name = result.get('partner_name', 'Support Partner')
+                msg = f"✅ *Report Escalate*\n\nYour case (`{case_id}`) has been updated and sent to {partner_name}.\n\nStay safe. 🛡️"
+                self.save_message(session, 'assistant', msg, 'text')
+                self.send_message(chat_id, msg)
+            else:
+                err_msg = "⚠️ We updated your location but couldn't dispatch to a partner yet. We'll review it manually."
+                self.send_message(chat_id, err_msg)
+                
+        elif original_text:
             confirmation_msg = f"📍 Got it - {text}. Processing your report now..."
             self.save_message(session, 'assistant', confirmation_msg, 'text')
             self.send_message(chat_id, confirmation_msg)
@@ -792,6 +812,29 @@ Stay safe! 🛡️"""
 Keep this Case ID for your records. Stay safe. 🛡️"""
             
             self.send_message_with_feedback(chat_id, msg, case_id)
+            
+        elif result.get('action') == 'ask_location':
+            if session:
+                session.refresh_from_db()
+                session.pending_report_data = {
+                    'case_id': case_id,
+                    'summary': result.get('summary', ''),
+                    'original_action': 'report'
+                }
+                session.awaiting_location = True
+                session.conversation_state = 'ASKING_LOCATION'
+                session.save()
+            
+            msg = f"""⚠️ *Help Us Protect You*
+
+The content you shared looks serious (Risk: {result.get('risk_score')}/10).
+
+📍 **We need your location (City, Country)** to match you with the right support partner.
+
+Please type it below (e.g., "Lagos, Nigeria")."""
+            
+            self.send_message(chat_id, msg)
+            
         else:
             msg = f"""✅ *Analysis Complete*
 

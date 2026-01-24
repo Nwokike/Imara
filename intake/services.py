@@ -86,6 +86,15 @@ class ReportProcessor:
                     "partner_name": dispatch_result.get("partner_name"),
                     "partner_email": dispatch_result.get("partner_email")
                 }
+            elif result.action.upper() == 'ASK_LOCATION':
+                return {
+                    "success": True,
+                    "action": "ask_location",
+                    "case_id": str(incident.case_id),
+                    "risk_score": result.risk_score,
+                    "summary": result.summary,
+                    "message": "We need your location to help you further."
+                }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
                 return {
@@ -222,6 +231,16 @@ class ReportProcessor:
                     "partner_name": dispatch_result.get("partner_name"),
                     "partner_email": dispatch_result.get("partner_email")
                 }
+            elif result.action.upper() == 'ASK_LOCATION':
+                return {
+                    "success": True,
+                    "action": "ask_location",
+                    "case_id": str(incident.case_id),
+                    "risk_score": result.risk_score,
+                    "summary": result.summary,
+                    "extracted_text": result.extracted_text,
+                    "message": "We need your location to help you further."
+                }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
                 return {
@@ -337,6 +356,17 @@ class ReportProcessor:
                     "dispatched": dispatch_result.get("success", False),
                     "partner_name": dispatch_result.get("partner_name"),
                     "partner_email": dispatch_result.get("partner_email")
+                }
+            elif result.action.upper() == 'ASK_LOCATION':
+                return {
+                    "success": True,
+                    "action": "ask_location",
+                    "case_id": str(incident.case_id),
+                    "risk_score": result.risk_score,
+                    "summary": result.summary,
+                    "transcribed_text": result.extracted_text,
+                    "extracted_text": result.extracted_text,
+                    "message": "We need your location to help you further."
                 }
             else:
                 advice = result.advice or self._get_default_advice(result.threat_type)
@@ -495,6 +525,60 @@ class ReportProcessor:
         default = "Block the person, document everything, and don't engage. If you feel unsafe, contact local emergency services. You're not alone - support is available."
         
         return advice_map.get(threat_type, default) if threat_type else default
+
+
+    def update_location_and_dispatch(self, case_id: str, location: str) -> Dict[str, Any]:
+        """Update incident with location and retry dispatch."""
+        try:
+            incident = IncidentReport.objects.get(case_id=case_id)
+            incident.detected_location = location
+            incident.action = 'report'
+            incident.save()
+            
+            # Reconstruct result object for dispatch
+            class MockResult:
+                def __init__(self, incident, location):
+                    self.risk_score = incident.risk_score
+                    self.threat_type = (incident.ai_analysis or {}).get('threat_type')
+                    self.location = location
+                    self.summary = (incident.ai_analysis or {}).get('summary', 'Report upgraded with location')
+            
+            result = MockResult(incident, location)
+            
+            # Get evidence text (prefer derived text, then original)
+            evidence_text = ""
+            evidence = incident.evidence_assets.first()
+            if evidence:
+                evidence_text = evidence.derived_text or incident.original_text or "Evidence attached"
+            else:
+                evidence_text = incident.original_text or "Report evidence"
+            
+            dispatch_result = self._dispatch_to_partner(incident, result, evidence_text)
+            
+            if incident.reporter_email and dispatch_result.get("success"):
+                self._send_user_confirmation(
+                    reporter_email=incident.reporter_email,
+                    case_id=str(incident.case_id),
+                    partner_name=dispatch_result.get("partner_name"),
+                    partner_email=dispatch_result.get("partner_email"),
+                    risk_score=result.risk_score,
+                    summary=result.summary,
+                    location=result.location
+                )
+            
+            return {
+                "success": True,
+                "action": "report",
+                "case_id": str(incident.case_id),
+                "message": "Your report has been updated with location and escalated.",
+                "partner_name": dispatch_result.get("partner_name")
+            }
+            
+        except IncidentReport.DoesNotExist:
+            return {"success": False, "error": "Case not found"}
+        except Exception as e:
+            logger.error(f"Error updating location dispatch: {e}")
+            return {"success": False, "error": str(e)}
 
 
 report_processor = ReportProcessor()
