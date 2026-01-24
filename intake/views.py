@@ -477,6 +477,11 @@ Stay safe! 🛡️"""
         """
         if not session:
             session = self.get_or_create_session(chat_id, username)
+            
+        # Check if we are waiting for location to resume a report
+        if session.awaiting_location:
+            self.handle_location_response(chat_id, text, session)
+            return
         
         # Import conversation engine
         from triage.conversation_engine import conversation_engine, ConversationState
