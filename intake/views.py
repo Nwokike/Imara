@@ -785,7 +785,8 @@ Stay safe! 🛡️"""
                 logger.info(f"Skipping result send for chat {chat_id} - session was cancelled")
                 return
         
-        case_id = result.get('case_id', 'N/A')[:8]
+        full_case_id = result.get('case_id', 'N/A')
+        case_id = full_case_id[:8]
         
         if session:
             summary = result.get('summary', 'Analysis complete')
@@ -822,7 +823,7 @@ Keep this Case ID for your records. Stay safe. 🛡️"""
             if session:
                 session.refresh_from_db()
                 session.pending_report_data = {
-                    'case_id': case_id,
+                    'case_id': full_case_id,
                     'summary': result.get('summary', ''),
                     'original_action': 'report'
                 }
