@@ -47,6 +47,16 @@ class PartnerOrganizationTests(TestCase):
         self.org.save()
         self.assertTrue(self.org.is_at_capacity)
 
+    def test_agent_pro_settings(self):
+        """Test Agent Pro fields are persisted"""
+        self.org.is_agent_enabled = True
+        self.org.agent_persona = "A specialized legal advisor."
+        self.org.save()
+        
+        updated_org = PartnerOrganization.objects.get(pk=self.org.pk)
+        self.assertTrue(updated_org.is_agent_enabled)
+        self.assertEqual(updated_org.agent_persona, "A specialized legal advisor.")
+
 
 class PartnerInviteTests(TestCase):
     def setUp(self):
@@ -182,12 +192,12 @@ class PartnerAdminTests(TestCase):
     
     def test_partner_invite_add_view_loads(self):
         """Test that Partner Invite add view loads without errors"""
-        response = self.client.get('/admin/partners/partnerinvite/add/')
+        response = self.client.get('/imara-admin/partners/partnerinvite/add/')
         self.assertEqual(response.status_code, 200)
     
     def test_partner_invite_changelist_loads(self):
         """Test that Partner Invite list view loads"""
-        response = self.client.get('/admin/partners/partnerinvite/')
+        response = self.client.get('/imara-admin/partners/partnerinvite/')
         self.assertEqual(response.status_code, 200)
     
     def test_partner_invite_change_view_loads(self):
@@ -198,7 +208,7 @@ class PartnerAdminTests(TestCase):
             role='RESPONDER',
             invited_by=self.superuser
         )
-        response = self.client.get(f'/admin/partners/partnerinvite/{invite.pk}/change/')
+        response = self.client.get(f'/imara-admin/partners/partnerinvite/{invite.pk}/change/')
         self.assertEqual(response.status_code, 200)
     
     def test_partner_invite_can_be_created_via_admin(self):
@@ -207,7 +217,7 @@ class PartnerAdminTests(TestCase):
         from datetime import timedelta
         
         expires_at = timezone.now() + timedelta(days=7)
-        response = self.client.post('/admin/partners/partnerinvite/add/', {
+        response = self.client.post('/imara-admin/partners/partnerinvite/add/', {
             'email': 'newinvite@test.com',
             'organization': self.org.pk,
             'role': 'RESPONDER',
@@ -219,11 +229,11 @@ class PartnerAdminTests(TestCase):
     
     def test_partner_organization_add_view_loads(self):
         """Test that Partner Organization add view loads"""
-        response = self.client.get('/admin/partners/partnerorganization/add/')
+        response = self.client.get('/imara-admin/partners/partnerorganization/add/')
         self.assertEqual(response.status_code, 200)
     
     def test_partner_user_add_view_loads(self):
         """Test that Partner User add view loads"""
-        response = self.client.get('/admin/partners/partneruser/add/')
+        response = self.client.get('/imara-admin/partners/partneruser/add/')
         self.assertEqual(response.status_code, 200)
 

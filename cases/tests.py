@@ -40,3 +40,26 @@ class CaseModelTest(TestCase):
         # Verify hash was auto-generated for file
         expected_hash = hashlib.sha256(file_content).hexdigest()
         self.assertEqual(evidence.sha256_digest, expected_hash)
+
+    def test_chain_hash_generation(self):
+        """Test immutable evidence digest generation."""
+        incident = IncidentReport.objects.create(source="web", original_text="Threat")
+        EvidenceAsset.objects.create(incident=incident, asset_type="text", derived_text="Asset 1")
+        
+        chain_hash = incident.generate_chain_hash()
+        self.assertEqual(len(chain_hash), 64)
+        
+        # Changing asset should change hash
+        EvidenceAsset.objects.create(incident=incident, asset_type="text", derived_text="Asset 2")
+        new_hash = incident.generate_chain_hash()
+        self.assertNotEqual(chain_hash, new_hash)
+
+    def test_reasoning_log_persistence(self):
+        """Test that the 7-agent reasoning log stores and retrieves correctly."""
+        incident = IncidentReport.objects.create(source="web")
+        log = [{"agent": "Sentinel", "detail": "All safe"}]
+        incident.reasoning_log = log
+        incident.save()
+        
+        incident.refresh_from_db()
+        self.assertEqual(incident.reasoning_log[0]["agent"], "Sentinel")

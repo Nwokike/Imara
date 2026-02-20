@@ -1,6 +1,7 @@
 from django.tasks import task
 from django.conf import settings
 from django.utils import timezone
+from asgiref.sync import sync_to_async
 import httpx
 import logging
 import json
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 async def send_email_task(payload, dispatch_log_id=None, incident_id=None):
     """
     Native Django 6 Background Task to send email via Brevo API.
-    Uses httpx for efficient async I/O.
+    Uses httpx for efficient async I/O and sync_to_async for DB updates.
     """
     api_key = getattr(settings, 'BREVO_API_KEY', None)
     if not api_key:
@@ -40,13 +41,48 @@ async def send_email_task(payload, dispatch_log_id=None, incident_id=None):
             
             if response.status_code in [200, 201, 202]:
                 logger.info("Email sent successfully via Django Tasks.")
-                # Logic to update log and incident...
+                
+                # Update DB state asynchronously
+                await _update_dispatch_state(dispatch_log_id, incident_id, response.json().get('messageId'))
             else:
                 logger.error(f"Brevo API Error: {response.status_code}")
+                if dispatch_log_id:
+                    await _mark_dispatch_failed(dispatch_log_id)
                 
         except Exception as e:
             logger.error(f"Email task failed: {e}")
+            if dispatch_log_id:
+                await _mark_dispatch_failed(dispatch_log_id)
             raise e
+
+@sync_to_async
+def _update_dispatch_state(dispatch_log_id, incident_id, message_id):
+    from .models import DispatchLog
+    from cases.models import IncidentReport
+    
+    if dispatch_log_id:
+        try:
+            log = DispatchLog.objects.get(pk=dispatch_log_id)
+            log.status = 'sent'
+            log.brevo_message_id = message_id
+            log.save()
+            
+            if incident_id:
+                incident = IncidentReport.objects.get(pk=incident_id)
+                incident.dispatched_at = timezone.now()
+                incident.dispatched_to = log.recipient_email
+                incident.save()
+        except Exception as e:
+            logger.error(f"Async DB update failed: {e}")
+
+@sync_to_async
+def _mark_dispatch_failed(dispatch_log_id):
+    from .models import DispatchLog
+    try:
+        log = DispatchLog.objects.get(pk=dispatch_log_id)
+        log.status = 'failed'
+        log.save()
+    except Exception: pass
 
 @task()
 def backup_database_task():
@@ -71,7 +107,7 @@ def backup_database_task():
         dst.close()
         src.close()
         
-        # 2. Async Upload to R2 (Using boto3 via worker)
+        # 2. Async Upload to R2
         s3 = boto3.client('s3',
             endpoint_url=os.environ.get('R2_ENDPOINT_URL'),
             aws_access_key_id=os.environ.get('R2_ACCESS_KEY_ID'),
@@ -86,4 +122,3 @@ def backup_database_task():
     except Exception as e:
         logger.error(f"Backup failed: {e}")
         if backup_path.exists(): os.remove(backup_path)
-

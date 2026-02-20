@@ -1,4 +1,4 @@
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from unittest import mock
@@ -45,7 +45,44 @@ class ArticleTests(TestCase):
         )
         self.assertEqual(article.meta_title, 'My Article')
 
+    def test_render_as_html(self):
+        """Test native Editor.js JSON to HTML conversion"""
+        content = {
+            "blocks": [
+                {"type": "header", "data": {"text": "Safe Online", "level": 2}},
+                {"type": "paragraph", "data": {"text": "Always use 2FA."}}
+            ]
+        }
+        article = Article.objects.create(
+            title='Safety', author=self.user, content=content
+        )
+        html = article.render_as_html
+        self.assertIn('<h2 class=\'font-bold mt-6 mb-2\'>Safe Online</h2>', html)
+        self.assertIn('<p class=\'mb-4\'>Always use 2FA.</p>', html)
 
+    def test_seo_metadata(self):
+        """Test SEO metadata fields"""
+        article = Article.objects.create(
+            title='SEO Test', author=self.user,
+            meta_description="Expert safety advice for Africans."
+        )
+        self.assertEqual(article.meta_title, "SEO Test")
+        self.assertEqual(article.meta_description, "Expert safety advice for Africans.")
+
+    def test_sitemap_loads(self):
+        """Test sitemap.xml loads successfully"""
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/xml', response['Content-Type'])
+
+
+@override_settings(
+    SECURE_SSL_REDIRECT=False,
+    STORAGES={
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+)
 class ArticleViewTests(TestCase):
     def setUp(self):
         self.client = Client()

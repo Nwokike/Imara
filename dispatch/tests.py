@@ -1,11 +1,11 @@
-from django.test import TestCase
-from django.test import override_settings
+from django.test import TransactionTestCase, override_settings
 from unittest import mock
+from asgiref.sync import async_to_sync
 from cases.models import IncidentReport
 from .models import DispatchLog
 from .tasks import send_email_task
 
-class DispatchLogTest(TestCase):
+class DispatchLogTest(TransactionTestCase):
     def setUp(self):
         self.report = IncidentReport.objects.create(source='web')
 
@@ -20,10 +20,11 @@ class DispatchLogTest(TestCase):
         self.assertEqual(str(log), "Dispatch to police@gov.ng - sent")
 
 
-class BrevoTaskTests(TestCase):
+class BrevoTaskTests(TransactionTestCase):
     @override_settings(BREVO_API_KEY="test_key")
-    @mock.patch("dispatch.tasks.requests.post")
+    @mock.patch("httpx.AsyncClient.post")
     def test_send_email_task_updates_dispatch_log_and_incident(self, mock_post):
+        """Test that the async send_email_task correctly updates DB state."""
         incident = IncidentReport.objects.create(source='web')
         log = DispatchLog.objects.create(
             incident=incident,
@@ -32,8 +33,16 @@ class BrevoTaskTests(TestCase):
             status="pending"
         )
 
-        mock_post.return_value.status_code = 201
-        mock_post.return_value.json.return_value = {"messageId": "brevo-msg-1"}
+        # Properly mock httpx response for async
+        mock_response = mock.MagicMock()
+        mock_response.status_code = 201
+        mock_response.json.return_value = {"messageId": "brevo-msg-1"}
+        
+        # httpx .post is an async method
+        async def mock_post_coro(*args, **kwargs):
+            return mock_response
+        
+        mock_post.side_effect = mock_post_coro
 
         payload = {
             "sender": {"name": "Imara", "email": "noreply@imara.africa"},
@@ -42,8 +51,10 @@ class BrevoTaskTests(TestCase):
             "htmlContent": "<p>hi</p>",
         }
 
-        send_email_task(payload, dispatch_log_id=log.pk, incident_id=incident.pk)
+        # Call the underlying function directly
+        async_to_sync(send_email_task.func)(payload, dispatch_log_id=log.pk, incident_id=incident.pk)
 
+        # Refresh and verify
         log.refresh_from_db()
         self.assertEqual(log.status, "sent")
         self.assertEqual(log.brevo_message_id, "brevo-msg-1")

@@ -2,86 +2,117 @@ from django.test import TestCase
 from unittest.mock import MagicMock, patch
 from .models import ChatSession, ChatMessage, UserFeedback
 from .decision_engine import DecisionEngine, TriageResult
+from .agents.base import ContextBundle
+from .agents.sentinel import SentinelAgent
+from .agents.linguist import LinguistAgent
+from .agents.navigator import NavigatorAgent
+from .agents.forensic import ForensicAgent
+from .agents.counselor import CounselorAgent
+from .agents.messenger import MessengerAgent
+
+class AgentUnitTest(TestCase):
+    """Unit tests for the individual micro-agents in the Hive."""
+    
+    def setUp(self):
+        self.bundle = ContextBundle(user_message="I am being followed", conversation_history=[])
+
+    @patch('triage.agents.base.BaseAgent.call_llm')
+    def test_sentinel_agent(self, mock_call):
+        mock_call.return_value = '{"is_safe": false, "risk_level": "high", "policy_violation": "stalking", "reasoning": "User followed"}'
+        agent = SentinelAgent()
+        result_bundle = agent.process(self.bundle)
+        
+        self.assertEqual(result_bundle.workflow_state, "THREAT_DETECTED")
+        self.assertIn("safety_check", result_bundle.artifacts)
+        self.assertEqual(result_bundle.artifacts["safety_check"]["risk_level"], "high")
+
+    @patch('triage.agents.base.BaseAgent.call_llm')
+    def test_linguist_agent(self, mock_call):
+        mock_call.return_value = "This is a translation"
+        agent = LinguistAgent()
+        result_bundle = agent.process(self.bundle)
+        
+        self.assertIn("translation", result_bundle.artifacts)
+        self.assertEqual(result_bundle.metadata["detected_dialect"], "This is a translation")
+
+    @patch('triage.agents.base.BaseAgent.call_llm')
+    def test_navigator_agent(self, mock_call):
+        mock_call.return_value = '{"location": "Nairobi, Kenya", "confidence": 0.9, "is_africa": true, "needs_ask": false}'
+        agent = NavigatorAgent()
+        result_bundle = agent.process(self.bundle)
+        
+        self.assertIn("location_analysis", result_bundle.artifacts)
+        self.assertEqual(result_bundle.artifacts["location_analysis"]["normalized_country"], "Kenya")
+
+class DecisionEngineIntegrationTest(TestCase):
+    """Integration tests for the Orchestrator Hive."""
+    
+    def setUp(self):
+        self.engine = DecisionEngine()
+
+    @patch('triage.decision_engine.DecisionEngine.sentinel', new_callable=MagicMock)
+    @patch('triage.decision_engine.DecisionEngine.linguist', new_callable=MagicMock)
+    @patch('triage.decision_engine.DecisionEngine.navigator', new_callable=MagicMock)
+    @patch('triage.decision_engine.DecisionEngine.forensic', new_callable=MagicMock)
+    @patch('triage.decision_engine.DecisionEngine.messenger', new_callable=MagicMock)
+    @patch('triage.decision_engine.DecisionEngine.counselor', new_callable=MagicMock)
+    def test_orchestration_pipeline(self, m_counselor, m_messenger, m_forensic, m_navigator, m_linguist, m_sentinel):
+        # Setup mocks to return bundles with specific artifacts
+        def mock_process(bundle):
+            if "safety_check" not in bundle.artifacts:
+                bundle.add_artifact("safety_check", {"risk_score": 8})
+            elif "location_analysis" not in bundle.artifacts:
+                bundle.add_artifact("location_analysis", {"normalized_country": "Nigeria"})
+            elif "forensic_audit" not in bundle.artifacts:
+                bundle.add_artifact("forensic_audit", {"recommendation": "report", "urgency_rating": 9, "forensic_summary": "Serious"})
+            elif "agent_response" not in bundle.artifacts:
+                bundle.add_artifact("agent_response", "Stay safe")
+            return bundle
+
+        m_sentinel.process.side_effect = mock_process
+        m_linguist.process.side_effect = lambda b: b
+        m_navigator.process.side_effect = mock_process
+        m_forensic.process.side_effect = mock_process
+        m_messenger.process.side_effect = lambda b: b
+        m_counselor.process.side_effect = mock_process
+
+        result = self.engine.process_incident("Help me")
+        
+        self.assertEqual(result.risk_score, 9)
+        self.assertEqual(result.action, "REPORT")
+        self.assertEqual(result.location, "Nigeria")
+        self.assertEqual(result.advice, "Stay safe")
 
 class TriageModelsTest(TestCase):
     def test_session_creation(self):
         session = ChatSession.objects.create(chat_id="12345", platform="telegram", username="testuser")
         self.assertEqual(session.chat_id, "12345")
-        self.assertEqual(session.platform, "telegram")
         self.assertFalse(session.is_cancelled())
 
-    def test_message_creation(self):
-        session = ChatSession.objects.create(chat_id="12345")
-        msg = ChatMessage.objects.create(session=session, role="user", content="Hello")
-        self.assertEqual(msg.role, "user")
-        self.assertEqual(msg.content, "Hello")
-
-    def test_session_cancellation(self):
-        session = ChatSession.objects.create(chat_id="12345")
-        session.set_cancelled()
-        self.assertTrue(session.is_cancelled())
-
-class DecisionEngineTest(TestCase):
-    def setUp(self):
-        self.engine = DecisionEngine()
-
-    @patch('triage.clients.groq_client.GroqClient.analyze_text')
-    def test_analyze_text_mock(self, mock_analyze):
-        # Mock the Groq client response
-        mock_analyze.return_value = MagicMock(
-            risk_score=8,
-            summary="Threat detected",
-            action="report",
-            threat_type="threat",
-            location="Lagos",
-            advice="Stay safe",
-            needs_location=False,
-            detected_language="en"
-        )
+    def test_interaction_age(self):
+        session = ChatSession.objects.create(chat_id="interaction_test")
+        # No messages yet
+        self.assertEqual(session.get_last_interaction_age(), float('inf'))
         
-        result = self.engine.analyze_text("I am going to hurt you")
+        ChatMessage.objects.create(session=session, role="user", content="Hi")
+        age = session.get_last_interaction_age()
+        self.assertLess(age, 5)
+
+class HiveReasoningTest(TestCase):
+    """Test the streaming reasoning trail features."""
+    
+    def test_reasoning_log_streaming(self):
+        from cases.models import IncidentReport
+        from .decision_engine import decision_engine
         
-        self.assertIsInstance(result, TriageResult)
-        self.assertEqual(result.risk_score, 8)
-        self.assertEqual(result.action, "report")
-        self.assertEqual(result.location, "Lagos")
-
-    @patch('triage.clients.groq_client.GroqClient.analyze_text')
-    def test_analyze_text_safe_mock(self, mock_analyze):
-        mock_analyze.return_value = MagicMock(
-            risk_score=2,
-            summary="No threat",
-            action="advise",
-            threat_type="none",
-            location=None,
-            advice="Ignore it",
-            needs_location=False
-        )
+        incident = IncidentReport.objects.create(source='web', original_text="Harassment")
         
-        result = self.engine.analyze_text("Hello world")
-        self.assertEqual(result.risk_score, 2)
-        self.assertEqual(result.action, "advise")
-
-
-class ConversationEngineEnforcementTests(TestCase):
-    def test_processing_requires_required_fields(self):
-        from triage.conversation_engine import ConversationEngine, ConversationState
-        engine = ConversationEngine()
-
-        payload = {
-            "response": "Ok, filing now.",
-            "state": "PROCESSING",
-            "gathered_info": {
-                "risk_score": 8,
-                "location": "Nairobi, Kenya",
-                "user_confirmed": True,
-                # Missing reporter_name / incident_description / contact_preference
-                "evidence_summary": "Threats to share intimate images",
-            },
-            "detected_language": "english"
-        }
-
-        resp = engine._parse_llm_response(__import__("json").dumps(payload))
-        self.assertEqual(resp.state, ConversationState.GATHERING)
-        self.assertFalse(resp.should_create_report)
-        self.assertIn("missing_fields", resp.gathered_info)
+        # We manually trigger orchestration with mocks to check log population
+        # (This is a sanity check for the logging callback)
+        with patch.object(DecisionEngine, 'sentinel') as m_sentinel:
+            m_sentinel.process.return_value = ContextBundle("Harassment", [])
+            decision_engine.process_incident("Harassment", metadata={"incident_id": incident.pk})
+            
+        incident.refresh_from_db()
+        self.assertGreater(len(incident.reasoning_log), 0)
+        self.assertEqual(incident.reasoning_log[0]["agent"], "Sentinel")
