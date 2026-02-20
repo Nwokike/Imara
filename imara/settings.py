@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     # Your Apps
     'cases.apps.CasesConfig',
     'dispatch.apps.DispatchConfig',
@@ -156,6 +157,13 @@ BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', 'imara-alerts@projecti
 ADMIN_NOTIFICATION_EMAIL = os.environ.get('ADMIN_NOTIFICATION_EMAIL', 'projectimarahq@gmail.com')
 TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '')
 TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '')
+
+# Platform Integration
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_SECRET_TOKEN = os.environ.get('TELEGRAM_SECRET_TOKEN')
+META_APP_SECRET = os.environ.get('META_APP_SECRET')
+META_PAGE_ACCESS_TOKEN = os.environ.get('META_PAGE_ACCESS_TOKEN')
+META_VERIFY_TOKEN = os.environ.get('META_VERIFY_TOKEN')
 
 LOGGING = {
     'version': 1,
