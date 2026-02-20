@@ -65,7 +65,8 @@ class BrevoDispatcher:
         location: str,
         chain_hash: str,
         summary: str,
-        source: str = "Web Form"
+        source: str = "Web Form",
+        agent_artifacts: dict = None
     ) -> dict:
         if not self._available:
             logger.warning("Brevo API not configured - email dispatch skipped")
@@ -80,6 +81,8 @@ class BrevoDispatcher:
         risk_color = "#dc3545" if risk_score >= 7 else "#ffc107" if risk_score >= 4 else "#28a745"
         risk_level = "CRITICAL" if risk_score >= 7 else "MODERATE" if risk_score >= 4 else "LOW"
         
+        artifacts = agent_artifacts or {}
+        
         context = {
             'case_id': case_id,
             'evidence_text': evidence_text,
@@ -91,7 +94,9 @@ class BrevoDispatcher:
             'chain_hash': chain_hash,
             'summary': summary,
             'source': source,
-            'timestamp': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+            'timestamp': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+            'safety_check': artifacts.get('safety_check'),
+            'vision_analysis': artifacts.get('vision_analysis')
         }
         
         html_content = render_to_string('dispatch/forensic_alert.html', context)

@@ -46,6 +46,16 @@ class PartnerOrganization(models.Model):
         help_text="Maximum team members allowed in this organization"
     )
     
+    # AI Agent Configuration
+    is_agent_enabled = models.BooleanField(
+        default=False, 
+        help_text="Enable AI Response Assistant for this organization"
+    )
+    agent_persona = models.TextField(
+        blank=True, 
+        help_text="Custom persona for this org's AI responder (e.g., 'Formal Legal', 'Empathetic NGO')"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

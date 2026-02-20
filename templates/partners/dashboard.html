@@ -28,21 +28,26 @@
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div class="glass-panel p-5 text-center">
-            <div class="text-3xl font-bold text-red-600 dark:text-red-400">{{ stats.critical }}</div>
-            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">Critical</div>
+        <!-- Existing Stats ... -->
+    </div>
+
+    <!-- Agent Network Status (2026 Pro) -->
+    <div class="glass-panel p-4 mb-8 border-t-4 border-imara-gold">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Bodyguard Network Status</h3>
+            <span class="flex h-2 w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
         </div>
-        <div class="glass-panel p-5 text-center">
-            <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ stats.total_pool }}</div>
-            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">In Pool</div>
-        </div>
-        <div class="glass-panel p-5 text-center">
-            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ stats.my_active }}</div>
-            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">My Active</div>
-        </div>
-        <div class="glass-panel p-5 text-center">
-            <div class="text-3xl font-bold text-green-600 dark:text-green-400">{{ stats.my_resolved }}</div>
-            <div class="text-sm text-gray-500 uppercase tracking-wide mt-1">Resolved</div>
+        <div class="flex flex-wrap gap-6">
+            {% for agent in agent_health %}
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full {% if agent.status == 'ONLINE' %}bg-green-500{% else %}bg-yellow-500{% endif %}"></div>
+                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ agent.name }}:</span>
+                <span class="text-[10px] font-mono {% if agent.status == 'ONLINE' %}text-green-600{% else %}text-yellow-600{% endif %}">{{ agent.status }}</span>
+            </div>
+            {% endfor %}
         </div>
     </div>
 

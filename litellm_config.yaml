@@ -1,0 +1,116 @@
+model_list:
+  # === SAFETY MODELS ===
+  - model_name: safety-sentinel
+    litellm_params:
+      model: groq/openai/gpt-oss-safeguard-20b
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: safety-fallback-1
+    litellm_params:
+      model: groq/llama-3.1-8b-instant
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: safety-fallback-2
+    litellm_params:
+      model: groq/openai/gpt-oss-20b
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: safety-final-fallback
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 4000
+
+  # === TRIAGE / NAVIGATION MODELS ===
+  - model_name: triage-navigator
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: triage-fallback-1
+    litellm_params:
+      model: groq/qwen/qwen3-32b
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 60
+  - model_name: triage-fallback-2
+    litellm_params:
+      model: groq/moonshotai/kimi-k2-instruct-0905
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 60
+  - model_name: triage-final-fallback
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 1000
+
+  # === CHAT / COUNSELOR MODELS ===
+  - model_name: chat-counselor
+    litellm_params:
+      model: groq/qwen/qwen3-32b
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 60
+  - model_name: chat-fallback-1
+    litellm_params:
+      model: groq/moonshotai/kimi-k2-instruct-0905
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 60
+  - model_name: chat-fallback-2
+    litellm_params:
+      model: groq/llama-3.3-70b-versatile
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: chat-final-fallback
+    litellm_params:
+      model: gemini/gemini-3-flash
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 1000
+
+  # === FORENSIC / REASONING MODELS ===
+  - model_name: forensic-expert
+    litellm_params:
+      model: groq/openai/gpt-oss-120b
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: forensic-fallback-1
+    litellm_params:
+      model: groq/meta-llama/llama-4-scout-17b-16e-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: forensic-fallback-2
+    litellm_params:
+      model: groq/meta-llama/llama-4-maverick-17b-128e-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: forensic-final-fallback
+    litellm_params:
+      model: gemini/gemini-3-pro
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 25
+
+  # === VISION / OCR MODELS ===
+  - model_name: vision-specialist
+    litellm_params:
+      model: groq/meta-llama/llama-4-maverick-17b-128e-instruct
+      api_key: "os.environ/GROQ_API_KEY"
+      rpm: 30
+  - model_name: vision-fallback-1
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 1000
+  - model_name: vision-final-fallback
+    litellm_params:
+      model: gemini/gemini-3-flash
+      api_key: "os.environ/GEMINI_API_KEY"
+      rpm: 1000
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 3
+  retry_after: 60
+  fallbacks:
+    - safety-sentinel: ["safety-fallback-1", "safety-fallback-2", "safety-final-fallback"]
+    - triage-navigator: ["triage-fallback-1", "triage-fallback-2", "triage-final-fallback"]
+    - chat-counselor: ["chat-fallback-1", "chat-fallback-2", "chat-final-fallback"]
+    - forensic-expert: ["forensic-fallback-1", "forensic-fallback-2", "forensic-final-fallback"]
+    - vision-specialist: ["vision-fallback-1", "vision-final-fallback"]

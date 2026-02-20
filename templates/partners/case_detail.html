@@ -171,6 +171,31 @@
             <div class="glass-panel p-6">
                 <h3 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Update
                     Case</h3>
+                
+                {% if organization.is_agent_enabled %}
+                <form method="post" class="mb-6">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="suggest_response">
+                    <button type="submit"
+                        class="w-full bg-white dark:bg-gray-800 border-2 border-imara-gold text-imara-deep dark:text-imara-gold hover:bg-imara-gold hover:text-white dark:hover:text-black font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                        <i class="bi bi-magic"></i> Suggest Draft Response
+                    </button>
+                </form>
+
+                {% if ai_suggestion %}
+                <div class="mb-6 bg-imara-gold/10 border border-imara-gold/30 rounded-xl p-4 animate-in fade-in">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-imara-gold uppercase">AI Suggestion</span>
+                        <button onclick="navigator.clipboard.writeText(document.getElementById('aiDraft').innerText); alert('Copied!')" 
+                                class="text-xs text-imara-gold hover:underline">Copy Draft</button>
+                    </div>
+                    <p id="aiDraft" class="text-sm text-gray-700 dark:text-gray-200 italic leading-relaxed">
+                        {{ ai_suggestion }}
+                    </p>
+                </div>
+                {% endif %}
+                {% endif %}
+
                 <form method="post" class="space-y-4">
                     {% csrf_token %}
 

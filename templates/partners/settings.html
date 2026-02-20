@@ -62,6 +62,32 @@
                     <input id="website" name="website" type="url" value="{{ organization.website }}"
                         class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold">
                 </div>
+
+                <hr class="border-gray-100 dark:border-gray-700 my-4">
+
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-imara-deep dark:text-imara-gold uppercase tracking-wider">AI Agent (2026 Pro)</h3>
+                    
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="is_agent_enabled" name="is_agent_enabled" 
+                            {% if organization.is_agent_enabled %}checked{% endif %}
+                            class="w-5 h-5 text-imara-gold border-gray-300 rounded focus:ring-imara-gold">
+                        <label for="is_agent_enabled" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Enable AI Response Assistant
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="agent_persona">
+                            Organization Persona
+                        </label>
+                        <textarea id="agent_persona" name="agent_persona" rows="3"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-imara-gold resize-none"
+                            placeholder="e.g. 'We are a formal legal aid group providing strict statutory advice.'">{{ organization.agent_persona }}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">This guides how the AI drafts suggestions for you.</p>
+                    </div>
+                </div>
+
                 <button type="submit"
                     class="w-full bg-imara-deep hover:bg-imara-deep/90 text-white font-semibold py-3 px-6 rounded-xl transition-all">
                     <i class="bi bi-save mr-2"></i> Save

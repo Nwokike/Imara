@@ -67,12 +67,27 @@ class PartnerDashboardView(PartnerRequiredMixin, View):
             ).count(),
         }
         
+        # Agent Health (2026 Pro)
+        agent_health = []
+        try:
+            from utils.llm_router import get_llm_router
+            router = get_llm_router()
+            healthy_models = [m['model_info']['id'] for m in router.get_healthy_deployments()]
+            
+            for agent in ['Sentinel', 'Navigator', 'Forensic', 'Counselor', 'Visionary']:
+                # Simplistic check: if primary or fallback is in healthy list
+                is_ok = any(m in healthy_models for m in [f"{agent.lower()}-sentinel", f"{agent.lower()}-fallback-1"])
+                agent_health.append({'name': agent, 'status': 'ONLINE' if is_ok else 'RECOVERY'})
+        except Exception:
+            pass
+
         context = {
             'organization': org,
             'jurisdiction': jurisdiction,
             'my_cases': my_cases[:10],
             'pool_cases': pool_cases[:10],
             'stats': stats,
+            'agent_health': agent_health
         }
         
         return render(request, 'partners/dashboard.html', context)
@@ -339,10 +354,14 @@ class PartnerCaseDetailView(PartnerRequiredMixin, View):
             assigned_partner=org
         )
         
+        # Pull AI suggestion from session if present
+        ai_suggestion = request.session.pop('ai_suggestion', None)
+        
         context = {
             'case': case,
             'organization': org,
-            'can_edit': partner_profile.role != PartnerUser.Role.VIEWER
+            'can_edit': partner_profile.role != PartnerUser.Role.VIEWER,
+            'ai_suggestion': ai_suggestion
         }
         
         return render(request, 'partners/case_detail.html', context)
@@ -361,6 +380,50 @@ class PartnerCaseDetailView(PartnerRequiredMixin, View):
             assigned_partner=org
         )
         
+        action = request.POST.get('action')
+        
+        # 1. Handle Suggested Response (AI Agent)
+        if action == 'suggest_response':
+            if not org.is_agent_enabled:
+                messages.error(request, "AI Response Assistant is disabled for your organization.")
+                return redirect('partners:case_detail', case_id=case_id)
+            
+            try:
+                from utils.llm_router import get_llm_router
+                router = get_llm_router()
+                
+                # Context for AI
+                persona = org.agent_persona or "An empathetic support specialist for African women facing online violence."
+                prompt = f"""
+                As a responder for {org.name}, draft a supportive, professional email or message to the victim.
+                YOUR PERSONA: {persona}
+                INCIDENT SUMMARY: {case.summary or case.original_text[:500]}
+                RISK LEVEL: {case.risk_score}/10
+                
+                RESPONSE REQUIREMENTS:
+                - Do not include subject lines. 
+                - Be concise and actionable.
+                - Do not include placeholders like [Name]. Use 'Ma'am' or 'Sister' or keep it neutral.
+                """
+                
+                response = router.completion(
+                    model="forensic-expert",
+                    messages=[{"role": "system", "content": prompt}]
+                )
+                
+                suggestion = response.choices[0].message.content
+                
+                # Return with suggestion in context (using GET redirect with session)
+                request.session['ai_suggestion'] = suggestion
+                messages.info(request, "AI Agent has generated a draft response for you below.")
+                return redirect('partners:case_detail', case_id=case_id)
+                
+            except Exception as e:
+                logger.error(f"AI Suggestion failed: {e}")
+                messages.error(request, "Failed to generate AI suggestion. Try again later.")
+                return redirect('partners:case_detail', case_id=case_id)
+
+        # 2. Handle standard status/notes update
         new_status = request.POST.get('status')
         notes_text = request.POST.get('notes', '').strip()
         
@@ -476,11 +539,25 @@ class PartnerSettingsView(PartnerRequiredMixin, View):
         phone = (request.POST.get('phone') or '').strip()
         website = (request.POST.get('website') or '').strip()
 
+        is_agent_enabled = request.POST.get('is_agent_enabled') == 'on'
+        agent_persona = (request.POST.get('agent_persona') or '').strip()
+
         if contact_email:
             org.contact_email = contact_email
         org.phone = phone
         org.website = website
-        org.save(update_fields=['contact_email', 'phone', 'website'])
+        org.is_agent_enabled = is_agent_enabled
+        org.agent_persona = agent_persona
+        org.save(update_fields=['contact_email', 'phone', 'website', 'is_agent_enabled', 'agent_persona'])
+
+        # Audit log
+        from .models import PartnerAuditLog
+        PartnerAuditLog.objects.create(
+            organization=org,
+            user=request.user,
+            action='STATUS_CHANGE',
+            details=f"Updated org settings. Agent enabled: {is_agent_enabled}"
+        )
 
         messages.success(request, "Settings updated.")
         return redirect('partners:settings')
