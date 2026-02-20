@@ -7,6 +7,8 @@ from .agents.visionary import VisionaryAgent
 from .agents.navigator import NavigatorAgent
 from .agents.forensic import ForensicAgent
 from .agents.counselor import CounselorAgent
+from .agents.linguist import LinguistAgent
+from .agents.messenger import MessengerAgent
 
 logger = logging.getLogger(__name__)
 
