@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'triage.apps.TriageConfig',
     'partners.apps.PartnersConfig',
     'publications.apps.PublicationsConfig',
+    'django_tasks_db',
 ]
 
 MIDDLEWARE = [
@@ -106,7 +107,7 @@ def configure_sqlite_pragmas(sender, connection, **kwargs):
 # Django 6 Native Tasks
 TASKS = {
     'default': {
-        'BACKEND': 'django.tasks.backends.database.DatabaseBackend',
+        'BACKEND': 'django_tasks_db.backend.DatabaseBackend',
     },
 }
 

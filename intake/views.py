@@ -73,62 +73,62 @@ const STATIC_ASSETS = [
     '/static/images/logo.png'
 ];
 
-self.addEventListener('install', event => {
+self.addEventListener('install', event => {{
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then(cache => {
+            .then(cache => {{
                 console.log('Caching static assets');
                 return cache.addAll(STATIC_ASSETS);
-            })
+            }})
             .then(() => self.skipWaiting())
     );
-});
+}});
 
-self.addEventListener('activate', event => {
+self.addEventListener('activate', event => {{
     event.waitUntil(
-        caches.keys().then(cacheNames => {
+        caches.keys().then(cacheNames => {{
             return Promise.all(
                 cacheNames
                     .filter(name => name !== CACHE_NAME)
                     .map(name => caches.delete(name))
             );
-        }).then(() => self.clients.claim())
+        }}).then(() => self.clients.claim())
     );
-});
+}});
 
-self.addEventListener('fetch', event => {
-    if (event.request.method !== 'GET') {
+self.addEventListener('fetch', event => {{
+    if (event.request.method !== 'GET') {{
         return;
-    }
+    }}
 
     event.respondWith(
         fetch(event.request)
-            .then(response => {
-                if (response.status === 200) {
+            .then(response => {{
+                if (response.status === 200) {{
                     const responseClone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => {
+                    caches.open(CACHE_NAME).then(cache => {{
                         cache.put(event.request, responseClone);
-                    });
-                }
+                    }});
+                }}
                 return response;
-            })
-            .catch(() => {
+            }})
+            .catch(() => {{
                 return caches.match(event.request)
-                    .then(cachedResponse => {
-                        if (cachedResponse) {
+                    .then(cachedResponse => {{
+                        if (cachedResponse) {{
                             return cachedResponse;
-                        }
-                        if (event.request.mode === 'navigate') {
+                        }}
+                        if (event.request.mode === 'navigate') {{
                             return caches.match(OFFLINE_URL);
-                        }
-                        return new Response('', {
+                        }}
+                        return new Response('', {{
                             status: 408,
                             statusText: 'Offline'
-                        });
-                    });
-            })
+                        }});
+                    }});
+            }})
     );
-});
+}});
 """
     return HttpResponse(sw_content, content_type='application/javascript')
 
@@ -157,8 +157,6 @@ class ReportFormView(View):
         
         if form.is_valid():
             text = form.cleaned_data.get('message_text')
-            image = form.cleaned_data.get('screenshot')
-            audio = form.cleaned_data.get('voice_note')
             email = form.cleaned_data.get('email')
             name = (form.cleaned_data.get('name') or '').strip()
             location = (form.cleaned_data.get('location') or '').strip()
@@ -215,4 +213,115 @@ class TelegramWebhookView(View):
             logger.error(f"Error processing Telegram webhook: {e}")
             return HttpResponse(status=200)
 
+
 def health_check(request):
+    return JsonResponse({'status': 'healthy', 'service': 'Project Imara'})
+
+
+def keep_alive(request):
+    return HttpResponse("OK", content_type="text/plain")
+
+
+class PartnerView(View):
+    """Partnership page with inquiry form"""
+    def get(self, request):
+        from partners.constants import AFRICAN_COUNTRIES_BY_REGION
+        return render(request, 'intake/partner.html', {
+            "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+        })
+    
+    @method_decorator(form_ratelimit)
+    def post(self, request):
+        """Handle partnership inquiry form submission"""
+        from partners.constants import AFRICAN_COUNTRIES, AFRICAN_COUNTRIES_BY_REGION
+
+        org_name = request.POST.get('organization_name', '').strip()
+        contact_name = request.POST.get('contact_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        country = request.POST.get('country', '').strip()
+        partnership_type = request.POST.get('partnership_type', '').strip()
+        org_type = request.POST.get('org_type', '').strip()
+        message = request.POST.get('message', '').strip()
+        
+        # Validate Turnstile
+        from utils.captcha import validate_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
+        
+        if not is_valid:
+            return render(request, 'intake/partner.html', {
+                'error': error_msg,
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+            })
+        
+        # Basic validation
+        if not all([org_name, contact_name, email, country, partnership_type, org_type]):
+            return render(request, 'intake/partner.html', {
+                'error': 'Please fill in all required fields.',
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+            })
+
+        if country not in AFRICAN_COUNTRIES:
+            return render(request, 'intake/partner.html', {
+                'error': 'Please select a valid African country from the list.',
+                "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+            })
+        
+        # Send email to Admin
+        subject = f"New Partner Inquiry: {escape(org_name)}"
+        html_content = f"<h3>New Partnership Inquiry</h3><p>Organization: {escape(org_name)}</p><p>Contact: {escape(contact_name)}</p><p>Email: {escape(email)}</p><p>Message: {escape(message)}</p>"
+        
+        payload = {
+            "sender": {"name": "Imara Web System", "email": settings.BREVO_SENDER_EMAIL},
+            "to": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
+            "replyTo": {"email": email, "name": contact_name},
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        send_email_task.enqueue(payload)
+        
+        return render(request, 'intake/partner.html', {
+            'success': True,
+            "african_countries_by_region": AFRICAN_COUNTRIES_BY_REGION,
+        })
+
+
+def consent_view(request):
+    """User consent and data protection page"""
+    return render(request, 'intake/consent.html')
+
+
+def policies_view(request):
+    """Reporting policies page"""
+    return render(request, 'intake/policies.html')
+
+
+class ContactView(View):
+    """Contact Us page"""
+    def get(self, request):
+        form = ContactForm()
+        return render(request, 'intake/contact.html', {'form': form})
+    
+    @method_decorator(form_ratelimit)
+    def post(self, request):
+        from utils.captcha import validate_turnstile
+        token = request.POST.get('cf-turnstile-response')
+        is_valid, error_msg = validate_turnstile(token, request.META.get('REMOTE_ADDR'))
+        
+        if not is_valid:
+            form = ContactForm(request.POST)
+            return render(request, 'intake/contact.html', {'form': form, 'error': error_msg})
+        
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            payload = {
+                "sender": {"name": "Imara Web System", "email": settings.BREVO_SENDER_EMAIL},
+                "to": [{"email": settings.ADMIN_NOTIFICATION_EMAIL}],
+                "subject": f"Contact Form: {escape(form.cleaned_data['subject'])}",
+                "htmlContent": f"<p>Name: {escape(form.cleaned_data['name'])}</p><p>Message: {escape(form.cleaned_data['message'])}</p>"
+            }
+            send_email_task.enqueue(payload)
+            return render(request, 'intake/contact.html', {'form': ContactForm(), 'success': True})
+        
+        return render(request, 'intake/contact.html', {'form': form})

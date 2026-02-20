@@ -31,12 +31,8 @@ class NavigatorAgent(BaseAgent):
     def process(self, bundle: ContextBundle) -> ContextBundle:
         logger.info(f"Agent {self.name} resolving location...")
         
-        history = "
-".join([f"{m['role']}: {m['content']}" for m in bundle.conversation_history[-5:]])
-        user_input = f"History:
-{history}
-
-Current Message: {bundle.user_message}"
+        history = "\n".join([f"{m['role']}: {m['content']}" for m in bundle.conversation_history[-5:]])
+        user_input = f"History:\n{history}\n\nCurrent Message: {bundle.user_message}"
         
         messages = [
             {"role": "system", "content": self.SYSTEM_PROMPT},

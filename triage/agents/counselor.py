@@ -36,8 +36,7 @@ class CounselorAgent(BaseAgent):
         context_hint = f"Risk Level: {safety.get('risk_level', 'Unknown')}. Location: {location.get('normalized_country', 'Unknown')}."
         
         messages = [
-            {"role": "system", "content": f"{self.SYSTEM_PROMPT}
-Context: {context_hint}"},
+            {"role": "system", "content": f"{self.SYSTEM_PROMPT}\nContext: {context_hint}"},
         ] + bundle.conversation_history[-10:] + [{"role": "user", "content": bundle.user_message}]
         
         try:

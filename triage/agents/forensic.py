@@ -36,10 +36,7 @@ class ForensicAgent(BaseAgent):
         artifacts_json = json.dumps(bundle.artifacts, indent=2)
         messages = [
             {"role": "system", "content": self.SYSTEM_PROMPT},
-            {"role": "user", "content": f"Gathered Evidence:
-{artifacts_json}
-
-User Input: {bundle.user_message}"}
+            {"role": "user", "content": f"Gathered Evidence:\n{artifacts_json}\n\nUser Input: {bundle.user_message}"}
         ]
         
         try:

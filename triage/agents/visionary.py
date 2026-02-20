@@ -51,8 +51,7 @@ class VisionaryAgent(BaseAgent):
             result = json.loads(response_text)
             
             bundle.add_artifact("vision_analysis", result)
-            bundle.user_message += f"
-[Vision Summary]: {result.get('extracted_text')}"
+            bundle.user_message += f"\n[Vision Summary]: {result.get('extracted_text')}"
             
         except Exception as e:
             logger.error(f"Visionary Agent error: {e}")
