@@ -1,7 +1,7 @@
 <div align="center">
   <img src="static/images/icon-512x512.png" width="120" alt="Project Imara Logo">
   <h1>Project Imara: The Zero-UI Digital Bodyguard</h1>
-  <p><strong>UNiTE to End Digital Violence Against All Women & Girls</strong></p>
+  <p><strong>UNiTE to End Online Gender-Based Violence</strong></p>
   
   <a href="https://imara.africa">
     <img src="https://img.shields.io/badge/Live_Portal-Active-success?style=for-the-badge&logo=render&logoColor=white" alt="Live Portal">

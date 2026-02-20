@@ -1,7 +1,7 @@
 [project]
 name = "project-imara"
 version = "1.0.0"
-description = "Zero-UI Digital Bodyguard for African women facing online violence"
+description = "Zero-UI Digital Bodyguard for Africans facing online gender-based violence"
 requires-python = ">=3.12"
 dependencies = [
     "dj-database-url>=3.0.1",
