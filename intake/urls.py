@@ -10,7 +10,7 @@ urlpatterns = [
     path('serviceworker.js', views.serviceworker_view, name='serviceworker'),
     path('webhook/telegram/', views.TelegramWebhookView.as_view(), name='telegram_webhook'),
     path('webhook/meta/', MetaWebhookView.as_view(), name='meta_webhook'),
-    path('health/', views.health_check, name='health_check'),
+    path('health-check/', views.health_check, name='health_check'),
     path('ping/', views.keep_alive, name='keep_alive'),
     # Partner pages
     path('partner/', views.PartnerView.as_view(), name='partner'),
