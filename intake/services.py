@@ -544,9 +544,9 @@ class ReportProcessor:
                 summary=summary,
                 location=location or "Unknown"
             )
-            logger.info(f"User confirmation email queued for {reporter_email}")
+            logger.info(f"User confirmation email enqueued for {reporter_email}")
         except Exception as e:
-            logger.error(f"Failed to send user confirmation: {e}")
+            logger.error(f"Failed to enqueue user confirmation: {e}")
     
     def _get_default_advice(self, threat_type: Optional[str]) -> str:
         advice_map = {

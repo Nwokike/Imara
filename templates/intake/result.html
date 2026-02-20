@@ -7,157 +7,41 @@
 <section class="section">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
-                {% if result.action == 'report' %}
+            <div id="result-container" class="col-lg-8">
+                {% if result.status == 'pending' %}
+                <!-- PENDING STATE (With Polling) -->
                 <div class="result-card">
-                    <div class="result-header-danger">
-                        <i class="bi bi-shield-exclamation result-icon-lg"></i>
-                        <h3 class="mt-3 mb-1">High-Risk Threat Detected</h3>
-                        <p class="mb-0 opacity-75">We've taken action to protect you</p>
+                    <div class="result-header-primary" style="background-color: #2D1B36; color: white; padding: 2.5rem; text-align: center; border-radius: 1rem 1rem 0 0;">
+                        <div class="mb-4">
+                            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <h3 class="mt-3 mb-1">Bodyguard Hive is Auditing</h3>
+                        <p class="mb-0 opacity-75">Forensic analysis in progress...</p>
                     </div>
-                    <div class="result-body">
-                        <div class="info-box info-box-danger d-flex align-items-center mb-4">
-                            <i class="bi bi-exclamation-triangle-fill me-3 text-danger result-icon-md"></i>
+                    <div class="result-body" style="padding: 2.5rem;">
+                        <div class="info-box d-flex align-items-center mb-4" style="background-color: #f0f4f8; padding: 1.2rem; border-radius: 0.5rem; border-left: 4px solid #C8A165;">
+                            <i class="bi bi-info-circle-fill me-3" style="color: #2D1B36; font-size: 1.5rem;"></i>
                             <div>
-                                <strong>Risk Score: {{ result.risk_score }}/10</strong>
-                                <p class="mb-0">This content has been classified as high-risk</p>
+                                <strong id="case-id-display">Case ID: {{ result.case_id|upper }}</strong>
+                                <p class="mb-0 small text-muted">Analysis usually takes 30-60 seconds. Do not close this page.</p>
                             </div>
                         </div>
 
-                        <div class="info-box mb-4">
-                            <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Case Details</h5>
-                            <table class="table table-borderless mb-0">
-                                <tr>
-                                    <td class="text-muted case-id-col">Case ID:</td>
-                                    <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Summary:</td>
-                                    <td>{{ result.summary }}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="info-box info-box-success mb-4">
-                            <div class="d-flex">
-                                <i class="bi bi-check-circle-fill me-3 text-success result-icon-md"></i>
-                                <div>
-                                    <strong>Action Taken</strong>
-                                    <p class="mb-0">
-                                        Your report has been automatically forwarded to the appropriate support partner.
-                                        {% if result.partner_name %}<br><span class="small text-muted">Sent to: {{ result.partner_name }}</span>{% endif %}
-                                    </p>
+                        <div class="reasoning-trail-container">
+                            <h6 class="mb-3 text-uppercase small fw-bold text-muted">Live Reasoning Trail:</h6>
+                            <div id="reasoning-trail" class="space-y-3">
+                                <!-- Loaded via JS -->
+                                <div class="reasoning-step d-flex align-items-start gap-3 mb-3">
+                                    <div class="step-bullet bg-imara-gold" style="width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;"></div>
+                                    <p class="small mb-0"><strong>Sentinel Agent:</strong> Enqueued for safety check...</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'report_form' %}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-2"></i>Submit Another Report
-                            </a>
-                            <a href="{% url 'home' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-house me-2"></i>Return Home
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {% elif result.action == 'advise' %}
-                <div class="result-card">
-                    <div class="result-header-success">
-                        <i class="bi bi-lightbulb result-icon-lg"></i>
-                        <h3 class="mt-3 mb-1">Analysis Complete</h3>
-                        <p class="mb-0 opacity-75">Here's our advice for you</p>
-                    </div>
-                    <div class="result-body">
-                        <div class="info-box info-box-warning d-flex align-items-center mb-4">
-                            <i class="bi bi-info-circle me-3 text-warning result-icon-md"></i>
-                            <div>
-                                <strong>Risk Score: {{ result.risk_score }}/10</strong>
-                                <p class="mb-0">This content has been classified as low-to-moderate risk</p>
-                            </div>
-                        </div>
-
-                        <div class="info-box mb-4">
-                            <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>Case Details</h5>
-                            <table class="table table-borderless mb-0">
-                                <tr>
-                                    <td class="text-muted case-id-col">Case ID:</td>
-                                    <td><code>{{ result.case_id|slice:":8"|upper }}</code></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-muted">Summary:</td>
-                                    <td>{{ result.summary }}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="info-box info-box-advice mb-4">
-                            <h6><i class="bi bi-lightbulb me-2"></i>Our Advice</h6>
-                            <p class="mb-0">{{ result.advice }}</p>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'report_form' %}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-2"></i>Submit Another Report
-                            </a>
-                            <a href="{% url 'home' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-house me-2"></i>Return Home
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {% elif result.status == 'pending' %}
-                <div class="result-card">
-                    <div class="result-header-primary" style="background-color: #6B4C9A; color: white; padding: 2rem; text-align: center; border-radius: 1rem 1rem 0 0;">
-                        <i class="bi bi-cpu animate-pulse" style="font-size: 3rem;"></i>
-                        <h3 class="mt-3 mb-1">Analysis in Progress</h3>
-                        <p class="mb-0 opacity-75">Our Bodyguard Hive is auditing your report</p>
-                    </div>
-                    <div class="result-body" style="padding: 2rem;">
-                        <div class="info-box d-flex align-items-center mb-4" style="background-color: #f0f4f8; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #6B4C9A;">
-                            <i class="bi bi-info-circle-fill me-3" style="color: #6B4C9A; font-size: 1.5rem;"></i>
-                            <div>
-                                <strong>Case ID: {{ result.case_id|upper }}</strong>
-                                <p class="mb-0">{{ result.message }}</p>
-                            </div>
-                        </div>
-
-                        <div class="info-box mb-4">
-                            <h6><i class="bi bi-clock-history me-2"></i>The 7-Agent Process:</h6>
-                            <p class="small text-muted mb-1">• Sentinel Agent checking safety policies.</p>
-                            <p class="small text-muted mb-1">• Forensic Agent generating evidence hashes.</p>
-                            <p class="small text-muted">• Navigator Agent identifying jurisdiction.</p>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'home' %}" class="btn btn-primary">
-                                <i class="bi bi-house me-2"></i>Return Home
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                {% else %}
-                <div class="result-card">
-                    <div class="result-header-muted">
-                        <i class="bi bi-exclamation-circle result-icon-lg"></i>
-                        <h3 class="mt-3 mb-1">Processing Issue</h3>
-                        <p class="mb-0 opacity-75">We encountered a problem</p>
-                    </div>
-                    <div class="result-body">
-                        <div class="info-box info-box-warning mb-4">
-                            <p class="mb-0">{{ result.message|default:"We're sorry, we couldn't complete the analysis at this time." }}</p>
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <a href="{% url 'report_form' %}" class="btn btn-primary">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Try Again
-                            </a>
-                            <a href="{% url 'home' %}" class="btn btn-outline-primary">
-                                <i class="bi bi-house me-2"></i>Return Home
-                            </a>
+                        <div class="mt-5 text-center">
+                            <p class="small text-muted mb-0">A confirmation email will be sent to your inbox once complete.</p>
                         </div>
                     </div>
                 </div>
@@ -166,4 +50,145 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if result.status == 'pending' %}
+<script>
+    const caseId = "{{ result.case_id }}";
+    const statusUrl = "{% url 'report_status' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', caseId);
+    let pollInterval;
+
+    function pollStatus() {
+        fetch(statusUrl)
+            .then(response => response.json())
+            .then(data => {
+                updateReasoningTrail(data.reasoning_log);
+                
+                if (data.status === 'COMPLETED') {
+                    clearInterval(pollInterval);
+                    renderFinalResult(data);
+                } else if (data.status === 'FAILED') {
+                    clearInterval(pollInterval);
+                    renderError();
+                }
+            })
+            .catch(err => console.error('Polling error:', err));
+    }
+
+    function updateReasoningTrail(log) {
+        const trail = document.getElementById('reasoning-trail');
+        if (!log || log.length === 0) return;
+
+        let html = '';
+        log.forEach(step => {
+            html += `
+                <div class="reasoning-step d-flex align-items-start gap-3 mb-3 animate-in fade-in">
+                    <div class="step-bullet bg-success" style="width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;"></div>
+                    <div>
+                        <p class="small mb-0"><strong>${step.agent} Agent:</strong> ${step.detail}</p>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Add "Next step..." if not done
+        if (log.length < 7) {
+            html += `
+                <div class="reasoning-step d-flex align-items-start gap-3 mb-3">
+                    <div class="step-bullet bg-imara-gold animate-pulse" style="width: 8px; height: 8px; border-radius: 50%; margin-top: 6px;"></div>
+                    <p class="small mb-0 text-muted italic">Waiting for next agent...</p>
+                </div>
+            `;
+        }
+        
+        trail.innerHTML = html;
+    }
+
+    function renderFinalResult(data) {
+        const container = document.getElementById('result-container');
+        const isReport = data.action === 'report';
+        
+        const headerClass = isReport ? 'result-header-danger' : 'result-header-success';
+        const icon = isReport ? 'bi-shield-exclamation' : 'bi-lightbulb';
+        const title = isReport ? 'High-Risk Threat Detected' : 'Analysis Complete';
+        const subtitle = isReport ? "We've taken action to protect you" : "Here is our advice for you";
+        
+        let actionBox = '';
+        if (isReport) {
+            actionBox = `
+                <div class="info-box info-box-success mb-4" style="background-color: #d4edda; padding: 1.2rem; border-radius: 0.5rem; border-left: 4px solid #28a745;">
+                    <div class="d-flex">
+                        <i class="bi bi-check-circle-fill me-3 text-success" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Action Taken</strong>
+                            <p class="mb-0 small">
+                                Your report has been automatically forwarded to ${data.partner_name || 'a support partner'}.
+                                A forensic alert with evidence has been dispatched.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div class="result-card shadow-lg border-0 rounded-xl overflow-hidden">
+                <div class="p-5 text-center ${isReport ? 'bg-danger text-white' : 'bg-success text-white'}">
+                    <i class="bi ${icon}" style="font-size: 3.5rem;"></i>
+                    <h3 class="mt-3 mb-1">${title}</h3>
+                    <p class="mb-0 opacity-75">${subtitle}</p>
+                </div>
+                <div class="p-5 bg-white">
+                    <div class="info-box d-flex align-items-center mb-4" style="background-color: #f8f9fa; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #2D1B36;">
+                        <i class="bi bi-info-circle-fill me-3" style="color: #2D1B36;"></i>
+                        <div>
+                            <strong>Risk Score: ${data.risk_score}/10</strong>
+                        </div>
+                    </div>
+
+                    ${actionBox}
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">AI Summary:</h6>
+                        <p class="text-muted small">${data.summary}</p>
+                    </div>
+
+                    <div class="p-4 rounded-lg mb-4" style="background-color: #fff3cd; border: 1px solid #ffeeba;">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-shield-shaded me-2"></i>Advice:</h6>
+                        <p class="mb-0 small">${data.advice}</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="/" class="btn btn-primary btn-lg">Return Home</a>
+                        <a href="/report/" class="btn btn-outline-primary">Submit Another Report</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderError() {
+        const container = document.getElementById('result-container');
+        container.innerHTML = `
+            <div class="result-card">
+                <div class="p-5 text-center bg-dark text-white rounded-t-xl">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3">Processing Issue</h3>
+                </div>
+                <div class="p-5 bg-white rounded-b-xl">
+                    <p class="text-center text-muted mb-4">We encountered an issue during analysis. Please try again or reach out to us if the problem persists.</p>
+                    <div class="d-grid gap-2">
+                        <a href="/report/" class="btn btn-primary">Try Again</a>
+                        <a href="/" class="btn btn-outline-primary">Return Home</a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Start Polling
+    pollInterval = setInterval(pollStatus, 3000);
+</script>
+{% endif %}
 {% endblock %}

@@ -15,9 +15,11 @@ class LinguistAgent(BaseAgent):
     model_alias = "chat-counselor" # Qwen3 alias
     
     SYSTEM_PROMPT = """
-    Detect the user's language and dialect. If it is Pidgin, Swahili, or any non-standard English, 
-    provide a clear English translation for the Forensic Agent, and suggest a localized tone 
-    for the Counselor Agent.
+    Detect the user's language and dialect. 
+    RULE: Default to standard English for all analysis and translations. 
+    ONLY suggest a non-English dialect (Pidgin, Swahili, Hausa) if the user has used it first in the current message.
+    
+    If it is Pidgin, Swahili, or Hausa, provide a clear English translation for the Forensic Agent.
     """
 
     def process(self, bundle: ContextBundle) -> ContextBundle:

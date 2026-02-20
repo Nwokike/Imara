@@ -64,6 +64,20 @@ class IncidentReport(models.Model):
         db_index=True
     )
     
+    # AI Analysis Lifecycle
+    analysis_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('PENDING', 'Pending'),
+            ('PROCESSING', 'In Progress'),
+            ('COMPLETED', 'Completed'),
+            ('FAILED', 'Failed'),
+        ],
+        default='PENDING',
+        db_index=True
+    )
+    reasoning_log = models.JSONField(default=list, blank=True, help_text="Real-time log of agent artifacts")
+    
     chain_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
     
     dispatched_at = models.DateTimeField(blank=True, null=True)

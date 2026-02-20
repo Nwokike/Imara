@@ -176,26 +176,47 @@ class DecisionEngine:
             }
         )
 
+        incident_id = (metadata or {}).get("incident_id")
+        
+        def log_step(agent_name, detail):
+            if incident_id:
+                from cases.models import IncidentReport
+                try:
+                    incident = IncidentReport.objects.get(pk=incident_id)
+                    log = incident.reasoning_log or []
+                    log.append({"agent": agent_name, "detail": detail, "timestamp": str(timezone.now())})
+                    incident.reasoning_log = log
+                    incident.save()
+                except Exception: pass
+
         try:
             # 1. Safety Sentinel
+            log_step("Sentinel", "Checking safety policy...")
             bundle = self.sentinel.process(bundle)
             
             # 2. Linguist (Dialect & Tone)
+            log_step("Linguist", "Analyzing dialect and tone...")
             bundle = self.linguist.process(bundle)
             
             # 3. Visionary (If evidence is visual)
-            if image_url: bundle = self.visionary.process(bundle)
+            if image_url:
+                log_step("Visionary", "Auditing visual evidence...")
+                bundle = self.visionary.process(bundle)
             
             # 4. Navigator (Jurisdiction)
+            log_step("Navigator", "Identifying jurisdictional partner...")
             bundle = self.navigator.process(bundle)
             
             # 5. Forensic Reasoning
+            log_step("Forensic", "Conducting forensic audit and hashing...")
             bundle = self.forensic.process(bundle)
             
             # 6. Messenger Agent (Partner Dispatch Draft)
+            log_step("Messenger", "Drafting partner alert...")
             bundle = self.messenger.process(bundle)
             
             # 7. Counselor (User-facing response)
+            log_step("Counselor", "Preparing empathetic safety plan...")
             bundle = self.counselor.process(bundle)
             
             return self._bundle_to_result(bundle)

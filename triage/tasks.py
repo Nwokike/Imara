@@ -119,11 +119,17 @@ def process_web_report_task(incident_id: int):
     
     try:
         incident = IncidentReport.objects.get(pk=incident_id)
+        incident.analysis_status = 'PROCESSING'
+        incident.save()
         
         # Run Web Batch Orchestration (Stateless)
         result = decision_engine.web_orchestration(
             text=incident.original_text,
-            metadata={"source": "web", "case_id": str(incident.case_id)}
+            metadata={
+                "source": "web", 
+                "case_id": str(incident.case_id),
+                "incident_id": incident.pk
+            }
         )
         
         # Update incident with results
@@ -132,11 +138,30 @@ def process_web_report_task(incident_id: int):
         incident.action = result.action.lower()
         incident.detected_location = result.location
         incident.forensic_hash = result.forensic_hash
+        incident.analysis_status = 'COMPLETED'
         incident.save()
         
-        # Dispatch to partner if needed
+        # 1. Dispatch to partner if needed
+        dispatch_result = {"success": False}
         if result.should_report:
-            report_processor._dispatch_to_partner(incident, result, incident.original_text)
+            dispatch_result = report_processor._dispatch_to_partner(incident, result, incident.original_text)
+            
+        # 2. Send User Confirmation (MANDATORY for 2026 standard)
+        if incident.reporter_email:
+            report_processor._send_user_confirmation(
+                reporter_email=incident.reporter_email,
+                case_id=str(incident.case_id),
+                partner_name=dispatch_result.get("partner_name"),
+                partner_email=dispatch_result.get("partner_email"),
+                risk_score=result.risk_score,
+                summary=result.summary,
+                location=result.location
+            )
             
     except Exception as e:
         logger.error(f"Web report task failed for incident {incident_id}: {e}")
+        try:
+            incident = IncidentReport.objects.get(pk=incident_id)
+            incident.analysis_status = 'FAILED'
+            incident.save()
+        except: pass

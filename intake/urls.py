@@ -11,6 +11,7 @@ urlpatterns = [
     path('webhook/telegram/', views.TelegramWebhookView.as_view(), name='telegram_webhook'),
     path('webhook/meta/', MetaWebhookView.as_view(), name='meta_webhook'),
     path('health-check/', views.health_check, name='health_check'),
+    path('report-status/<uuid:case_id>/', views.get_report_status, name='report_status'),
     path('ping/', views.keep_alive, name='keep_alive'),
     # Partner pages
     path('partner/', views.PartnerView.as_view(), name='partner'),

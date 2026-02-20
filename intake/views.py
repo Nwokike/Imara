@@ -178,7 +178,7 @@ class ReportFormView(View):
             return render(request, 'intake/result.html', {
                 'result': {
                     'status': 'pending',
-                    'case_id': str(incident.case_id)[:8],
+                    'case_id': str(incident.case_id),
                     'message': "Your report has been received and is being analyzed. You'll receive a confirmation email shortly."
                 }
             })
@@ -219,6 +219,27 @@ class TelegramWebhookView(View):
 
 def health_check(request):
     return JsonResponse({'status': 'healthy', 'service': 'Project Imara'})
+
+
+def get_report_status(request, case_id):
+    """
+    API endpoint to poll for report analysis progress.
+    Returns JSON with current status and reasoning trail.
+    """
+    from cases.models import IncidentReport
+    try:
+        incident = IncidentReport.objects.get(case_id=case_id)
+        return JsonResponse({
+            'status': incident.analysis_status,
+            'action': incident.action,
+            'risk_score': incident.risk_score,
+            'reasoning_log': incident.reasoning_log,
+            'summary': incident.ai_analysis.get('summary') if incident.ai_analysis else None,
+            'advice': incident.ai_analysis.get('advice') if incident.ai_analysis else None,
+            'partner_name': incident.assigned_partner.name if incident.assigned_partner else None
+        })
+    except IncidentReport.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
 
 
 def keep_alive(request):
