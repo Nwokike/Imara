@@ -1,70 +1,69 @@
-# Technical Strategy 2026: The "One Agent, One Tool" Network
+# Technical Strategy 2026: The "Bodyguard Hive" Network
 
 **Project:** Imara (Digital Bodyguard)
-**Target:** 1GB RAM VM (Production)
-**Stack:** Django 5.2, Google ADK 2026, LiteLLM, Huey (Async)
+**Target:** 1GB RAM VM (GCP Production)
+**Stack:** Django 6.0, Google ADK 2026, LiteLLM Router, ASGI
 
 ---
 
 ## 1. Multi-Agent Architecture ("The Hive")
 
-To avoid "monolithic agent confusion," we employ a **One Agent, One Tool** pattern. Each agent is a specialized micro-process powered by a specific LLM suited to its task.
+We utilize a **One Agent, One Tool** pattern to achieve 100% reasoning specialization.
 
-### The Agent Roster
-
-| Agent Name | Role | Primary Tool | Primary Model (Groq) | Fallback 1 | Final Fallback (Gemini) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Orchestrator** | Logic & Routing | `AgentDispatcher` | `kimi-k2-instruct-0905` | `llama-3.3-70b` | `Gemini 3 Flash` |
-| **Sentinel** | Safety Policy | `TextFilter` | `gpt-oss-safeguard-20b` | `llama-3.1-8b` | `Gemini 2.5 Flash Lite` |
-| **Visionary** | OCR & Image | `ImageAnalyzer` | `llama-4-maverick-17b` | `Gemini 2.5 Flash` | `Gemini 3 Pro` |
-| **Linguist** | Translation | `DialectTranslator`| `qwen/qwen3-32b` | `kimi-k2-instruct-0905`| `Gemma 3 27B` |
-| **Forensic** | Hashing & Audit| `EvidenceHasher` | `openai/gpt-oss-120b` | `llama-4-scout-17b` | `Deep Research Pro` |
-| **Counselor** | Empathy Chat | `SafetyAdvisor` | `qwen/qwen3-32b` | `kimi-k2-instruct` | `Gemini 2.5 Flash` |
-| **Dispatcher** | Email/Partner | `BrevoEmail` | `kimi-k2-instruct` | `llama-3.3-70b` | `Gemini 2.5 Flash` |
+| Agent Name | Role | Core Responsibility | Model Target |
+| :--- | :--- | :--- | :--- |
+| **Sentinel** | Policy | Content safety check | `gpt-oss-safeguard-20b` |
+| **Linguist** | Dialect | Pidgin/Swahili translation | `qwen/qwen3-32b` |
+| **Visionary** | OCR | Multi-modal image audit | `llama-4-maverick` |
+| **Navigator** | Juris | Location matching (54 nations) | `llama-3.3-70b` |
+| **Forensic** | Audit | Evidence hashing & legal logic | `gpt-oss-120b` |
+| **Messenger** | Dispatch | Automated partner drafting | `kimi-k2-instruct` |
+| **Counselor** | Persona | Victim-facing empathetic chat | `kimi-k2-0905` |
 
 ---
 
-## 2. LiteLLM Router Configuration
+## 2. LiteLLM Router Implementation
 
-We use LiteLLM's `Router` to manage the complex fallback chains. This provides:
-*   **Automatic Retries:** 3x retries with exponential backoff.
-*   **Rate Limit Handling:** Automatically switches to the next model if `429 Too Many Requests` occurs.
-*   **Context Window Fallback:** If a prompt is too long for `llama-3.1-8b` (8k), it auto-switches to `kimi-k2` (256k).
-
-**Groups:**
-*   `fast`: Low latency, lower reasoning (Llama 3.1, Gemini Flash Lite).
-*   `smart`: High reasoning, slower (GPT-OSS-120b, Llama 4 Scout).
-*   `vision`: Multimodal capability (Llama 4 Maverick, Gemini 3 Flash).
-*   `safety`: Specialized safety filtering (Safeguard 20b).
+We manage model reliability through a 5-layer fallback chain defined in `litellm_config.yaml`.
+*   **Routing Strategy**: Simple-shuffle for load balancing across free/paid tiers.
+*   **Semantic Caching**: reasoning results are cached to disk to minimize latency and token spend.
+*   **Group Mapping**:
+    *   `vision-specialist` -> Targets multi-modal Groq/Gemini models.
+    *   `chat-counselor` -> High context (256k) targets for deep history.
 
 ---
 
-## 3. Google ADK 2026 Integration
+## 3. Dual-Pipeline Orchestration
 
-We utilize the latest ADK features to modernize the agent interactions:
+Logic is bifurcated to handle different entry points efficiently:
 
-*   **Context Bundles:** Instead of passing raw strings, we pass a `ContextBundle` object. This bundle persists in SQLite and is "hydrated" only when an agent needs it, saving RAM.
-*   **Generative Tool UI:** On the Partner Dashboard, we will render the agent's progress. "Agent is analyzing image..." -> "Agent is detecting location..." -> "Agent is dispatching email."
-*   **Agent2Agent (A2A):** Future-proofing for partners who want to connect their own bots to Imara.
+### A. Stateful Chat (`chat_orchestration`)
+- **Sources**: Telegram, Meta, Discord.
+- **Context**: Hydrates up to 10 history messages into the `ContextBundle`.
+- **Flow**: Emphasizes counselor empathy and continuous safety planning.
 
----
-
-## 4. 1GB RAM Optimization Strategy
-
-*   **Huey Task Queue:** Every agent action is a discrete Huey task.
-    *   *User sends message* -> `process_telegram_update` (Task 1)
-    *   *Task 1 calls Sentinel* -> `agent_sentinel_check` (Task 2)
-    *   *Task 2 calls Orchestrator* -> `agent_orchestrate` (Task 3)
-*   **Benefit:** The web server never holds the memory for the AI processing. The worker process picks up one small task, executes it, and releases the memory immediately.
-*   **Streaming:** All file uploads (Images/Audio) are streamed to R2 storage. The AI agents operate on the **File Object/URL**, never reading the full bytes into RAM.
+### B. Stateless Web (`web_orchestration`)
+- **Sources**: Anonymous Web Forms.
+- **Context**: Zero history. High-speed single-turn reasoning.
+- **Flow**: Optimized for forensic speed and immediate partner dispatch.
 
 ---
 
-## 5. Partner Features
+## 4. 1GB RAM Optimization (Production)
 
-*   **AI Response Assistant:** A new button on the Case Detail page allowing partners to "Generate Response" for a victim, drafted by `gpt-oss-20b`.
-*   **Live Audit Log:** Every AI action is logged in `PartnerAuditLog` for legal transparency.
+*   **Uvicorn (ASGI)**: Switched from Gunicorn/WSGI to enable async `httpx` calls without blocking workers.
+*   **Native `db_worker`**: Uses `django-tasks-db` to manage the queue directly in SQLite. Zero Redis/RabbitMQ overhead.
+*   **Streaming I/O**: File-based evidence is never loaded entirely into RAM; agents operate on paths and streamed chunks.
+*   **Dependency Purge**: Removed `django-huey`, `requests`, `django-editorjs2`, and `python-dotenv`.
 
 ---
 
-**Status:** Plan Approved. Implementation Active.
+## 5. Security & Forensic Integrity
+
+*   **Evidence Hashing**: Forensic Agent generates an immutable SHA-256 digest of all artifacts.
+*   **Production Hardening**: Enforced `CSRF_TRUSTED_ORIGINS`, `DEBUG=False`, and custom rate limiting.
+*   **Worker Safety**: Backup tasks use atomic SQLite snapshots to prevent DB corruption.
+
+---
+**Implementation Finalized:** 20 February 2026.
+**Enforced by:** Gemini CLI Bodyguard Module.
