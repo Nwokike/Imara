@@ -1,5 +1,6 @@
 import logging
 from typing import Optional, Dict, Any, List
+from django.utils import timezone
 from dataclasses import dataclass
 from .agents.base import ContextBundle
 from .agents.sentinel import SentinelAgent
@@ -123,7 +124,8 @@ class DecisionEngine:
         text: str, 
         history: List[Dict[str, str]],
         image_url: str = None,
-        metadata: Dict[str, Any] = None
+        metadata: Dict[str, Any] = None,
+        on_step: callable = None
     ) -> TriageResult:
         """
         Orchestration for stateful chat platforms (Telegram, Meta, Discord).
@@ -133,14 +135,16 @@ class DecisionEngine:
             text, 
             history=history, 
             image_url=image_url, 
-            metadata={**(metadata or {}), "pipeline": "chat"}
+            metadata={**(metadata or {}), "pipeline": "chat"},
+            on_step=on_step
         )
 
     def web_orchestration(
         self, 
         text: str, 
         image_url: str = None,
-        metadata: Dict[str, Any] = None
+        metadata: Dict[str, Any] = None,
+        on_step: callable = None
     ) -> TriageResult:
         """
         Orchestration for stateless web forms.
@@ -150,7 +154,8 @@ class DecisionEngine:
             text, 
             history=[], # Stateless
             image_url=image_url, 
-            metadata={**(metadata or {}), "pipeline": "web"}
+            metadata={**(metadata or {}), "pipeline": "web"},
+            on_step=on_step
         )
 
     def process_incident(
@@ -158,7 +163,8 @@ class DecisionEngine:
         text: str, 
         history: List[Dict[str, str]] = None,
         image_url: str = None,
-        metadata: Dict[str, Any] = None
+        metadata: Dict[str, Any] = None,
+        on_step: callable = None
     ) -> TriageResult:
         """
         Orchestrates the 7-agent Hive pipeline.
@@ -179,6 +185,12 @@ class DecisionEngine:
         incident_id = (metadata or {}).get("incident_id")
         
         def log_step(agent_name, detail):
+            # 1. Internal Callback (for real-time platform updates like Telegram)
+            if on_step:
+                try: on_step(agent_name, detail)
+                except Exception: pass
+
+            # 2. Database Logging (for Web UI polling)
             if incident_id:
                 from cases.models import IncidentReport
                 try:

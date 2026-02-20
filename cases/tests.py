@@ -63,3 +63,33 @@ class CaseModelTest(TestCase):
         
         incident.refresh_from_db()
         self.assertEqual(incident.reasoning_log[0]["agent"], "Sentinel")
+
+from django.urls import reverse
+from django.contrib.auth.models import User
+from partners.models import PartnerOrganization, PartnerUser
+
+class CaseViewPermissionsTest(TestCase):
+    def setUp(self):
+        self.org = PartnerOrganization.objects.create(name="Legal Aid", jurisdiction="Kenya")
+        self.partner_user = User.objects.create_user(username="lawyer", password="password")
+        self.partner_profile = PartnerUser.objects.create(user=self.partner_user, organization=self.org)
+        
+        self.other_user = User.objects.create_user(username="other", password="password")
+        self.staff_user = User.objects.create_superuser(username="admin", password="password", email="a@b.com")
+        
+        self.case = IncidentReport.objects.create(source="web", assigned_partner=self.org)
+
+    def test_staff_can_view_case(self):
+        self.client.login(username="admin", password="password")
+        response = self.client.get(reverse('cases:case_detail', kwargs={'case_id': self.case.case_id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_assigned_partner_can_view_case(self):
+        self.client.login(username="lawyer", password="password")
+        response = self.client.get(reverse('cases:case_detail', kwargs={'case_id': self.case.case_id}))
+        self.assertEqual(response.status_code, 200)
+
+    def test_unauthorized_user_blocked(self):
+        self.client.login(username="other", password="password")
+        response = self.client.get(reverse('cases:case_detail', kwargs={'case_id': self.case.case_id}))
+        self.assertEqual(response.status_code, 403) # Forbidden by test_func

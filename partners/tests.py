@@ -57,6 +57,28 @@ class PartnerOrganizationTests(TestCase):
         self.assertTrue(updated_org.is_agent_enabled)
         self.assertEqual(updated_org.agent_persona, "A specialized legal advisor.")
 
+from .utils import normalize_location
+
+class UtilsTest(TestCase):
+    def test_normalize_location(self):
+        """Test location normalization logic for various inputs."""
+        # City match
+        self.assertEqual(normalize_location("Lagos"), "Nigeria")
+        self.assertEqual(normalize_location("nairobi"), "Kenya")
+        
+        # Synonym match
+        self.assertEqual(normalize_location("Naija"), "Nigeria")
+        
+        # Comma separation
+        self.assertEqual(normalize_location("Enugu, Nigeria"), "Nigeria")
+        
+        # Substring
+        self.assertEqual(normalize_location("I am in Accra right now"), "Ghana")
+        
+        # Fallback
+        self.assertEqual(normalize_location("Unknown place"), "Unknown")
+        self.assertEqual(normalize_location(""), "Unknown")
+
 
 class PartnerInviteTests(TestCase):
     def setUp(self):

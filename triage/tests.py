@@ -107,12 +107,130 @@ class HiveReasoningTest(TestCase):
         
         incident = IncidentReport.objects.create(source='web', original_text="Harassment")
         
-        # We manually trigger orchestration with mocks to check log population
-        # (This is a sanity check for the logging callback)
-        with patch.object(DecisionEngine, 'sentinel') as m_sentinel:
-            m_sentinel.process.return_value = ContextBundle("Harassment", [])
+        # Patch the agent's process method to return a valid bundle without calling LLM
+        with patch('triage.agents.sentinel.SentinelAgent.process') as m_process:
+            m_process.side_effect = lambda b: b
             decision_engine.process_incident("Harassment", metadata={"incident_id": incident.pk})
             
         incident.refresh_from_db()
         self.assertGreater(len(incident.reasoning_log), 0)
         self.assertEqual(incident.reasoning_log[0]["agent"], "Sentinel")
+
+class ConversationEngineLogicTest(TestCase):
+    """Test the logic and enforcement rules of the ConversationEngine."""
+    
+    def setUp(self):
+        from triage.conversation_engine import ConversationEngine
+        self.engine = ConversationEngine()
+
+    def test_high_risk_requires_location(self):
+        """High risk (7+) should force state to ASKING_LOCATION if location is missing."""
+        payload = {
+            "response": "I see the threat.",
+            "state": "PROCESSING",
+            "gathered_info": {
+                "risk_score": 8,
+                "user_confirmed": True
+                # Missing location
+            }
+        }
+        resp = self.engine._parse_llm_response(__import__("json").dumps(payload))
+        self.assertEqual(resp.state, "ASKING_LOCATION")
+        self.assertFalse(resp.should_create_report)
+
+    def test_high_risk_requires_confirmation(self):
+        """High risk (7+) should force state to CONFIRMING if not confirmed."""
+        payload = {
+            "response": "I see the threat.",
+            "state": "PROCESSING",
+            "gathered_info": {
+                "risk_score": 8,
+                "location": "Lagos, Nigeria",
+                "user_confirmed": False
+            }
+        }
+        resp = self.engine._parse_llm_response(__import__("json").dumps(payload))
+        self.assertEqual(resp.state, "CONFIRMING")
+        self.assertFalse(resp.should_create_report)
+
+    def test_mandatory_fields_enforcement(self):
+        """Regardless of risk, name and description are required for escalation."""
+        payload = {
+            "response": "I see the threat.",
+            "state": "PROCESSING",
+            "gathered_info": {
+                "risk_score": 5,
+                "location": "Accra, Ghana",
+                "user_confirmed": True
+                # Missing reporter_name, incident_description
+            }
+        }
+        resp = self.engine._parse_llm_response(__import__("json").dumps(payload))
+        self.assertEqual(resp.state, "GATHERING")
+        self.assertIn("missing_fields", resp.gathered_info)
+
+    def test_low_risk_allowed_directly(self):
+        """Low risk (score < 7) can bypass location if logic allows (legacy support)."""
+        payload = {
+            "response": "Advice given.",
+            "state": "LOW_RISK_ADVISE",
+            "gathered_info": {"risk_score": 2}
+        }
+        resp = self.engine._parse_llm_response(__import__("json").dumps(payload))
+        self.assertEqual(resp.state, "LOW_RISK_ADVISE")
+        self.assertTrue(resp.is_low_risk)
+
+from triage.clients.groq_client import GroqClient
+from triage.clients.gemini_client import GeminiClient
+
+class AIClientTest(TestCase):
+    @patch('requests.post')
+    def test_groq_text_analysis(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": '{"risk_score": 8, "action": "REPORT", "summary": "Threat"}'}}]
+        }
+        mock_post.return_value = mock_response
+        
+        client = GroqClient()
+        # Mock available
+        client._available = True
+        client.api_key = "test"
+        
+        result = client.analyze_text("I will find you")
+        self.assertEqual(result.risk_score, 8)
+        self.assertEqual(result.action, "REPORT")
+
+    @patch('requests.post')
+    def test_groq_transcription(self, mock_post):
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.text = "Help me please"
+        mock_post.return_value = mock_response
+        
+        client = GroqClient()
+        client._available = True
+        client.api_key = "test"
+        
+        from io import BytesIO
+        audio = BytesIO(b"fake-audio")
+        text = client.transcribe_audio(audio)
+        self.assertEqual(text, "Help me please")
+
+    def test_gemini_vision_analysis(self):
+        """Test Gemini vision analysis with mocked SDK."""
+        client = GeminiClient()
+        client._available = True
+        client.client = MagicMock()
+        
+        # Mock the SDK response
+        mock_res = MagicMock()
+        mock_res.text = '{"risk_score": 9, "action": "REPORT", "summary": "Visual threat", "extracted_text": "I see you"}'
+        client.client.models.generate_content.return_value = mock_res
+        
+        from io import BytesIO
+        img = BytesIO(b"fake-img")
+        result = client.analyze_image(img, "image/jpeg")
+        self.assertEqual(result.risk_score, 9)
+        self.assertEqual(result.extracted_text, "I see you")

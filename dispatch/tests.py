@@ -1,4 +1,4 @@
-from django.test import TransactionTestCase, override_settings
+from django.test import TestCase, TransactionTestCase, override_settings
 from unittest import mock
 from asgiref.sync import async_to_sync
 from cases.models import IncidentReport
@@ -62,3 +62,28 @@ class BrevoTaskTests(TransactionTestCase):
         incident.refresh_from_db()
         self.assertIsNotNone(incident.dispatched_at)
         self.assertEqual(incident.dispatched_to, "partner@example.com")
+
+class BackupTaskTests(TestCase):
+    @mock.patch("sqlite3.connect")
+    @mock.patch("boto3.client")
+    @mock.patch("os.remove")
+    @mock.patch("dispatch.tasks.Path.exists", return_value=True)
+    def test_backup_database_task(self, mock_exists, mock_remove, mock_boto, mock_sqlite):
+        """Test the native database backup lifecycle."""
+        from .tasks import backup_database_task
+        
+        # Setup mocks
+        mock_s3 = mock.MagicMock()
+        mock_boto.return_value = mock_s3
+        
+        with override_settings(DATABASES={'default': {'NAME': 'test.db'}}):
+            backup_database_task.func()
+            
+        # Verify SQLite interaction
+        self.assertEqual(mock_sqlite.call_count, 2) # src and dst
+        
+        # Verify S3 interaction
+        self.assertTrue(mock_s3.upload_file.called)
+        
+        # Verify cleanup
+        self.assertTrue(mock_remove.called)

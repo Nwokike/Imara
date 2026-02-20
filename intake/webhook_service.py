@@ -89,12 +89,9 @@ class TelegramProcessor(WebhookProcessor):
             return
 
         # 5. Media/Text Orchestration
-        history = session.get_messages_for_llm(limit=10)
-        
         if text:
             self.save_message(session, 'user', text, 'text')
-            result = decision_engine.chat_orchestration(text, history=history)
-            self.send_result(chat_id, result, session)
+            self.handle_text(chat_id, text, username, session)
         elif photo:
             self.save_message(session, 'user', '[Image]', 'image')
             self.handle_photo(chat_id, photo, username, message.get('caption'), session)
@@ -102,11 +99,45 @@ class TelegramProcessor(WebhookProcessor):
             self.save_message(session, 'user', '[Voice Note]', 'voice')
             self.handle_voice(chat_id, voice or audio, username, session)
 
+    def handle_text(self, chat_id, text, username, session):
+        # Initial status message
+        msg_id = self.send_message_sync(chat_id, "💭 Aunty Imara is listening...")
+        
+        def on_step(agent, detail):
+            self.edit_message_sync(chat_id, msg_id, f"💭 {agent} Agent: {detail}")
+
+        result = decision_engine.chat_orchestration(
+            text, 
+            history=session.get_messages_for_llm(limit=10),
+            metadata={"last_interaction_age": session.get_last_interaction_age()},
+            on_step=on_step
+        )
+        
+        self.delete_message_sync(chat_id, msg_id)
+        self.send_result(chat_id, result, session)
+
     def send_message_sync(self, chat_id, text):
         token = os.environ.get('TELEGRAM_BOT_TOKEN')
         import requests
         try:
-            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'}, timeout=10)
+            res = requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={'chat_id': chat_id, 'text': text, 'parse_mode': 'Markdown'}, timeout=10)
+            return res.json().get('result', {}).get('message_id')
+        except Exception: return None
+
+    def edit_message_sync(self, chat_id, msg_id, text):
+        if not msg_id: return
+        token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        import requests
+        try:
+            requests.post(f"https://api.telegram.org/bot{token}/editMessageText", json={'chat_id': chat_id, 'message_id': msg_id, 'text': text, 'parse_mode': 'Markdown'}, timeout=5)
+        except Exception: pass
+
+    def delete_message_sync(self, chat_id, msg_id):
+        if not msg_id: return
+        token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        import requests
+        try:
+            requests.post(f"https://api.telegram.org/bot{token}/deleteMessage", json={'chat_id': chat_id, 'message_id': msg_id}, timeout=5)
         except Exception: pass
 
     def handle_command(self, chat_id, text, username):
@@ -127,48 +158,69 @@ class TelegramProcessor(WebhookProcessor):
         session.awaiting_location = False
         session.save()
         self.send_message_sync(chat_id, f"📍 Got it - {text}. Updating your report...")
-        # (Resume batch logic or update case would go here)
 
     def handle_photo(self, chat_id, photos, username, caption, session):
-        self.send_message_sync(chat_id, "🔍 Analyzing your screenshot...")
+        msg_id = self.send_message_sync(chat_id, "🔍 Analyzing your screenshot...")
+        def on_step(agent, detail):
+            self.edit_message_sync(chat_id, msg_id, f"🔍 {agent} Agent: {detail}")
+
         largest = max(photos, key=lambda p: p.get('file_size', 0))
         file_id = largest.get('file_id')
-        
-        # In a real async flow, we would download and callVisionaryAgent
-        # For now, we utilize the DecisionEngine's process_incident which handles orchestration
         image_path, _ = self.download_file(file_id)
         if image_path:
             try:
-                # 1. Pipeline through Visionary -> Forensic -> Counselor
                 result = decision_engine.chat_orchestration(
                     text=caption or "Visual Evidence",
                     history=session.get_messages_for_llm(limit=10),
-                    image_url=image_path, # Local path for the agent to read
-                    metadata={"source": "telegram", "chat_id": chat_id}
+                    image_url=image_path,
+                    metadata={"source": "telegram", "chat_id": chat_id},
+                    on_step=on_step
                 )
+                self.delete_message_sync(chat_id, msg_id)
                 self.send_result(chat_id, result, session)
             finally:
                 if os.path.exists(image_path): os.unlink(image_path)
 
     def handle_voice(self, chat_id, voice_data, username, session):
-        self.send_message_sync(chat_id, "🔍 Analyzing your voice note...")
+        msg_id = self.send_message_sync(chat_id, "🎤 Transcribing voice note...")
+        def on_step(agent, detail):
+            self.edit_message_sync(chat_id, msg_id, f"🎤 {agent} Agent: {detail}")
+
         file_id = voice_data.get('file_id')
         audio_path, _ = self.download_file(file_id)
         if audio_path:
             try:
-                # 1. Transcribe (One Tool)
                 from triage.clients.groq_client import get_groq_client
                 text = get_groq_client().transcribe_audio(audio_path)
-                
-                # 2. Pipeline through Linguist -> Forensic -> Counselor
                 result = decision_engine.chat_orchestration(
                     text=f"[Voice Note]: {text}",
                     history=session.get_messages_for_llm(limit=10),
-                    metadata={"source": "telegram", "chat_id": chat_id}
+                    metadata={"source": "telegram", "chat_id": chat_id},
+                    on_step=on_step
                 )
+                self.delete_message_sync(chat_id, msg_id)
                 self.send_result(chat_id, result, session)
             finally:
                 if os.path.exists(audio_path): os.unlink(audio_path)
+
+    def download_file(self, file_id):
+        token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        try:
+            import requests
+            res = requests.get(f"https://api.telegram.org/bot{token}/getFile", params={'file_id': file_id}, timeout=30)
+            res.raise_for_status()
+            file_path = res.json().get('result', {}).get('file_path')
+            if file_path:
+                ext = os.path.splitext(file_path)[1] or '.bin'
+                tmp_fd, tmp_path = tempfile.mkstemp(suffix=ext)
+                os.close(tmp_fd)
+                with requests.get(f"https://api.telegram.org/file/bot{token}/{file_path}", stream=True, timeout=60) as r:
+                    r.raise_for_status()
+                    with open(tmp_path, 'wb') as f:
+                        for chunk in r.iter_content(chunk_size=8192): f.write(chunk)
+                return tmp_path, r.headers.get('content-type')
+        except Exception: pass
+        return None, None
 
     def send_result(self, chat_id, result, session):
         case_id = "N/A"
@@ -180,7 +232,13 @@ class TelegramProcessor(WebhookProcessor):
             msg = get_localized_location_prompt(session.language_preference)
         else:
             msg = f"✅ *Analysis Complete*\n\n📊 *Risk Score:* {result.risk_score}/10\n\n💡 *Advice:*\n{result.advice}"
-        self.send_message_sync(chat_id, msg)
+        
+        self.save_message(session, 'assistant', result.advice)
+        token = os.environ.get('TELEGRAM_BOT_TOKEN')
+        import requests
+        try:
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={'chat_id': chat_id, 'text': msg, 'parse_mode': 'Markdown'}, timeout=10)
+        except Exception: pass
 
     def handle_callback(self, callback_query):
         chat_id = callback_query.get('message', {}).get('chat', {}).get('id')
@@ -207,7 +265,11 @@ class MetaProcessor(WebhookProcessor):
             
             self.save_message(session, 'user', text)
             meta_messenger.send_typing_indicator(sender_id)
-            result = decision_engine.chat_orchestration(text, history=session.get_messages_for_llm(limit=10))
+            result = decision_engine.chat_orchestration(
+                text, 
+                history=session.get_messages_for_llm(limit=10),
+                metadata={"last_interaction_age": session.get_last_interaction_age()}
+            )
             self._send_meta_result(sender_id, result, session, platform)
 
     def _send_meta_result(self, sender_id, result, session, platform):

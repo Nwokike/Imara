@@ -79,6 +79,7 @@ AFRICAN_COUNTRIES: list[str] = [c for _, countries in AFRICAN_COUNTRIES_BY_REGIO
 
 # Common synonyms/abbreviations -> canonical country
 COUNTRY_SYNONYMS: dict[str, str] = {
+    "naija": "Nigeria",
     "drc": "Democratic Republic of the Congo",
     "dr congo": "Democratic Republic of the Congo",
     "democratic republic of congo": "Democratic Republic of the Congo",

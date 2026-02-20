@@ -31,7 +31,7 @@ def normalize_location(location_text: str) -> str:
             return mapped_country
             
     # 3. Try direct synonym match on full text
-    candidate = COUNTRY_SYNONYMS.get(raw, raw)
+    candidate = COUNTRY_SYNONYMS.get(raw, raw).lower()
     for c in AFRICAN_COUNTRIES:
         if c.lower() == candidate:
             return c
