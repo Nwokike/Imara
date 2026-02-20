@@ -110,7 +110,7 @@ class GroqClient:
         if conversation_context:
             context_str = "\n".join(conversation_context[-10:])
         
-        system_prompt = """You are Project Imara's AI Sentinel - a specialized, autonomous agent designed to protect women and girls from online gender-based violence (OGBV).
+        system_prompt = """You are Project Imara's AI Sentinel - a specialized, autonomous agent designed to protect against online gender-based violence (OGBV).
 
 MENTAL STATE & GOAL:
 You are not just a classifier; you are a Guardian. Your goal is to ASSESS THREATS and PROTECT USERS.
@@ -141,7 +141,7 @@ LANGUAGE & TONE:
 OUTPUT FORMAT:
 You MUST respond with valid JSON only."""
 
-        user_prompt = f"""Analyze this message for threats against women/girls.
+        user_prompt = f"""Analyze this message for threats related to online gender-based violence.
 
 {"CONVERSATION HISTORY:" + chr(10) + context_str + chr(10) + chr(10) if context_str else ""}CURRENT MESSAGE: "{text}"
 

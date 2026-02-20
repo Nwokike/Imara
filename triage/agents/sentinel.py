@@ -16,7 +16,7 @@ class SentinelAgent(BaseAgent):
     model_alias = "safety-sentinel"
     
     POLICY_PROMPT = """
-    Analyze the following message against Imara's protection policy for women and girls.
+    Analyze the following message against Imara's protection policy for online gender-based violence.
     DETERMINE if the message contains:
     1. Direct threats of violence.
     2. Stalking or persistent harassment.

@@ -393,7 +393,7 @@ class PartnerCaseDetailView(PartnerRequiredMixin, View):
                 router = get_llm_router()
                 
                 # Context for AI
-                persona = org.agent_persona or "An empathetic support specialist for African women facing online violence."
+                persona = org.agent_persona or "An empathetic support specialist for Africans facing online gender-based violence."
                 prompt = f"""
                 As a responder for {org.name}, draft a supportive, professional email or message to the victim.
                 YOUR PERSONA: {persona}
@@ -621,7 +621,7 @@ class InviteTeamMemberView(AdminRequiredMixin, View):
         <h2>You're invited to join {org.name} on Project Imara</h2>
         <p>Hello,</p>
         <p>You have been invited to join <strong>{org.name}</strong> as a <strong>{invite.get_role_display()}</strong> on the Project Imara Partner Portal.</p>
-        <p>Project Imara is a digital platform protecting women and girls from online violence across Africa.</p>
+        <p>Project Imara is a digital platform protecting against online gender-based violence across Africa.</p>
         <p style="margin: 30px 0;">
             <a href="{invite_url}" style="background-color: #2D1B36; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Accept Invitation</a>
         </p>

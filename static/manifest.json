@@ -1,7 +1,7 @@
 {
     "name": "Project Imara - Digital Bodyguard",
     "short_name": "Imara",
-    "description": "Your Digital Bodyguard protecting women and girls from online violence",
+    "description": "Your Digital Bodyguard protecting against online gender-based violence",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

@@ -3,7 +3,7 @@
 ## Overview
 **A project of Kiri Research Labs**
 
-Project Imara is a specialized "Bodyguard Hive" platform protecting African women from digital violence. The 2026 architecture is optimized for low-memory environments (1GB RAM) while providing enterprise-grade multi-agent reasoning.
+Project Imara is a specialized "Bodyguard Hive" platform protecting Africans against online gender-based violence. The 2026 architecture is optimized for low-memory environments (1GB RAM) while providing enterprise-grade multi-agent reasoning.
 
 ## Architecture: The "Hive" Network
 ```mermaid

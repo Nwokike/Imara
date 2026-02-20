@@ -154,7 +154,7 @@ RULES:
 
 You MUST respond with valid JSON only."""
 
-        user_prompt = """Analyze this screenshot for threats against women/girls.
+        user_prompt = """Analyze this screenshot for threats related to online gender-based violence.
 
 1. First, extract ALL visible text from the image
 2. Then analyze the content for threats
