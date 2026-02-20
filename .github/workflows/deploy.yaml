@@ -49,17 +49,18 @@ jobs:
           # 7. Run Django deployment checks
           uv run python manage.py check --deploy
 
-          # 8. Restart the Web Server
+          # 8. Restart the Web Server and Native Worker
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart imara
-          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart huey
+          echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart imara-worker
           echo "${{ secrets.SUDO_PASSWORD }}" | sudo -S systemctl restart nginx
 
-          # 9. Health Check via Unix socket (tests Gunicorn directly)
+          # 9. Health Check via Unix socket (tests Uvicorn directly)
           sleep 5
-          if ! curl -sf --unix-socket /home/projectimarahq/imara/imara.sock http://localhost/health/; then
+          if ! curl -sf --unix-socket /home/projectimarahq/imara/imara.sock http://localhost/health-check/; then
             echo "ERROR: Health check failed - deployment may be broken"
             # Show service status for debugging
             sudo systemctl status imara --no-pager || true
+            sudo systemctl status imara-worker --no-pager || true
             sudo systemctl status nginx --no-pager || true
             exit 1
           fi
