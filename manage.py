@@ -6,6 +6,16 @@ import sys
 
 def main():
     """Run administrative tasks."""
+    # Load .env variables natively if file exists
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    if os.path.exists(env_path):
+        with open(env_path) as f:
+            for line in f:
+                if line.strip() and not line.startswith('#'):
+                    if '=' in line:
+                        key, value = line.strip().split('=', 1)
+                        os.environ[key] = value
+
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'imara.settings')
     try:
         from django.core.management import execute_from_command_line
