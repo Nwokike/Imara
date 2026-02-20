@@ -41,7 +41,11 @@ def process_telegram_update_task(data: dict):
         history = session.get_messages_for_llm(limit=10)
         
         # 1. Pipeline through Orchestrator (Chat Pipeline)
-        result = decision_engine.chat_orchestration(text, history=history)
+        result = decision_engine.chat_orchestration(
+            text, 
+            history=history,
+            metadata={"last_interaction_age": session.get_last_interaction_age()}
+        )
         
         # 2. Deliver Agent Response
         processor.send_result(chat_id, result, session)
@@ -77,7 +81,11 @@ def process_meta_event_task(event: dict, platform: str):
         history = session.get_messages_for_llm(limit=10)
         
         # 1. Pipeline through Orchestrator (Chat Pipeline)
-        result = decision_engine.chat_orchestration(text, history=history)
+        result = decision_engine.chat_orchestration(
+            text, 
+            history=history,
+            metadata={"last_interaction_age": session.get_last_interaction_age()}
+        )
         
         # 2. Deliver
         processor._send_meta_result(sender_id, result, session, platform)

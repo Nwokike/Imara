@@ -161,12 +161,19 @@ class DecisionEngine:
         metadata: Dict[str, Any] = None
     ) -> TriageResult:
         """
-        Orchestrates the agent pipeline.
+        Orchestrates the 7-agent Hive pipeline.
         """
+        # Temporal Gap Check: If history is old, treat as fresh interaction for persona
+        is_stale = (metadata or {}).get("last_interaction_age", 0) > 86400 # 24 hours
+        
         bundle = ContextBundle(
             user_message=text,
-            conversation_history=history or [],
-            metadata={**(metadata or {}), "image_url": image_url}
+            conversation_history=[] if is_stale else (history or []),
+            metadata={
+                **(metadata or {}), 
+                "image_url": image_url,
+                "full_history": history or [] 
+            }
         )
 
         try:

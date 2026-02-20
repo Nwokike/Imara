@@ -118,18 +118,23 @@ class ChatSession(models.Model):
         return context
     
     def get_messages_for_llm(self, limit=15):
-        """Get messages in OpenAI-compatible format for LLM with timestamps."""
+        """Get messages in OpenAI-compatible format for LLM."""
         messages = self.get_recent_messages(limit)
         llm_messages = []
         for msg in messages:
             role = 'user' if msg.role == 'user' else 'assistant'
-            # Include timestamp for context
-            timestamp = msg.created_at.strftime('%Y-%m-%d %H:%M')
             llm_messages.append({
                 'role': role,
-                'content': f"[{timestamp}] {msg.content}"
+                'content': msg.content
             })
         return llm_messages
+
+    def get_last_interaction_age(self):
+        """Returns the time since the last message in seconds."""
+        last_msg = self.messages.order_by('-created_at').first()
+        if not last_msg:
+            return float('inf')
+        return (timezone.now() - last_msg.created_at).total_seconds()
     
     def get_conversation_history_summary(self) -> str:
         """

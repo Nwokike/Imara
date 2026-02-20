@@ -176,8 +176,11 @@ class ReportFormView(View):
             process_web_report_task.enqueue(incident.pk)
             
             return render(request, 'intake/result.html', {
-                'case_id': str(incident.case_id)[:8],
-                'message': "Your report has been received and is being analyzed. You'll receive a confirmation email shortly."
+                'result': {
+                    'status': 'pending',
+                    'case_id': str(incident.case_id)[:8],
+                    'message': "Your report has been received and is being analyzed. You'll receive a confirmation email shortly."
+                }
             })
         
         return render(request, 'intake/report_form.html', {'form': form})
