@@ -2,22 +2,17 @@
 name = "project-imara"
 version = "1.0.0"
 description = "Zero-UI Digital Bodyguard for African women facing online violence"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "dj-database-url>=3.0.1",
-    "django>=5.2.8",
-    "django-huey>=1.2.1",
-    "django-storages[boto3]>=1.14.2",
-    "boto3>=1.34.0",
-    "django-editorjs2",
+    "django>=6.0.0",
     "google-genai>=1.52.0",
     "gunicorn>=23.0.0",
     "pydantic>=2.12.5",
-    "python-dotenv>=1.2.1",
-    "python-telegram-bot>=22.5",
-    "requests>=2.32.5",
     "whitenoise>=6.11.0",
     "pillow>=10.2.0",
-    "django-ratelimit>=4.1.0",
     "litellm>=1.81.13",
+    "httpx>=0.28.1",
+    "uvicorn>=0.41.0",
+    "django-tasks-scheduler>=4.0.8",
 ]

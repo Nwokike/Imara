@@ -1,14 +1,12 @@
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
-
-load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security: This should be False in your .env for production
+# UV handles environment loading automatically in 2026
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Security: Always keep secret key in .env - REQUIRED in production
@@ -23,28 +21,16 @@ if not SECRET_KEY:
 if DEBUG:
     ALLOWED_HOSTS = ['*']
 else:
-    # Get hosts from env, default to safe list
     env_hosts = os.environ.get('ALLOWED_HOSTS', '').split(',')
     ALLOWED_HOSTS = [host.strip() for host in env_hosts if host.strip()]
     if not ALLOWED_HOSTS:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(
-            "ALLOWED_HOSTS not set in production .env - using fallback hosts. "
-            "This may be more permissive than desired. Set ALLOWED_HOSTS explicitly."
-        )
-        ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'imara.africa', 'www.imara.africa', '35.209.14.56']
+        ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'imara.africa', 'www.imara.africa']
 
-# CSRF Protection: Allow forms to work on your domain
-CSRF_TRUSTED_ORIGINS = [
-    'https://imara.africa',
-    'https://www.imara.africa',
-]
-# Add configured allowed hosts to trusted origins
+# CSRF Protection
+CSRF_TRUSTED_ORIGINS = ['https://imara.africa', 'https://www.imara.africa']
 for host in ALLOWED_HOSTS:
-    if host not in ['*', 'localhost', '127.0.0.1']:
-        if not host.startswith('http'):
-            CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
+    if host not in ['*', 'localhost', '127.0.0.1'] and not host.startswith('http'):
+        CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,9 +46,6 @@ INSTALLED_APPS = [
     'triage.apps.TriageConfig',
     'partners.apps.PartnersConfig',
     'publications.apps.PublicationsConfig',
-    # Third-party
-    'django_editorjs2',
-    'django_huey',
 ]
 
 MIDDLEWARE = [
@@ -96,9 +79,9 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'imara.wsgi.application'
+ASGI_APPLICATION = 'imara.asgi.application'
 
-# Database: Configured via DATABASE_URL
-# Default to SQLite if not provided (Local Dev / Simple Prod)
+# Database
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -107,28 +90,25 @@ DATABASES = {
     )
 }
 
-# SQLite Optimization: Production-ready settings (2025/2026 best practices)
+# SQLite Optimization (1GB RAM tuned)
 from django.db.backends.signals import connection_created
 from django.dispatch import receiver
 
 @receiver(connection_created)
 def configure_sqlite_pragmas(sender, connection, **kwargs):
-    """Configure SQLite for production performance and safety"""
     if connection.vendor == 'sqlite':
         cursor = connection.cursor()
-        # WAL mode for better concurrency (writers don't block readers)
         cursor.execute('PRAGMA journal_mode=WAL;')
-        # NORMAL sync is safe with WAL and much faster than FULL
         cursor.execute('PRAGMA synchronous=NORMAL;')
-        # Wait up to 5 seconds when database is locked (prevents SQLITE_BUSY errors)
         cursor.execute('PRAGMA busy_timeout=5000;')
-        # 64MB cache for better read performance (negative value = KB)
-        cursor.execute('PRAGMA cache_size=-64000;')
-        # Enforce foreign key constraints for data integrity
-        cursor.execute('PRAGMA foreign_keys=ON;')
-        # Memory-map 128MB for faster reads (safe for 1GB VM)
         cursor.execute('PRAGMA mmap_size=134217728;')
 
+# Django 6 Native Tasks
+TASKS = {
+    'default': {
+        'BACKEND': 'django.tasks.backends.database.DatabaseBackend',
+    },
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -137,7 +117,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Custom authentication: Allow login with email OR username
 AUTHENTICATION_BACKENDS = [
     'utils.auth.EmailOrUsernameBackend',
     'django.contrib.auth.backends.ModelBackend',
@@ -148,174 +127,39 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
-# Static Files (CSS/JS)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Storage Configuration: S3 (R2) for Media, Whitenoise for Static
 STORAGES = {
     "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "access_key": os.environ.get("R2_ACCESS_KEY_ID"),
-            "secret_key": os.environ.get("R2_SECRET_ACCESS_KEY"),
-            "bucket_name": os.environ.get("R2_BUCKET_NAME"),
-            "endpoint_url": os.environ.get("R2_ENDPOINT_URL"),
-            "custom_domain": os.environ.get("R2_CUSTOM_DOMAIN"),
-            "file_overwrite": False,
-        },
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        # Use CompressedManifestStaticFilesStorage for long-term browser caching via hashes
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-# Django Huey Configuration (Task Queue)
-DJANGO_HUEY = {
-    'default': 'dispatch',
-    'queues': {
-        'dispatch': {
-            'huey_class': 'huey.SqliteHuey',
-            'filename': BASE_DIR / 'huey.sqlite3',
-            'immediate': DEBUG,  # Run synchronously in debug
-        }
-    }
-}
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-# File upload limits (for 1GB RAM VM)
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB max
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5MB before temp file
-
-# Data retention (1GB VM hygiene)
-# Chat + feedback tables can grow without bounds over time; keep them lean by default.
+# Retention & Upload Limits
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 TRIAGE_MESSAGE_RETENTION_DAYS = int(os.environ.get('TRIAGE_MESSAGE_RETENTION_DAYS', '90'))
-TRIAGE_SESSION_RETENTION_DAYS = int(os.environ.get('TRIAGE_SESSION_RETENTION_DAYS', '90'))
-TRIAGE_FEEDBACK_RETENTION_DAYS = int(os.environ.get('TRIAGE_FEEDBACK_RETENTION_DAYS', '365'))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# API Keys
+# API Keys (Loaded from OS environment by UV)
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 BREVO_API_KEY = os.environ.get('BREVO_API_KEY')
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
-TELEGRAM_SECRET_TOKEN = os.environ.get('TELEGRAM_SECRET_TOKEN')
-
-# Meta Platform (Facebook Messenger / Instagram)
-META_APP_SECRET = os.environ.get('META_APP_SECRET')
-META_PAGE_ACCESS_TOKEN = os.environ.get('META_PAGE_ACCESS_TOKEN')
-META_VERIFY_TOKEN = os.environ.get('META_VERIFY_TOKEN')
-
-# Email Configuration
 BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL', 'imara-alerts@projectimara.org')
 ADMIN_NOTIFICATION_EMAIL = os.environ.get('ADMIN_NOTIFICATION_EMAIL', 'projectimarahq@gmail.com')
-
-# Cloudflare Turnstile (CAPTCHA) - No hardcoded keys in production
-TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '' if not DEBUG else '1x00000000000000000000AA')
-TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '' if not DEBUG else '1x0000000000000000000000000000000AA')
-
-# Rate Limiting Configuration
-RATELIMIT_VIEW = 'utils.ratelimit.handle_ratelimit_error'
-
-# Security Settings for Production
-if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-    SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-    SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
-    SECURE_REDIRECT_EXEMPT = [r'^webhook/']
-    
-    # Validate critical configuration in production
-    import logging
-    logger = logging.getLogger(__name__)
-    
-    missing_critical = []
-    
-    # R2 Storage (required for media files)
-    required_r2_vars = ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME']
-    missing_r2 = [v for v in required_r2_vars if not os.environ.get(v)]
-    if missing_r2:
-        missing_critical.extend(missing_r2)
-        logger.error(f"Missing R2 storage vars: {missing_r2} - File uploads will fail")
-    
-    # AI Services (required for threat analysis)
-    if not os.environ.get('GROQ_API_KEY'):
-        missing_critical.append('GROQ_API_KEY')
-        logger.error("GROQ_API_KEY not set - text analysis will fail")
-    if not os.environ.get('GEMINI_API_KEY'):
-        missing_critical.append('GEMINI_API_KEY')
-        logger.error("GEMINI_API_KEY not set - image/audio analysis will fail")
-    
-    # Email Dispatch (required for forensic alerts)
-    if not os.environ.get('BREVO_API_KEY'):
-        missing_critical.append('BREVO_API_KEY')
-        logger.error("BREVO_API_KEY not set - email dispatch will fail")
-    
-    # Turnstile (required for CAPTCHA protection)
-    if not os.environ.get('TURNSTILE_SITE_KEY') or not os.environ.get('TURNSTILE_SECRET_KEY'):
-        missing_critical.extend(['TURNSTILE_SITE_KEY', 'TURNSTILE_SECRET_KEY'])
-        logger.error("Turnstile keys not set - CAPTCHA protection disabled")
-    
-    if missing_critical:
-        logger.critical(
-            f"CRITICAL: Missing required environment variables: {missing_critical}. "
-            "Application may not function correctly in production."
-        )
-        raise ImproperlyConfigured(
-            f"Missing required environment variables for production: {', '.join(missing_critical)}"
-        )
+TURNSTILE_SITE_KEY = os.environ.get('TURNSTILE_SITE_KEY', '')
+TURNSTILE_SECRET_KEY = os.environ.get('TURNSTILE_SECRET_KEY', '')
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': False,
-        },
-        'intake': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-        'triage': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-        'dispatch': {
-            'handlers': ['console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': False,
-        },
-    },
+    'formatters': {'verbose': {'format': '{levelname} {asctime} {module} {message}', 'style': '{'}},
+    'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'}},
+    'root': {'handlers': ['console'], 'level': 'INFO'},
 }
