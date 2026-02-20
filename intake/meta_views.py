@@ -1,50 +1,26 @@
 """
 Meta Platform (Facebook Messenger / Instagram) Webhook Handler
-
-This module handles incoming webhooks from Meta's Messenger and Instagram platforms.
-Includes X-Hub-Signature-256 verification for security.
 """
 import json
 import hmac
 import hashlib
 import logging
-import os
-import tempfile
-from concurrent.futures import ThreadPoolExecutor
-
 from django.conf import settings
 from django.http import HttpResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.db import close_old_connections
-from django.core.files import File
 
-from triage.models import ChatSession, ChatMessage
-from .services import report_processor
-from .meta_service import meta_messenger
 from utils.ratelimit import telegram_webhook_ratelimit
 
 logger = logging.getLogger(__name__)
-
-
-# Safe words that immediately stop processing (shared with Telegram)
-SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
-
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(telegram_webhook_ratelimit, name='post')
 class MetaWebhookView(View):
     """
     Unified Webhook for Facebook Messenger and Instagram.
-    
-    Handles:
-    - GET: Verification handshake from Meta
-    - POST: Incoming messages with X-Hub-Signature-256 verification
     """
-    
-    # Worker pool for async message processing (limited for 1GB RAM)
-    _executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="meta_worker")
     
     def get(self, request, *args, **kwargs):
         """
@@ -138,18 +114,18 @@ class MetaWebhookView(View):
         for entry in body.get('entry', []):
             messaging_events = entry.get('messaging', [])
             for event in messaging_events:
-                # Use persistent Huey task
+                # Use persistent Django 6 Native task
                 from triage.tasks import process_meta_event_task
-                process_meta_event_task(event, 'messenger')
+                process_meta_event_task.enqueue(event, 'messenger')
     
     def _process_instagram_events(self, body: dict):
         """Process Instagram webhook events."""
         for entry in body.get('entry', []):
             messaging_events = entry.get('messaging', [])
             for event in messaging_events:
-                # Use persistent Huey task
+                # Use persistent Django 6 Native task
                 from triage.tasks import process_meta_event_task
-                process_meta_event_task(event, 'instagram')
+                process_meta_event_task.enqueue(event, 'instagram')
     
     def _handle_messaging_event(self, event: dict, platform: str):
         """

@@ -96,7 +96,8 @@ class BrevoDispatcher:
             'source': source,
             'timestamp': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
             'safety_check': artifacts.get('safety_check'),
-            'vision_analysis': artifacts.get('vision_analysis')
+            'vision_analysis': artifacts.get('vision_analysis'),
+            'translation': artifacts.get('translation')
         }
         
         html_content = render_to_string('dispatch/forensic_alert.html', context)

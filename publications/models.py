@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
-from django_editorjs2.fields import EditorJSField
+# Removed EditorJSField import for dependency reduction
 
 
 class Category(models.Model):
@@ -56,8 +56,8 @@ class Article(models.Model):
     tags = models.ManyToManyField(Tag, blank=True, related_name='articles')
     intro_image = models.ImageField(upload_to='articles/', blank=True, null=True)
     
-    # Rich Content (Editor.js)
-    content = EditorJSField(
+    # Rich Content (Stored as JSON from Editor.js)
+    content = models.JSONField(
         blank=True,
         null=True
     )
@@ -97,6 +97,45 @@ class Article(models.Model):
             self.meta_title = self.title
         super().save(*args, **kwargs)
     
+    @property
+    def render_as_html(self):
+        """
+        Natively renders Editor.js JSON content to safe HTML.
+        Supports standard blocks: paragraph, header, list, image.
+        """
+        if not self.content:
+            return ""
+        
+        import json
+        from django.utils.safestring import mark_safe
+        
+        try:
+            data = self.content if isinstance(self.content, dict) else json.loads(self.content)
+            blocks = data.get('blocks', [])
+            html_output = []
+            
+            for block in blocks:
+                b_type = block.get('type')
+                b_data = block.get('data', {})
+                
+                if b_type == 'paragraph':
+                    html_output.append(f"<p class='mb-4'>{b_data.get('text', '')}</p>")
+                elif b_type == 'header':
+                    level = b_data.get('level', 2)
+                    html_output.append(f"<h{level} class='font-bold mt-6 mb-2'>{b_data.get('text', '')}</h{level}>")
+                elif b_type == 'list':
+                    tag = 'ul' if b_data.get('style') == 'unordered' else 'ol'
+                    items = "".join([f"<li>{item}</li>" for item in b_data.get('items', [])])
+                    html_output.append(f"<{tag} class='list-inside list-disc mb-4 ml-4'>{items}</{tag}>")
+                elif b_type == 'image':
+                    url = b_data.get('file', {}).get('url', '')
+                    caption = b_data.get('caption', '')
+                    html_output.append(f"<figure class='my-6'><img src='{url}' class='rounded-xl w-full'><figcaption class='text-center text-xs text-gray-500 mt-2'>{caption}</figcaption></figure>")
+            
+            return mark_safe("".join(html_output))
+        except Exception:
+            return ""
+
     @property
     def content_preview(self):
         """Returns a plain text preview of the EditorJS content."""

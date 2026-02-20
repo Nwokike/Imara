@@ -2,8 +2,7 @@ import json
 import logging
 import os
 import tempfile
-import requests
-from concurrent.futures import ThreadPoolExecutor
+import httpx
 
 from django.shortcuts import render, redirect
 from django.views import View
@@ -17,7 +16,7 @@ from django.db import close_old_connections
 from django.utils.html import escape
 
 from triage.models import ChatSession, ChatMessage, UserFeedback
-from triage.decision_engine import DecisionEngine
+from triage.decision_engine import decision_engine
 
 from .services import report_processor
 from .forms import ReportForm, ContactForm
@@ -160,42 +159,28 @@ class ReportFormView(View):
             text = form.cleaned_data.get('message_text')
             image = form.cleaned_data.get('screenshot')
             audio = form.cleaned_data.get('voice_note')
-            name = (form.cleaned_data.get('name') or '').strip() or None
             email = form.cleaned_data.get('email')
-            location = (form.cleaned_data.get('location') or '').strip() or None
+            name = (form.cleaned_data.get('name') or '').strip()
+            location = (form.cleaned_data.get('location') or '').strip()
             
-            if image:
-                result = report_processor.process_image_report(
-                    image_file=image,
-                    source="web",
-                    reporter_email=email,
-                    reporter_name=name or None,
-                    additional_text=text,
-                    location_hint=location
-                )
-            elif audio:
-                result = report_processor.process_audio_report(
-                    audio_file=audio,
-                    source="web",
-                    reporter_email=email,
-                    reporter_name=name or None,
-                    location_hint=location
-                )
-            elif text:
-                result = report_processor.process_text_report(
-                    text=text,
-                    source="web",
-                    reporter_email=email,
-                    reporter_name=name or None,
-                    location_hint=location
-                )
-            else:
-                return render(request, 'intake/report_form.html', {
-                    'form': form,
-                    'error': 'Please provide at least a message, screenshot, or voice note.'
-                })
+            # 1. Create Initial Incident (Atomic)
+            from cases.models import IncidentReport
+            incident = IncidentReport.objects.create(
+                source='web',
+                original_text=text,
+                reporter_email=email,
+                reporter_name=name or None,
+                detected_location=location or None
+            )
             
-            return render(request, 'intake/result.html', {'result': result})
+            # 2. Enqueue Background Analysis (Stateless Pipeline)
+            from triage.tasks import process_web_report_task
+            process_web_report_task.enqueue(incident.pk)
+            
+            return render(request, 'intake/result.html', {
+                'case_id': str(incident.case_id)[:8],
+                'message': "Your report has been received and is being analyzed. You'll receive a confirmation email shortly."
+            })
         
         return render(request, 'intake/report_form.html', {'form': form})
 
@@ -204,8 +189,6 @@ class ResultView(View):
     def get(self, request):
         return redirect('report_form')
 
-
-SAFE_WORDS = ['IMARA STOP', 'STOP', 'CANCEL', 'HELP ME', 'EXIT', 'EMERGENCY']
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(telegram_webhook_ratelimit, name='post')
@@ -222,9 +205,9 @@ class TelegramWebhookView(View):
             data = json.loads(request.body)
             logger.debug(f"Received Telegram update: {data}")
             
-            # Use persistent Huey task for processing
+            # Use persistent Django 6 Native Task for processing
             from triage.tasks import process_telegram_update_task
-            process_telegram_update_task(data)
+            process_telegram_update_task.enqueue(data)
             
             return HttpResponse(status=200)
             

@@ -48,11 +48,19 @@ class ReportProcessor:
         text_evidence.save()
         
         try:
-            result = decision_engine.analyze_text(text)
+            result = decision_engine.web_orchestration(
+                text=text,
+                metadata={
+                    "reporter_email": reporter_email,
+                    "reporter_name": reporter_name,
+                    "perpetrator_info": perpetrator_info
+                }
+            )
             
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score
             incident.action = result.action.lower()
+            incident.forensic_hash = result.forensic_hash # Captured from agent
             final_location = location_hint or result.location
             incident.detected_location = final_location
             result.location = final_location

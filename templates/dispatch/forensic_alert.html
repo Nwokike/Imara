@@ -76,6 +76,9 @@
                     <h3 style="color: #2d3748; margin: 0 0 10px 0; font-size: 14px; text-transform: uppercase;">Agent Reasoning Trail (2026 Pro)</h3>
                     <ul style="margin: 0; padding-left: 20px; color: #4a5568; font-size: 12px; line-height: 1.6;">
                         <li><strong>Sentinel Agent:</strong> {{ safety_check.reasoning|default:'Policy check passed' }}</li>
+                        {% if translation %}
+                        <li><strong>Linguist Agent:</strong> {{ translation|truncatechars:100 }}</li>
+                        {% endif %}
                         <li><strong>Navigator Agent:</strong> Jurisdiction matched to {{ location|default:'Unknown' }}</li>
                         {% if vision_analysis %}
                         <li><strong>Visionary Agent:</strong> OCR extracted {{ vision_analysis.extracted_text|truncatechars:100 }}</li>
