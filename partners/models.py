@@ -87,70 +87,25 @@ class PartnerOrganization(models.Model):
     def find_by_location(cls, location):
         """Find partner organization by jurisdiction/location - cached for 5 minutes"""
         from django.core.cache import cache
-        from partners.constants import AFRICAN_COUNTRIES, COUNTRY_SYNONYMS, CITY_TO_COUNTRY
+        from .utils import normalize_location
         
-        raw = (location or "").strip()
-        normalized = raw.lower().replace("  ", " ").strip()
+        country = normalize_location(location)
+        if country == "Unknown":
+            return None
         
-        # Try to extract country from "City, Country" style inputs
-        country = None
-        if normalized:
-            if "," in normalized:
-                candidate = normalized.split(",")[-1].strip()
-                candidate = COUNTRY_SYNONYMS.get(candidate, candidate)
-                for c in AFRICAN_COUNTRIES:
-                    if c.lower() == candidate:
-                        country = c
-                        break
-            if not country:
-                # Try synonym direct match
-                candidate = COUNTRY_SYNONYMS.get(normalized, normalized)
-                for c in AFRICAN_COUNTRIES:
-                    if c.lower() == candidate:
-                        country = c
-                        break
-            
-            # Check City Mapping (e.g. "I am in Enugu" -> "Nigeria")
-            if not country:
-                for city, mapped_country in CITY_TO_COUNTRY.items():
-                    if city in normalized:
-                        country = mapped_country
-                        break
-            
-            if not country:
-                # Substring detection: if country name appears anywhere in the location text
-                for c in AFRICAN_COUNTRIES:
-                    if c.lower() in normalized:
-                        country = c
-                        break
-        
-        cache_key = f'partner_org_{(country or normalized or "default").lower().replace(" ", "_")}'
+        cache_key = f'partner_org_{country.lower().replace(" ", "_")}'
         cached = cache.get(cache_key)
         if cached is not None:
             return cached
         
-        if not normalized:
-            # Do NOT default to random partner. Unknown location should fail lookup.
-            return None
-        else:
-            if country:
-                partner = cls.objects.filter(
-                    is_active=True,
-                    is_verified=True,
-                    jurisdiction__iexact=country
-                ).order_by('name').first()
-            else:
-                # Fallback: loose match
-                partner = cls.objects.filter(
-                    is_active=True,
-                    is_verified=True,
-                    jurisdiction__icontains=normalized
-                ).order_by('name').first()
-            
-            # If still no partner, return None. Do not default to first available.
-            return partner
+        partner = cls.objects.filter(
+            is_active=True,
+            is_verified=True,
+            jurisdiction__iexact=country
+        ).order_by('name').first()
         
-        cache.set(cache_key, partner, 300)
+        if partner:
+            cache.set(cache_key, partner, 300)
         return partner
 
 
@@ -258,4 +213,37 @@ class PartnerInvite(models.Model):
     @property
     def is_valid(self):
         return not self.is_accepted and not self.is_expired
+
+
+class CaseNote(models.Model):
+    """Human-authored notes for an incident report."""
+    case = models.ForeignKey('cases.IncidentReport', on_delete=models.CASCADE, related_name='partner_notes')
+    author = models.ForeignKey(PartnerUser, on_delete=models.SET_NULL, null=True)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Note by {self.author} on {self.case.case_id}"
+
+
+class PartnerAuditLog(models.Model):
+    """Audit log for critical partner actions."""
+    ACTION_CHOICES = [
+        ('CLAIM', 'Claimed Case'),
+        ('STATUS_CHANGE', 'Changed Status'),
+        ('MEMBER_REMOVE', 'Removed Team Member'),
+        ('ROLE_CHANGE', 'Updated Member Role'),
+    ]
+    
+    organization = models.ForeignKey(PartnerOrganization, on_delete=models.CASCADE, related_name='audit_logs')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    details = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
 

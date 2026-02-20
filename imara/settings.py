@@ -167,8 +167,8 @@ STORAGES = {
         },
     },
     "staticfiles": {
-        # Use CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # Use CompressedManifestStaticFilesStorage for long-term browser caching via hashes
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 

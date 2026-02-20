@@ -29,7 +29,7 @@
                         <span class="font-mono text-sm text-gray-500">#{{ case.case_id|truncatechars:12 }}</span>
                         <span
                             class="px-2 py-0.5 text-xs font-bold rounded-full {% if case.risk_score >= 8 %}bg-red-100 text-red-800{% elif case.risk_score >= 5 %}bg-yellow-100 text-yellow-800{% else %}bg-green-100 text-green-800{% endif %}">
-                            Risk: {{ case.risk_score }}/10
+                            {% if case.risk_score >= 8 %}CRITICAL{% elif case.risk_score >= 6 %}HIGH{% elif case.risk_score >= 4 %}MEDIUM{% else %}LOW{% endif %}: {{ case.risk_score }}/10
                         </span>
                         {% if case.detected_location %}
                         <span class="text-xs text-gray-500">

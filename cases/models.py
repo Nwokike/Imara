@@ -83,7 +83,25 @@ class IncidentReport(models.Model):
         return f"Case {self.case_id} - {self.get_source_display()} - {self.get_action_display()}"
     
     def generate_chain_hash(self):
-        content = f"{self.case_id}{self.original_text or ''}{self.transcribed_text or ''}{self.extracted_text or ''}{self.created_at.isoformat()}"
+        """
+        Generates a forensic-grade SHA-256 hash representing the immutable state
+        of this report and all its attached evidence assets.
+        """
+        # Collect digests of all evidence assets
+        asset_digests = "".join(
+            self.evidence_assets.order_by('created_at').values_list('sha256_digest', flat=True)
+        )
+        
+        # Salt with unique ID and core metadata
+        content = (
+            f"{self.case_id}"
+            f"{asset_digests}"
+            f"{self.original_text or ''}"
+            f"{self.transcribed_text or ''}"
+            f"{self.extracted_text or ''}"
+            f"{self.created_at.isoformat() if self.created_at else ''}"
+        )
+        
         self.chain_hash = hashlib.sha256(content.encode()).hexdigest()
         return self.chain_hash
     

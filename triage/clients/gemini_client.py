@@ -101,32 +101,27 @@ class GeminiClient:
         if not self.is_available:
             return self._get_fallback_analysis()
         
-        f = None
-        should_close = False
         try:
             if isinstance(image_file_or_path, str):
-                f = open(image_file_or_path, 'rb')
-                should_close = True
-                if not mime_type:
-                    mime_type = self._get_mime_type(image_file_or_path)
+                with open(image_file_or_path, 'rb') as f:
+                    image_bytes = f.read()
+                    if not mime_type:
+                        mime_type = self._get_mime_type(image_file_or_path)
             else:
                 f = image_file_or_path
                 if hasattr(f, 'seek'):
                     f.seek(0)
+                image_bytes = f.read()
                 if not mime_type:
                     mime_type = "image/jpeg"
             
-            image_bytes = f.read()
             return self.analyze_image_bytes(image_bytes, mime_type)
             
         except FileNotFoundError:
-            raise GeminiClientError(f"Image file not found: {image_file_or_path}")
+            raise GeminiClientError(f"Image file not found")
         except Exception as e:
             raise GeminiClientError(f"Failed to process image: {e}")
-        finally:
-            if should_close and f:
-                f.close()
-    
+
     def analyze_image_bytes(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> ImageAnalysis:
         if not self.is_available:
             return self._get_fallback_analysis()
@@ -167,10 +162,10 @@ You MUST respond with valid JSON only."""
 Respond with this exact JSON structure:
 {
     "risk_score": <1-10>,
-    "action": "ADVISE" or "REPORT",
+    "action": "ADVISE" or "REPORT" or "ASK_LOCATION",
     "location": "<extracted location or 'Unknown'>",
     "summary": "<brief 1-sentence summary of the threat>",
-    "advice": "<helpful advice if action is ADVISE, null if REPORT>",
+    "advice": "<helpful advice if action is ADVISE, null otherwise>",
     "threat_type": "<type: insult/harassment/threat/doxing/blackmail/stalking/other>",
     "extracted_text": "<all text extracted from the image>"
 }"""

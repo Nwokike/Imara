@@ -7,9 +7,41 @@ from django_huey import periodic_task
 from huey import crontab
 
 from .models import ChatMessage, ChatSession, UserFeedback
+from django_huey import task, periodic_task
 
 logger = logging.getLogger(__name__)
 
+@task(queue='dispatch')
+def process_telegram_update_task(data):
+    """Async processing of Telegram updates via persistent queue."""
+    try:
+        from intake.webhook_service import TelegramProcessor
+        from django.db import close_old_connections
+        close_old_connections()
+        
+        processor = TelegramProcessor()
+        processor.process_update(data)
+    except Exception as e:
+        logger.error(f"Telegram task failed: {e}")
+    finally:
+        from django.db import close_old_connections
+        close_old_connections()
+
+@task(queue='dispatch')
+def process_meta_event_task(event, platform):
+    """Async processing of Meta (Messenger/Instagram) events via persistent queue."""
+    try:
+        from intake.webhook_service import MetaProcessor
+        from django.db import close_old_connections
+        close_old_connections()
+        
+        processor = MetaProcessor()
+        processor.handle_messaging_event(event, platform)
+    except Exception as e:
+        logger.error(f"Meta task failed: {e}")
+    finally:
+        from django.db import close_old_connections
+        close_old_connections()
 
 @periodic_task(crontab(hour=4, minute=15))
 def triage_retention_cleanup_task():

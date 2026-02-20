@@ -235,48 +235,39 @@ class ConversationEngine:
     ) -> ConversationResponse:
         """
         Process a user message within a conversation session.
-        
-        Args:
-            session: ChatSession instance
-            user_message: The user's message text
-            message_type: Type of message (text, image, voice, etc.)
-        
-        Returns:
-            ConversationResponse with the AI's response and state updates
         """
         try:
-            # Build conversation history for context (last 15 messages with timestamps)
+            from utils.safety import sanitize_text
+            sanitized_message = sanitize_text(user_message)
+            
+            # Build conversation history for context
             conversation_history = session.get_messages_for_llm(limit=15)
             
-            # Add current user message (without timestamp - it's "now")
+            # Add current user message
             conversation_history.append({
                 'role': 'user',
-                'content': user_message
+                'content': sanitized_message
             })
             
             # Build rich context for AI
             context_parts = []
             
-            # Include gathered evidence if any
             if session.gathered_evidence:
                 context_parts.append(f"GATHERED EVIDENCE SO FAR:\n{json.dumps(session.gathered_evidence, indent=2)}")
             
-            # Include current state
             context_parts.append(f"CURRENT CONVERSATION STATE: {session.conversation_state}")
             
-            # Include user's known info
             if session.last_detected_location:
                 context_parts.append(f"USER'S KNOWN LOCATION: {session.last_detected_location}")
             if session.language_preference:
                 context_parts.append(f"USER'S LANGUAGE: {session.language_preference}")
             
-            # Include conversation history summary for past context
             history_summary = session.get_conversation_history_summary()
             context_parts.append(f"\n{history_summary}")
             
             additional_context = "\n\n".join(context_parts)
             
-            # Make API call
+            # Make API call via GroqClient
             response = self._call_llm(
                 conversation_history,
                 additional_context
@@ -287,8 +278,8 @@ class ConversationEngine:
         except Exception as e:
             logger.error(f"Conversation engine error: {e}")
             return ConversationResponse(
-                message="I'm having a moment of trouble. Please try again, or if it's urgent, type HELP for emergency resources.",
-                state=ConversationState.IDLE,
+                message="I'm here for you 💜 Can you tell me what's happening? I'm listening.",
+                state=ConversationState.GATHERING,
                 error=str(e)
             )
     
@@ -297,12 +288,8 @@ class ConversationEngine:
         messages: List[Dict[str, str]],
         additional_context: str = ""
     ) -> ConversationResponse:
-        """Call the LLM with conversation history."""
-        import requests
-        import os
-        
-        api_key = os.environ.get('GROQ_API_KEY')
-        if not api_key:
+        """Call the LLM with conversation history using GroqClient."""
+        if not self.groq_client.is_available:
             return self._get_fallback_response()
         
         system_prompt = CONVERSATIONAL_SYSTEM_PROMPT + additional_context
@@ -312,26 +299,21 @@ class ConversationEngine:
         ] + messages
         
         try:
-            response = requests.post(
+            # Use GroqClient's retry logic and standard configuration
+            payload = {
+                "model": getattr(settings, 'GROQ_MODEL', 'llama-3.3-70b-versatile'),
+                "messages": full_messages,
+                "temperature": 0.3,
+                "max_tokens": 800,
+                "response_format": {"type": "json_object"}
+            }
+            
+            result = self.groq_client._make_request_with_retry(
                 "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile'),
-                    "messages": full_messages,
-                    "temperature": 0.3,  # Slightly more creative for conversation
-                    "max_tokens": 800,
-                    "response_format": {"type": "json_object"}
-                },
-                timeout=30
+                payload
             )
-            response.raise_for_status()
             
-            result = response.json()
             content = result.get('choices', [{}])[0].get('message', {}).get('content', '')
-            
             return self._parse_llm_response(content)
             
         except Exception as e:

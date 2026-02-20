@@ -7,7 +7,7 @@ from django.views.generic import TemplateView
 from .sitemaps import sitemaps
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('imara-admin/', admin.site.urls),
     path('', include('intake.urls')),
     path('cases/', include('cases.urls')),
     path('partners/', include('partners.urls')),

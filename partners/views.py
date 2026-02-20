@@ -138,7 +138,17 @@ class ClaimCaseView(PartnerRequiredMixin, View):
             
             # Claim the case
             case.assigned_partner = org
-            case.save(update_fields=['assigned_partner'])
+            case.status = 'CLAIMED'
+            case.save(update_fields=['assigned_partner', 'status'])
+            
+            # Audit log
+            from .models import PartnerAuditLog
+            PartnerAuditLog.objects.create(
+                organization=org,
+                user=request.user,
+                action='CLAIM',
+                details=f"Claimed case #{case.case_id}"
+            )
         
         messages.success(request, f"Case #{case.case_id} has been claimed by {org.name}.")
         return redirect('partners:dashboard')
@@ -352,26 +362,29 @@ class PartnerCaseDetailView(PartnerRequiredMixin, View):
         )
         
         new_status = request.POST.get('status')
-        notes = request.POST.get('notes', '').strip()
+        notes_text = request.POST.get('notes', '').strip()
         
         if new_status and new_status in dict(IncidentReport.status.field.choices):
-            case.status = new_status
+            old_status = case.status
+            if old_status != new_status:
+                case.status = new_status
+                # Audit log
+                from .models import PartnerAuditLog
+                PartnerAuditLog.objects.create(
+                    organization=org,
+                    user=request.user,
+                    action='STATUS_CHANGE',
+                    details=f"Case #{case.case_id} status changed from {old_status} to {new_status}"
+                )
         
-        # Add notes to AI analysis JSON (appending to existing)
-        if notes:
-            if case.ai_analysis is None:
-                case.ai_analysis = {}
-            
-            if 'partner_notes' not in case.ai_analysis:
-                case.ai_analysis['partner_notes'] = []
-            
-            from django.utils import timezone
-            case.ai_analysis['partner_notes'].append({
-                'user': request.user.username,
-                'org': org.name,
-                'note': notes,
-                'timestamp': timezone.now().isoformat()
-            })
+        # Add human note
+        if notes_text:
+            from .models import CaseNote
+            CaseNote.objects.create(
+                case=case,
+                author=partner_profile,
+                text=notes_text
+            )
         
         case.save()
         messages.success(request, "Case updated successfully.")
@@ -568,8 +581,19 @@ class UpdateMemberRoleView(AdminRequiredMixin, View):
         
         new_role = request.POST.get('role')
         if new_role in dict(PartnerUser.Role.choices):
+            old_role = member.role
             member.role = new_role
             member.save()
+            
+            # Audit log
+            from .models import PartnerAuditLog
+            PartnerAuditLog.objects.create(
+                organization=org,
+                user=request.user,
+                action='ROLE_CHANGE',
+                details=f"Updated {member.user.username} role from {old_role} to {new_role}"
+            )
+            
             messages.success(request, f"{member.user.get_full_name() or member.user.username}'s role updated to {member.get_role_display()}.")
         
         return redirect('partners:team')
@@ -591,6 +615,15 @@ class RemoveMemberView(AdminRequiredMixin, View):
         # Deactivate (soft delete to preserve history)
         member.is_active = False
         member.save()
+        
+        # Audit log
+        from .models import PartnerAuditLog
+        PartnerAuditLog.objects.create(
+            organization=org,
+            user=request.user,
+            action='MEMBER_REMOVE',
+            details=f"Removed member {member.user.username}"
+        )
         
         messages.success(request, f"{member.user.get_full_name() or member.user.username} has been removed from the team.")
         return redirect('partners:team')

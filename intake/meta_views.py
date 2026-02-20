@@ -138,15 +138,18 @@ class MetaWebhookView(View):
         for entry in body.get('entry', []):
             messaging_events = entry.get('messaging', [])
             for event in messaging_events:
-                # Submit to background worker for async processing
-                self._executor.submit(self._handle_messaging_event, event, 'messenger')
+                # Use persistent Huey task
+                from triage.tasks import process_meta_event_task
+                process_meta_event_task(event, 'messenger')
     
     def _process_instagram_events(self, body: dict):
         """Process Instagram webhook events."""
         for entry in body.get('entry', []):
             messaging_events = entry.get('messaging', [])
             for event in messaging_events:
-                self._executor.submit(self._handle_messaging_event, event, 'instagram')
+                # Use persistent Huey task
+                from triage.tasks import process_meta_event_task
+                process_meta_event_task(event, 'instagram')
     
     def _handle_messaging_event(self, event: dict, platform: str):
         """

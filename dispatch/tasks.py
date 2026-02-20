@@ -16,15 +16,10 @@ logger = logging.getLogger(__name__)
 
 BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-@task(queue='dispatch')
+@task(queue='dispatch', retries=3, retry_delay=60)
 def send_email_task(payload, dispatch_log_id=None, incident_id=None):
     """
-    Background task to send email via Brevo API.
-    
-    Args:
-        payload: Email payload dict (sender, to, subject, htmlContent)
-        dispatch_log_id: Optional DispatchLog ID to update with result
-        incident_id: Optional IncidentReport ID (used if dispatch_log_id not provided)
+    Background task to send email via Brevo API with automatic retries.
     """
     api_key = getattr(settings, 'BREVO_API_KEY', None)
     if not api_key:

@@ -186,18 +186,9 @@ class ReportProcessor:
             evidence.sha256_digest = file_hash
             evidence.save()
             
-            # For AI analysis, we might need bytes if the client requires it.
-            # However, for 1GB RAM, we should ideally pass a path or stream if the client supports it.
-            # If the client strictly requires bytes, we are limited, but at least we saved safely.
-            # Current Google GenAI client often works with paths or bytes. 
-            # We will read bytes here ONLY if necessary for the specific AI client call that follows,
-            # but ideally we should refactor the decision engine to accept paths/streams too.
-            # For now, we unfortunately have to read it back for the current DecisionEngine signature,
-            # BUT we have secured the saving/hashing part.
-            image_file.seek(0)
-            image_bytes = image_file.read() 
-            
-            result = decision_engine.analyze_image_bytes(image_bytes, mime_type)
+            # Analyze using the saved file object (streams from storage/disk)
+            with evidence.file.open('rb') as f:
+                result = decision_engine.analyze_image(f, mime_type)
             
             incident.ai_analysis = result.to_dict()
             incident.risk_score = result.risk_score

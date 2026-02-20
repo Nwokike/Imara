@@ -87,9 +87,40 @@ class Article(models.Model):
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
+        
+        # Auto-set published_at
+        if self.status == 'published' and not self.published_at:
+            from django.utils import timezone
+            self.published_at = timezone.now()
+            
         if not self.meta_title:
             self.meta_title = self.title
         super().save(*args, **kwargs)
+    
+    @property
+    def content_preview(self):
+        """Returns a plain text preview of the EditorJS content."""
+        if not self.content:
+            return ""
+        
+        import json
+        try:
+            # Handle if content is already a dict or a string
+            data = self.content if isinstance(self.content, dict) else json.loads(self.content)
+            blocks = data.get('blocks', [])
+            text_parts = []
+            for block in blocks:
+                if block.get('type') == 'paragraph':
+                    text_parts.append(block.get('data', {}).get('text', ''))
+                elif block.get('type') == 'header':
+                    text_parts.append(block.get('data', {}).get('text', ''))
+            
+            # Strip HTML tags from EditorJS text
+            import re
+            full_text = " ".join(text_parts)
+            return re.sub('<[^<]+?>', '', full_text)
+        except Exception:
+            return ""
     
     def get_related_articles(self, limit=3):
         """Get related articles based on shared tags or category."""

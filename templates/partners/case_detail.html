@@ -85,17 +85,28 @@
             {% endif %}
 
             <!-- Partner Notes -->
-            {% if case.ai_analysis.partner_notes %}
+            {% if case.partner_notes.exists or case.ai_analysis.partner_notes %}
             <div class="glass-panel p-6">
                 <h2 class="text-lg font-bold text-imara-deep dark:text-imara-cream mb-4 flex items-center">
                     <i class="bi bi-journal-text mr-2 text-imara-gold"></i> Investigation Notes
                 </h2>
                 <div class="space-y-4">
-                    {% for note in case.ai_analysis.partner_notes %}
+                    <!-- New semantic notes -->
+                    {% for note in case.partner_notes.all %}
                     <div class="border-l-4 border-imara-gold pl-4 py-2">
+                        <p class="text-gray-700 dark:text-gray-300">{{ note.text }}</p>
+                        <p class="text-xs text-gray-400 mt-2">
+                            {{ note.author.user.get_full_name|default:note.author.user.username }} @ {{ note.author.organization.name }} • {{ note.created_at|date:"M d, Y H:i" }}
+                        </p>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Legacy JSON notes -->
+                    {% for note in case.ai_analysis.partner_notes %}
+                    <div class="border-l-4 border-gray-300 pl-4 py-2 opacity-75">
                         <p class="text-gray-700 dark:text-gray-300">{{ note.note }}</p>
                         <p class="text-xs text-gray-400 mt-2">
-                            {{ note.user }} @ {{ note.org }} • {{ note.timestamp }}
+                            {{ note.user }} @ {{ note.org }} • {{ note.timestamp }} (Legacy)
                         </p>
                     </div>
                     {% endfor %}
