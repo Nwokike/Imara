@@ -174,7 +174,7 @@ def process_web_report_task(incident_id: int):
         incident.save()
         
         # 1. Dispatch to partner if needed
-        dispatch_result = {"success": False}
+        dispatch_result = {"success": False, "partner_name": "Support Partner", "partner_email": ""}
         if result.should_report:
             dispatch_result = report_processor._dispatch_to_partner(incident, result, incident.original_text)
             

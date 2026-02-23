@@ -346,7 +346,7 @@
 
     /* ===== PLATFORM CARDS ===== */
     .platform-card-main {
-        @apply block glass-panel p-6 text-center transition-all duration-300;
+        @apply flex flex-col h-full glass-panel p-6 text-center transition-all duration-300;
     }
 
     .platform-card-main:hover {

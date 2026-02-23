@@ -18,15 +18,14 @@
 </head>
 
 <body>
-    <div class="error-container">
-        <img src="{% static 'images/logo.png' %}" alt="Imara" class="logo-static">
-        <div class="error-card">
-            <i class="bi bi-exclamation-triangle-fill error-icon" style="color: #ef4444;"></i>
-            <span class="status-code">Error 500</span>
-            <h1>Server Error</h1>
-            <p>Something went wrong on our end. We've been notified and are looking into it. Please try again later.</p>
-            <a href="/" class="btn-home">Return Home</a>
-        </div>
+    <div class="error-card">
+        <img src="{% static 'images/logo.png' %}" alt="Imara" class="error-logo">
+        <div class="error-code error-code-red">500</div>
+        <h1 class="error-title">Server Error</h1>
+        <p class="error-text">Something went wrong on our end. We've been notified and are looking into it. Please try again later.</p>
+        <a href="/" class="btn-error">
+            <i class="bi bi-house"></i> Go Home
+        </a>
     </div>
 </body>
 
