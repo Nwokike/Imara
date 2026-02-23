@@ -37,17 +37,49 @@ def process_telegram_update_task(data: dict):
         if session.is_cancelled():
             return
 
+        # 1. Deliver Initial 'Thinking' Indicator
+        thinking_msg_id = processor.send_message_sync(chat_id, "💭 Aunty Imara is listening...")
+
+        def on_agent_step(agent_name, detail):
+            processor.edit_message_sync(chat_id, thinking_msg_id, f"💭 {agent_name} Agent: {detail}")
+
         text = message.get('text') or message.get('caption') or ""
-        history = session.get_messages_for_llm(limit=10)
+        photo = message.get('photo')
+        voice = message.get('voice') or message.get('audio')
         
-        # 1. Pipeline through Orchestrator (Chat Pipeline)
+        image_path = None
+        
+        # 1. Handle Media Pre-processing
+        if photo:
+            on_agent_step("Visionary", "Downloading screenshot...")
+            image_path, _ = processor.download_file(max(photo, key=lambda p: p.get('file_size', 0)).get('file_id'))
+        elif voice:
+            on_agent_step("Linguist", "Transcribing voice note...")
+            audio_path, _ = processor.download_file(voice.get('file_id'))
+            if audio_path:
+                try:
+                    from triage.clients.groq_client import get_groq_client
+                    text = f"[Voice Note]: {get_groq_client().transcribe_audio(audio_path)}"
+                finally:
+                    if os.path.exists(audio_path): os.remove(audio_path)
+
+        # 2. Pipeline through Orchestrator (Chat Pipeline)
         result = decision_engine.chat_orchestration(
             text, 
-            history=history,
-            metadata={"last_interaction_age": session.get_last_interaction_age()}
+            history=session.get_messages_for_llm(limit=10),
+            image_url=image_path,
+            metadata={
+                "last_interaction_age": session.get_last_interaction_age(),
+                "chat_id": chat_id
+            },
+            on_step=on_agent_step
         )
         
-        # 2. Deliver Agent Response
+        # 3. Cleanup & Delivery
+        if image_path and os.path.exists(image_path):
+            os.remove(image_path)
+            
+        processor.delete_message_sync(chat_id, thinking_msg_id)
         processor.send_result(chat_id, result, session)
 
     except Exception as e:

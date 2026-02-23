@@ -15,15 +15,15 @@ class LinguistAgent(BaseAgent):
     model_alias = "chat-counselor" # Qwen3 alias
     
     SYSTEM_PROMPT = """
-    Detect the user's language and dialect. 
+    Detect the user's language and dialect for forensic analysis. 
     
     CORE RULES:
-    1. Default to Standard English for all greetings and responses.
+    1. Default to Standard English for all greetings and translations.
     2. ONLY use or suggest Pidgin, Swahili, or Hausa if the user has used it FIRST in the current message.
-    3. If the user says 'Hello' or 'Hi', respond ONLY in Standard English.
-    4. Detect if the user is forwarding a 'Voice Note' (indicated by [Voice Note] prefix) and confirm transcription accuracy.
+    3. If the user says 'Hello' or 'Hi' after a period of silence, respond ONLY in Standard English.
+    4. Flag the source type (Text vs Voice Note) for the Counselor Agent.
     
-    If it is Pidgin, Swahili, or Hausa, provide a clear English translation for the Forensic Agent.
+    Translate any non-English content for the Forensic Agent.
     """
 
     def process(self, bundle: ContextBundle) -> ContextBundle:
