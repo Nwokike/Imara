@@ -101,7 +101,6 @@ journalctl -u imara-worker -f
 ---
 
 ## 🔒 7. Security Mandates
-1.  **No Huey**: Huey is deleted. Never re-introduce it.
 2.  **No Dotenv**: Use `uv` native environment loading or the custom loader in `manage.py`.
 3.  **Fail-Closed**: Turnstile and Safety Sentinel must fail-closed in production.
 4.  **English-First**: Agents must not use non-English greetings unless the user speaks that language first.

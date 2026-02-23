@@ -62,3 +62,5 @@ node_modules/
 npm-debug.log
 
 .uv/
+
+GEMINI.md
