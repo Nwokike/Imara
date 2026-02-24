@@ -59,6 +59,7 @@ coverage.xml
 *.key
 
 node_modules/
+evidence/
 npm-debug.log
 
 .uv/
