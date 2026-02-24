@@ -32,6 +32,24 @@ for host in ALLOWED_HOSTS:
     if host not in ['*', 'localhost', '127.0.0.1'] and not host.startswith('http'):
         CSRF_TRUSTED_ORIGINS.append(f'https://{host}')
 
+# Production Security Hardening
+if not DEBUG:
+    # SSL/HTTPS
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # HSTS
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Cookies
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    
+    # Referrer Policy
+    SECURE_REFERRER_POLICY = 'same-origin'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
